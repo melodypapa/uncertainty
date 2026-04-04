@@ -381,3 +381,24 @@ Before proceeding with requirements generation, verify:
 - [ ] No vague terms (fast, good, adequate) - use measurable metrics
 
 **Any red flag? Fix before proceeding.**
+
+## Error Handling
+
+| Error Type | Handling Strategy |
+|------------|-------------------|
+| Large codebase | Ask user to specify scope (files, directories, modules) |
+| Ambiguous requirements | Ask clarifying questions to disambiguate |
+| Missing context | Request related files, documentation, or user input |
+| Unknown language | Ask user to specify language or provide guidance |
+| Output generation failure | Retry with alternative format, ask user for preference |
+| DOORS import issues | Verify CSV format, encoding, column structure |
+| File not found | Check file path, ask user to verify location |
+| Unreadable code | Ask for clarification, simplified description |
+
+### Handling Large Codebases
+
+When codebase is too large:
+1. Ask user: "Which files/directories should I analyze?"
+2. Offer scope options: specific files, modules, or full scan
+3. Process in batches if needed
+4. Provide progress updates for large analyses
