@@ -94,3 +94,68 @@ Following ISO/IEC/IEEE 29148:2018 standard sections:
 - Non-Functional: Performance, security, reliability, usability
 - Interface: APIs, UI, hardware integration
 - Data: Data models, storage, validation rules
+
+## Reverse Engineering: Code to Requirements
+
+Extract requirements from existing code implementation by analyzing code structure and semantics.
+
+### Language-Specific Analysis Patterns
+
+**Python:**
+- Functions → Functional requirements
+- Classes and methods → System behavior
+- Decorators (e.g., `@app.route`) → Interface requirements
+- Type hints → Data requirements
+- Exception handling → Error behavior requirements
+
+**JavaScript/TypeScript:**
+- Functions → Functional requirements
+- Classes and interfaces → System structure
+- Type definitions → Data requirements
+- Export statements → Module interface requirements
+- Async/await → Concurrency requirements
+
+**Go:**
+- Functions → Functional requirements
+- Structs and interfaces → Data and interface requirements
+- Packages → Module organization
+- Error handling patterns → Error behavior requirements
+- Go tags → Validation requirements
+
+**Java:**
+- Classes and methods → Functional requirements
+- Interfaces → Contract requirements
+- Annotations → Metadata and validation
+- Exception classes → Error handling requirements
+- Packages → Module structure
+
+**C/C++:**
+- Functions → Functional requirements
+- Structs and classes → Data requirements
+- Header files → Interface requirements
+- Preprocessor directives → Conditional compilation requirements
+
+### Process
+
+1. **Detect language** from file extensions (.py, .js, .ts, .go, .java, .c, .cpp, .h)
+2. **Analyze code structure**: identify functions, classes, interfaces
+3. **Extract semantics**: understand what code does, not just syntax
+4. **Classify by ISO 29148 sections**: map code patterns to requirement types
+5. **Generate verification criteria**: define how to verify each requirement
+
+### Example
+
+Input code (Python):
+```python
+def authenticate_user(username: str, password: str) -> bool:
+    """Authenticate user against LDAP server."""
+    # LDAP authentication logic
+    return True
+```
+
+Output requirement:
+- ID: REQ-001
+- Type: Functional
+- Text: System shall authenticate users against LDAP server using username and password
+- Verification: Verify successful authentication with valid LDAP credentials
+- Source: src/auth.py:authenticate_user
