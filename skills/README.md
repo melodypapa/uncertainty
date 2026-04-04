@@ -101,3 +101,18 @@ Run `/superpowers:writing-skills` for complete documentation on skill creation i
 - Skill spec: https://agentskills.io/specification
 - Test methodology: @superpowers/marketplace/superpowers/5.0.6/skills/writing-skills/testing-skills-with-subagents.md
 - Graphviz conventions: @superpowers/marketplace/superpowers/5.0.6/skills/writing-skills/graphviz-conventions.dot
+
+## Available Skills
+
+### sync-req
+
+Generate ISO/IEC/IEEE 29148:2018 compliant software requirements from code implementation or manual entry.
+
+**Features:**
+- Reverse engineering: Extract requirements from code
+- Forward engineering: Create requirements from scratch
+- Multi-format output: Markdown, Excel, DOORS-compatible CSV
+- Multi-language support: Python, JavaScript/TypeScript, Go, Java, C/C++
+
+**Usage:**
+When you need to create requirements specifications, document what code implements, or generate DOORS import files, Claude will automatically invoke this skill.

@@ -1,0 +1,5 @@
+ID,Text,Type,Priority,Status,Verification,Parent_ID,Source,Rationale
+REQ-001,"The system shall provide user authentication via username and password",Functional,Critical,Draft,"Verify login works with valid credentials",,src/auth/login.py,"Security requirement"
+REQ-002,"Authentication response time shall be less than 2 seconds",Non-Functional,High,Draft,"Measure login API response time under load",,"Performance requirement"
+REQ-003,"System shall expose REST API endpoints for user management",Interface,Medium,Draft,"Test API endpoints return valid responses",,src/api/users.py,"External client integration"
+REQ-004,"User data shall be persisted in PostgreSQL database",Data,Critical,Draft,"Verify data is stored and retrievable from database",,src/db/models.py,"Data persistence requirement"
