@@ -667,3 +667,17 @@ REQ-008,"AuthenticationService shall provide authenticate(username, password) me
 REQ-009,"Username and password shall be strings, with username used in LDAP DN format uid={username},{base_dn}.",Data,Critical,Draft,"Verify string type checking and proper DN construction in authentication.",,"src/auth.py:type hints, authenticate","Input validation"
 REQ-010,"System shall cache failed attempt counts and timestamps using username as dictionary key.",Data,Medium,Draft,"Verify _attempts_cache structure stores (count, timestamp) tuples.",,"src/auth.py:_attempts_cache","State management"
 ```
+
+## Related
+
+For requirements specification workflows:
+- **Writing-plans skill**: Create implementation plans from requirements
+- **Brainstorming skill**: Explore design before requirements
+- **Test-driven-development skill**: Verify requirements with tests
+
+## References
+
+- **ISO/IEC/IEEE 29148:2018**: Systems and software engineering — Life cycle processes — Requirements engineering
+- **DOORS documentation**: IBM Rational DOORS CSV import format
+- **Skills specification**: https://agentskills.io/specification
+- **Skill creation guidelines**: See superpowers:writing-skills for TDD approach to documentation
