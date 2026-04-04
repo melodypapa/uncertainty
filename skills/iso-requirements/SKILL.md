@@ -44,3 +44,35 @@ digraph when_flowchart {
 - Simple code summaries without ISO structure
 - Non-technical documentation
 - Requirements outside software engineering scope
+
+## Core Workflow
+
+```dot
+digraph core_workflow {
+    "Start" [shape=doublecircle];
+    "Input method?" [shape=diamond];
+    "Analyze code" [shape=box];
+    "Manual entry" [shape=box];
+    "Extract requirements" [shape=box];
+    "Format output?" [shape=diamond];
+    "Markdown" [shape=box];
+    "Excel" [shape=box];
+    "CSV (DOORS)" [shape=box];
+    "Complete" [shape=doublecircle];
+
+    "Start" -> "Input method?";
+    "Input method?" -> "Analyze code" [label="From code"];
+    "Input method?" -> "Manual entry" [label="From scratch"];
+    "Analyze code" -> "Extract requirements";
+    "Manual entry" -> "Extract requirements";
+    "Extract requirements" -> "Format output?";
+    "Format output?" -> "Markdown" [label=".md"];
+    "Format output?" -> "Excel" [label=".xlsx"];
+    "Format output?" -> "CSV (DOORS)" [label=".csv"];
+    "Markdown" -> "Complete";
+    "Excel" -> "Complete";
+    "CSV (DOORS)" -> "Complete";
+}
+```
+
+**Critical flow:** Always determine input method first, then extract requirements, finally format output. Do not skip classification or verification steps.
