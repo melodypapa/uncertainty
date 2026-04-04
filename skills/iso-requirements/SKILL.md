@@ -159,3 +159,36 @@ Output requirement:
 - Text: System shall authenticate users against LDAP server using username and password
 - Verification: Verify successful authentication with valid LDAP credentials
 - Source: src/auth.py:authenticate_user
+
+## Forward Engineering: Manual Entry
+
+Create new requirements from scratch based on user stories, business requirements, or stakeholder input.
+
+### Process
+
+1. **Gather inputs**: user stories, business requirements, stakeholder requests
+2. **Identify scope**: define system boundaries and constraints
+3. **Extract requirements**: translate business language to technical requirements
+4. **Classify by ISO 29148 sections**: categorize each requirement
+5. **Define verification criteria**: specify acceptance criteria
+6. **Assign metadata**: priority, status, rationale
+
+### Guiding Questions
+
+Ask users these questions to elicit complete requirements:
+
+- **Functional**: What should the system do? What are the core features?
+- **Non-Functional**: What are performance targets? Security requirements? Reliability needs?
+- **Interface**: Does the system integrate with external systems? What are the APIs?
+- **Data**: What data needs to be stored? How should it be validated?
+- **Verification**: How will we know this requirement is met?
+
+### Example
+
+Input: "Users need to log in quickly and securely"
+
+Elaborated requirements:
+- REQ-001 (Functional): System shall support user authentication with username and password
+- REQ-002 (Non-Functional): Authentication response time shall be less than 2 seconds under normal load
+- REQ-003 (Non-Functional): Passwords shall be hashed using bcrypt with minimum 12 rounds
+- REQ-004 (Functional): System shall lock account after 5 failed login attempts
