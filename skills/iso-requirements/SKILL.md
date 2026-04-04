@@ -268,3 +268,38 @@ Example line:
 ```csv
 REQ-001,"System shall authenticate users via username and password",Functional,Critical,Draft,"Verify login with valid credentials",,src/auth.py,"Security"
 ```
+
+## DOORS CSV Format Specification
+
+DOORS (Dynamic Object Oriented Requirements System) import requires specific CSV structure.
+
+### Required Columns
+
+| Column | Format | Example |
+|--------|--------|---------|
+| `ID` | REQ-### format | REQ-001 |
+| `Text` | Full requirement description | "System shall authenticate users" |
+| `Type` | Functional/Non-Functional/Interface/Data | Functional |
+| `Priority` | Critical/High/Medium/Low | Critical |
+| `Status` | Draft/Approved/Implemented/Rejected | Draft |
+| `Verification` | Acceptance criteria | "Verify login with valid credentials" |
+
+### Optional Columns
+
+| Column | Format | Example |
+|--------|--------|---------|
+| `Parent_ID` | Parent requirement ID for hierarchy | REQ-001 |
+| `Source` | Code file path or "manual" | src/auth/login.py |
+| `Rationale` | Business justification | "Security requirement" |
+
+### Reference Template
+
+See `doors-csv-template.csv` for complete example with proper formatting.
+
+### Import Instructions
+
+1. Generate CSV using specified columns
+2. Ensure UTF-8 encoding
+3. Import into DOORS using File → Import → CSV
+4. Map columns to DOORS attributes
+5. Verify imported requirements match expectations
