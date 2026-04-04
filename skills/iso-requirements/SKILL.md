@@ -13,3 +13,34 @@ Generate ISO/IEC/IEEE 29148:2018 compliant software requirements through bidirec
 - **Multi-format output**: Markdown (.md), Excel (.xlsx), DOORS-compatible CSV
 
 Core principle: Transform code semantics or user intent into structured requirements following ISO 29148 standard sections.
+
+## When to Use
+
+```dot
+digraph when_flowchart {
+    "Need requirements?" [shape=diamond];
+    "From existing code?" [shape=diamond];
+    "From scratch?" [shape=diamond];
+    "Use iso-requirements" [shape=doublecircle];
+    "Skip" [shape=box];
+
+    "Need requirements?" -> "From existing code?";
+    "From existing code?" -> "Use iso-requirements" [label="yes"];
+    "From existing code?" -> "From scratch?";
+    "From scratch?" -> "Use iso-requirements" [label="yes"];
+    "From scratch?" -> "Skip" [label="no"];
+    "Need requirements?" -> "Skip" [label="no"];
+}
+```
+
+**Use when:**
+- User mentions "requirements specification" or "ISO standards"
+- Need to document what code implements (reverse engineering)
+- Creating new requirements from user stories (forward engineering)
+- Need DOORS import format for requirement management tools
+- Any language: Python, JavaScript/TypeScript, Go, Java, C/C++
+
+**NOT for:**
+- Simple code summaries without ISO structure
+- Non-technical documentation
+- Requirements outside software engineering scope
