@@ -364,3 +364,20 @@ See `doors-csv-template.csv` for complete example with proper formatting.
 | Including multiple requirements in one item | Split complex requirements into individual items |
 | Not handling error cases | Include error behavior requirements explicitly |
 | Ignoring internationalization | Use UTF-8 encoding for multi-language support |
+
+## Red Flags - STOP
+
+Before proceeding with requirements generation, verify:
+
+- [ ] No "System should" language - must use "shall" per ISO 29148
+- [ ] Every requirement has verification criteria
+- [ ] Requirements are WHAT, not HOW (no implementation details)
+- [ ] Each requirement has unique ID in REQ-### format
+- [ ] All requirements have priority assigned
+- [ ] Source attribution tracked for reverse-engineered requirements
+- [ ] Language-specific patterns applied correctly
+- [ ] CSV format matches DOORS specification (if using CSV)
+- [ ] UTF-8 encoding set for international characters
+- [ ] No vague terms (fast, good, adequate) - use measurable metrics
+
+**Any red flag? Fix before proceeding.**
