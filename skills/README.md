@@ -104,7 +104,7 @@ Run `/superpowers:writing-skills` for complete documentation on skill creation i
 
 ## Available Skills
 
-### iso-requirements
+### sync-req
 
 Generate ISO/IEC/IEEE 29148:2018 compliant software requirements from code implementation or manual entry.
 
