@@ -1,20 +1,20 @@
 {
-  "name": "uncertainty-skills",
-  "description": "Claude Code skills marketplace for uncertainty project",
+  "name": "uncertainty",
+  "description": "Claude Code plugin for GitHub workflow management and requirements synchronization",
   "owner": {
     "name": "melodypapa",
     "email": "ray@example.com"
   },
   "plugins": [
     {
-      "name": "github-workflow",
-      "description": "GitHub workflow management skill",
-      "source": "skills/github-workflow"
-    },
-    {
-      "name": "sync-req",
-      "description": "Requirements synchronization skill",
-      "source": "skills/sync-req"
+      "name": "uncertainty-skills",
+      "description": "Skills for GitHub workflow management and requirements synchronization",
+      "version": "1.0.0",
+      "source": "./",
+      "author": {
+        "name": "melodypapa",
+        "email": "ray@example.com"
+      }
     }
   ]
 }
