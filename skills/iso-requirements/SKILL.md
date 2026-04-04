@@ -402,3 +402,268 @@ When codebase is too large:
 2. Offer scope options: specific files, modules, or full scan
 3. Process in batches if needed
 4. Provide progress updates for large analyses
+
+## Complete Example
+
+### Input Code: Authentication Module
+
+```python
+# src/auth.py
+import ldap3
+import time
+from typing import Optional
+import logging
+
+logger = logging.getLogger(__name__)
+
+class AuthenticationError(Exception):
+    """Custom exception for authentication failures."""
+    pass
+
+class AccountLockedError(AuthenticationError):
+    """Exception raised when account is locked."""
+    pass
+
+class AuthenticationService:
+    """Handle user authentication with LDAP and local database."""
+
+    MAX_ATTEMPTS = 5
+    LOCKOUT_DURATION = 300  # seconds
+
+    def __init__(self, ldap_server: str, ldap_base_dn: str):
+        self.ldap_server = ldap_server
+        self.ldap_base_dn = ldap_base_dn
+        self._attempts_cache = {}
+
+    def authenticate(self, username: str, password: str) -> bool:
+        """
+        Authenticate user against LDAP server.
+
+        Args:
+            username: User's LDAP username
+            password: User's password
+
+        Returns:
+            True if authentication succeeds, False otherwise
+
+        Raises:
+            AccountLockedError: If account is locked due to failed attempts
+            AuthenticationError: If LDAP server is unreachable
+        """
+        # Check if account is locked
+        if self._is_locked(username):
+            raise AccountLockedError(
+                f"Account {username} is locked. Try again in {self._lockout_remaining(username)} seconds."
+            )
+
+        # Attempt LDAP authentication
+        try:
+            server = ldap3.Server(self.ldap_server)
+            connection = ldap3.Connection(
+                server,
+                user=f"uid={username},{self.ldap_base_dn}",
+                password=password,
+                auto_bind=True
+            )
+            connection.unbind()
+
+            # Clear failed attempts on successful auth
+            self._clear_attempts(username)
+            logger.info(f"User {username} authenticated successfully")
+            return True
+
+        except ldap3.core.exceptions.LDAPException as e:
+            self._record_failed_attempt(username)
+            logger.warning(f"Authentication failed for {username}: {e}")
+            raise AuthenticationError(f"LDAP authentication failed: {e}")
+
+    def _is_locked(self, username: str) -> bool:
+        """Check if user account is currently locked."""
+        if username not in self._attempts_cache:
+            return False
+
+        attempts, timestamp = self._attempts_cache[username]
+        if attempts >= self.MAX_ATTEMPTS:
+            elapsed = time.time() - timestamp
+            if elapsed < self.LOCKOUT_DURATION:
+                return True
+            else:
+                # Lockout expired, clear cache
+                del self._attempts_cache[username]
+        return False
+
+    def _lockout_remaining(self, username: str) -> int:
+        """Calculate remaining lockout time in seconds."""
+        attempts, timestamp = self._attempts_cache.get(username, (0, 0))
+        elapsed = time.time() - timestamp
+        return max(0, self.LOCKOUT_DURATION - int(elapsed))
+
+    def _record_failed_attempt(self, username: str):
+        """Record a failed authentication attempt."""
+        if username in self._attempts_cache:
+            attempts, _ = self._attempts_cache[username]
+            self._attempts_cache[username] = (attempts + 1, time.time())
+        else:
+            self._attempts_cache[username] = (1, time.time())
+
+    def _clear_attempts(self, username: str):
+        """Clear failed attempts after successful authentication."""
+        if username in self._attempts_cache:
+            del self._attempts_cache[username]
+```
+
+### Extracted Requirements
+
+## Functional Requirements
+
+### REQ-001: User Authentication
+**Type:** Functional
+**Priority:** Critical
+**Status:** Draft
+
+**Description:** System shall authenticate users against LDAP server using username and password credentials.
+
+**Verification:** Verify successful authentication with valid LDAP credentials returns True, invalid credentials raise AuthenticationError.
+
+**Source:** src/auth.py:AuthenticationService.authenticate
+
+---
+
+### REQ-002: Account Lockout
+**Type:** Functional
+**Priority:** High
+**Status:** Draft
+
+**Description:** System shall lock user accounts after 5 consecutive failed authentication attempts.
+
+**Verification:** Trigger 5 failed attempts, verify 6th attempt raises AccountLockedError.
+
+**Source:** src/auth.py:MAX_ATTEMPTS, _record_failed_attempt
+
+---
+
+### REQ-003: Lockout Duration
+**Type:** Functional
+**Priority:** Medium
+**Status:** Draft
+
+**Description:** System shall maintain account lockout for 300 seconds (5 minutes) after reaching maximum failed attempts.
+
+**Verification:** After lockout, verify account unlocks after 300 seconds.
+
+**Source:** src/auth.py:LOCKOUT_DURATION, _is_locked
+
+---
+
+### REQ-004: Attempt Clearing
+**Type:** Functional
+**Priority:** Medium
+**Status:** Draft
+
+**Description:** System shall clear failed authentication attempts after successful authentication.
+
+**Verification:** Authenticate successfully, verify attempts counter is reset to zero.
+
+**Source:** src/auth.py:_clear_attempts
+
+---
+
+## Non-Functional Requirements
+
+### REQ-005: Authentication Performance
+**Type:** Non-Functional
+**Priority:** High
+**Status:** Draft
+
+**Description:** LDAP authentication operation shall complete within 2 seconds under normal network conditions.
+
+**Verification:** Measure authentication time with valid credentials under normal load.
+
+**Source:** src/auth.py:authenticate (implied)
+
+---
+
+### REQ-006: Authentication Logging
+**Type:** Non-Functional
+**Priority:** Medium
+**Status:** Draft
+
+**Description:** System shall log successful and failed authentication attempts with timestamp and username.
+
+**Verification:** Verify log entries contain INFO level for success, WARNING level for failures.
+
+**Source:** src/auth.py:logger.info, logger.warning
+
+---
+
+## Interface Requirements
+
+### REQ-007: LDAP Server Connection
+**Type:** Interface
+**Priority:** Critical
+**Status:** Draft
+
+**Description:** System shall establish secure connection to LDAP server using server address and base DN configuration.
+
+**Verification:** Verify ldap3.Connection binds successfully with valid server configuration.
+
+**Source:** src/auth.py:ldap3.Connection
+
+---
+
+### REQ-008: Authentication API
+**Type:** Interface
+**Priority:** High
+**Status:** Draft
+
+**Description:** AuthenticationService shall provide authenticate(username, password) method returning boolean success status.
+
+**Verification:** Call authenticate() with various credential combinations, verify return type is bool.
+
+**Source:** src/auth.py:AuthenticationService.authenticate
+
+---
+
+## Data Requirements
+
+### REQ-009: User Credential Format
+**Type:** Data
+**Priority:** Critical
+**Status:** Draft
+
+**Description:** Username and password shall be strings, with username used in LDAP DN format uid={username},{base_dn}.
+
+**Verification:** Verify string type checking and proper DN construction in authentication.
+
+**Source:** src/auth.py:type hints, authenticate
+
+---
+
+### REQ-010: Failed Attempts Cache
+**Type:** Data
+**Priority:** Medium
+**Status:** Draft
+
+**Description:** System shall cache failed attempt counts and timestamps using username as dictionary key.
+
+**Verification:** Verify _attempts_cache structure stores (count, timestamp) tuples.
+
+**Source:** src/auth.py:_attempts_cache
+
+---
+
+### CSV Output (DOORS Format)
+
+```csv
+ID,Text,Type,Priority,Status,Verification,Parent_ID,Source,Rationale
+REQ-001,"System shall authenticate users against LDAP server using username and password credentials.",Functional,Critical,Draft,"Verify successful authentication with valid LDAP credentials returns True, invalid credentials raise AuthenticationError.",,"src/auth.py:AuthenticationService.authenticate","Core authentication feature"
+REQ-002,"System shall lock user accounts after 5 consecutive failed authentication attempts.",Functional,High,Draft,"Trigger 5 failed attempts, verify 6th attempt raises AccountLockedError.",,"src/auth.py:MAX_ATTEMPTS, _record_failed_attempt","Security requirement"
+REQ-003,"System shall maintain account lockout for 300 seconds after reaching maximum failed attempts.",Functional,Medium,Draft,"After lockout, verify account unlocks after 300 seconds.",,"src/auth.py:LOCKOUT_DURATION, _is_locked","Brute force prevention"
+REQ-004,"System shall clear failed authentication attempts after successful authentication.",Functional,Medium,Draft,"Authenticate successfully, verify attempts counter is reset to zero.",,"src/auth.py:_clear_attempts","User experience"
+REQ-005,"LDAP authentication operation shall complete within 2 seconds under normal network conditions.",Non-Functional,High,Draft,"Measure authentication time with valid credentials under normal load.",,"src/auth.py:authenticate (implied)","Performance SLA"
+REQ-006,"System shall log successful and failed authentication attempts with timestamp and username.",Non-Functional,Medium,Draft,"Verify log entries contain INFO level for success, WARNING level for failures.",,"src/auth.py:logger.info, logger.warning","Audit trail"
+REQ-007,"System shall establish secure connection to LDAP server using server address and base DN configuration.",Interface,Critical,Draft,"Verify ldap3.Connection binds successfully with valid server configuration.",,"src/auth.py:ldap3.Connection","LDAP integration"
+REQ-008,"AuthenticationService shall provide authenticate(username, password) method returning boolean success status.",Interface,High,Draft,"Call authenticate() with various credential combinations, verify return type is bool.",,"src/auth.py:AuthenticationService.authenticate","API contract"
+REQ-009,"Username and password shall be strings, with username used in LDAP DN format uid={username},{base_dn}.",Data,Critical,Draft,"Verify string type checking and proper DN construction in authentication.",,"src/auth.py:type hints, authenticate","Input validation"
+REQ-010,"System shall cache failed attempt counts and timestamps using username as dictionary key.",Data,Medium,Draft,"Verify _attempts_cache structure stores (count, timestamp) tuples.",,"src/auth.py:_attempts_cache","State management"
+```
