@@ -344,3 +344,23 @@ See `doors-csv-template.csv` for complete example with proper formatting.
 | Approved | Stakeholder approved | Implement |
 | Implemented | Code satisfies requirement | Verify and test |
 | Rejected | Requirement no longer needed | Archive |
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Writing implementation details instead of requirements | Focus on WHAT, not HOW. Use "System shall" language |
+| Missing verification criteria | Always include "Verification:" field for each requirement |
+| Using vague language | Use specific, measurable terms (e.g., "< 200ms" not "fast") |
+| Confusing functional and non-functional requirements | Functional = behavior, Non-Functional = quality attributes |
+| Forgetting source attribution | Always track where each requirement originated |
+| Inconsistent ID format | Use REQ-### format consistently throughout |
+| Missing priority levels | Assign priority to every requirement (Critical/High/Medium/Low) |
+| Ignoring language-specific patterns | Apply language-specific analysis (decorators, annotations, etc.) |
+| Generating requirements without user intent | Verify requirements align with stakeholder needs |
+| Using wrong CSV format for DOORS | Follow exact column structure and encoding rules |
+| Skipping verification step | Always define acceptance criteria for testing |
+| Writing requirements as questions | State requirements as declarations using "shall" |
+| Including multiple requirements in one item | Split complex requirements into individual items |
+| Not handling error cases | Include error behavior requirements explicitly |
+| Ignoring internationalization | Use UTF-8 encoding for multi-language support |
