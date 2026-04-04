@@ -303,3 +303,44 @@ See `doors-csv-template.csv` for complete example with proper formatting.
 3. Import into DOORS using File → Import → CSV
 4. Map columns to DOORS attributes
 5. Verify imported requirements match expectations
+
+## Quick Reference
+
+### Workflow Steps
+
+| Step | Action | Input | Output |
+|------|--------|-------|--------|
+| 1 | Determine input method | Code file or user intent | Reverse or forward engineering |
+| 2 | Analyze code or gather requirements | Code/business input | Requirement semantics |
+| 3 | Extract requirements | Analysis results | Requirement list |
+| 4 | Classify by ISO 29148 sections | Requirement list | Categorized requirements |
+| 5 | Generate verification criteria | Requirements | Acceptance tests |
+| 6 | Format output | Requirements + metadata | .md/.xlsx/.csv file |
+
+### Language Detection
+
+| File Extension | Language | Analysis Patterns |
+|----------------|----------|-------------------|
+| .py | Python | Functions, classes, decorators, type hints |
+| .js, .ts | JavaScript/TypeScript | Functions, classes, interfaces, types |
+| .go | Go | Functions, structs, interfaces, packages |
+| .java | Java | Classes, methods, interfaces, annotations |
+| .c, .cpp, .h | C/C++ | Functions, structs, classes, headers |
+
+### Priority Levels
+
+| Priority | Definition | Use When |
+|----------|------------|----------|
+| Critical | System failure without this feature | Security, core functionality |
+| High | Significant impact if not met | Performance, reliability |
+| Medium | Important but workarounds exist | UX, convenience features |
+| Low | Nice to have | Future enhancements |
+
+### Status Values
+
+| Status | Definition | Next Step |
+|--------|------------|-----------|
+| Draft | Initial requirement written | Review and refine |
+| Approved | Stakeholder approved | Implement |
+| Implemented | Code satisfies requirement | Verify and test |
+| Rejected | Requirement no longer needed | Archive |
