@@ -192,3 +192,79 @@ Elaborated requirements:
 - REQ-002 (Non-Functional): Authentication response time shall be less than 2 seconds under normal load
 - REQ-003 (Non-Functional): Passwords shall be hashed using bcrypt with minimum 12 rounds
 - REQ-004 (Functional): System shall lock account after 5 failed login attempts
+
+## Output Formats
+
+Choose output format based on user needs and downstream tooling.
+
+### Markdown (.md)
+
+**Use when:** Human-readable documentation, version control, code review
+
+**Structure:**
+```markdown
+# Software Requirements Specification
+
+## Functional Requirements
+
+### REQ-001: User Authentication
+**Type:** Functional
+**Priority:** Critical
+**Status:** Draft
+
+**Description:** System shall authenticate users via username and password.
+
+**Verification:** Verify login succeeds with valid credentials.
+
+**Source:** src/auth/login.py
+
+---
+
+## Non-Functional Requirements
+
+### REQ-002: Authentication Performance
+**Type:** Non-Functional
+**Priority:** High
+**Status:** Draft
+
+**Description:** Authentication response time shall be less than 2 seconds.
+
+**Verification:** Measure API response time under normal load.
+```
+
+### Excel (.xlsx)
+
+**Use when:** Stakeholder reviews, business analysis, offline editing
+
+**Structure:** Table format with one row per requirement
+- Column A: ID
+- Column B: Text
+- Column C: Type
+- Column D: Priority
+- Column E: Status
+- Column F: Verification
+- Column G: Parent_ID
+- Column H: Source
+- Column I: Rationale
+
+### CSV (DOORS-compatible)
+
+**Use when:** Importing to DOORS or other requirements management tools
+
+**Structure:** See `doors-csv-template.csv` for reference
+
+**Required columns:** ID, Text, Type, Priority, Status, Verification
+**Optional columns:** Parent_ID, Source, Rationale
+
+**Encoding:** UTF-8 for international character support
+
+**CSV format rules:**
+- Use double quotes for fields containing commas or newlines
+- Escape double quotes with two double quotes ("")
+- No trailing spaces in fields
+- Unix line endings (\n)
+
+Example line:
+```csv
+REQ-001,"System shall authenticate users via username and password",Functional,Critical,Draft,"Verify login with valid credentials",,src/auth.py,"Security"
+```
