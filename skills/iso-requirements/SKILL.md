@@ -76,3 +76,21 @@ digraph core_workflow {
 ```
 
 **Critical flow:** Always determine input method first, then extract requirements, finally format output. Do not skip classification or verification steps.
+
+## ISO 29148 Requirements Structure
+
+Following ISO/IEC/IEEE 29148:2018 standard sections:
+
+| Section | Description | Example |
+|---------|-------------|---------|
+| **Functional Requirements** | What the system shall do | "System shall authenticate users via LDAP" |
+| **Non-Functional Requirements** | Quality attributes | "API response time < 200ms" |
+| **Interface Requirements** | External interfaces | "REST API with JSON responses" |
+| **Data Requirements** | Data structures, storage, validation | "User data stored in PostgreSQL" |
+| **Verification Criteria** | How to verify each requirement | "Verify LDAP login succeeds with valid credentials" |
+
+**Requirement Types:**
+- Functional: System behavior, features
+- Non-Functional: Performance, security, reliability, usability
+- Interface: APIs, UI, hardware integration
+- Data: Data models, storage, validation rules
