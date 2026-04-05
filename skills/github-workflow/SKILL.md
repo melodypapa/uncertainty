@@ -1,13 +1,13 @@
 ---
 name: github-workflow
-description: Use when preparing to push staged files to a feature branch, about to commit changes that need proper formatting, or asking what to do before pushing to GitHub. This workflow enforces quality gates (language-specific: ruff/mypy/pytest for Python, ESLint/Prettier/Jest for JS/TS, go fmt/go vet/go test for Go, Maven/Gradle test for Java, clang-format/clang-tidy for C/C++), creates GitHub issues, sets up feature branches with correct naming, ensures proper commit format (feat/fix types with issue references, no Co-Authored-By), and automatically pushes to GitHub when all checks pass. Use this whenever the user mentions staged changes, wants to push correctly, or needs a complete pre-push workflow including quality checks. Auto-detects project type and source directories (handles missing tools/ dirs).
+description: Use when preparing to push staged files to a feature branch, about to commit changes that need proper formatting, or asking what to do before pushing to GitHub. This workflow enforces quality gates (language-specific: ruff/mypy/pytest for Python, ESLint/Prettier/Jest for JS/TS, go fmt/go vet/go test for Go, Maven/Gradle test for Java, clang-format/clang-tidy for C/C++), creates GitHub issues and pull requests, sets up feature branches with correct naming, ensures proper commit format (feat/fix types with issue references, no Co-Authored-By), and automatically pushes to GitHub when all checks pass. Use this whenever the user mentions staged changes, wants to push correctly, or needs a complete pre-push workflow including quality checks. Auto-detects project type and source directories (handles missing tools/ dirs).
 ---
 
 # GitHub Workflow
 
 ## Overview
 
-Complete preparation workflow before pushing staged files to a feature branch, covering quality checks, issue creation, branch setup, and commit formatting. Supports multiple project types with auto-detection.
+Complete workflow for feature development: quality checks, issue creation, PR creation, branch setup, and commit formatting. Supports multiple project types with auto-detection.
 
 ## When to Use
 
@@ -29,12 +29,14 @@ digraph when_flowchart {
 - Staged files ready for push
 - Creating feature branch for work
 - Ensuring quality before pushing
+- Creating pull request for code review
 - Any project type (Python, JS/TS, Go, Java, C/C++)
 
 **NOT for:**
 - Quick commits to main branch
 - Work without quality gates
 - Pushing to gitee (GitHub only)
+- Creating PRs without proper issue tracking
 
 ## Auto-Detect Project Type
 
@@ -295,6 +297,60 @@ git push -u origin $(git branch --show-current)
 ✅ Pushed to feature/<branch-name>
 ```
 
+### 8. Create Pull Request (Automatic)
+
+After successful push, automatically create a pull request:
+
+```bash
+gh pr create \
+  --title "<type>: <brief description>" \
+  --body "$(cat <<'EOF'
+## Summary
+
+## Changes
+
+## Files Modified
+
+## Test Coverage
+
+Closes #<issue-number>
+EOF
+)"
+```
+
+**PR creation conditions:**
+- All quality gates must pass (✅)
+- Commit must be created and pushed successfully
+- Must be on a feature branch (not main/master)
+- Remote must be GitHub
+
+**If PR creation fails:**
+- Check if PR already exists: `gh pr list --head $(git branch --show-current)`
+- Verify authentication: `gh auth status`
+- Ask user before retrying
+
+**Display PR result:**
+```
+✅ All quality checks passed
+✅ Committed: <commit-hash>
+🚀 Pushed to feature/<branch-name>
+✅ PR created: https://github.com/<org>/<repo>/pull/<pr-number>
+```
+
+**PR title format:** `<type>: <brief description>` (same as commit message first line)
+
+**PR body sections:**
+- Summary (from issue)
+- Changes (from issue or manual input)
+- Files Modified (optional)
+- Test Coverage (from issue)
+- `Closes #<issue-number>` (auto-link to issue)
+
+**Skip PR creation if:**
+- User explicitly requests to skip
+- PR already exists for this branch
+- Work is not ready for review
+
 ## Quick Reference
 
 | Step | Action | Required |
@@ -306,6 +362,7 @@ git push -u origin $(git branch --show-current)
 | 5 | Create feature branch | ✅ |
 | 6 | Stage and commit | ✅ |
 | 7 | Push to GitHub (automatic if all pass) | ✅ |
+| 8 | Create pull request (automatic after push) | ✅ |
 
 ### Quality Gates by Language
 
@@ -344,6 +401,8 @@ git push -u origin $(git branch --show-current)
 - [ ] Project type unknown and not specified by user
 - [ ] Language-specific build commands not run
 - [ ] Push attempted when quality gates failed
+- [ ] PR title doesn't match commit message format
+- [ ] PR body missing `Closes #<issue-number>` reference
 
 **Any red flag? Fix before proceeding.**
 
