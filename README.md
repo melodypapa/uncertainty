@@ -13,11 +13,14 @@ This project contains skills that automate common development workflows, ensurin
 Complete preparation workflow before pushing staged files to a feature branch.
 
 **Features:**
-- Quality gates (ruff, mypy, pytest, pip install)
+- Quality gates (language-specific: ruff/mypy/pytest for Python, ESLint/Prettier/Jest for JS/TS, go fmt/go vet/go test for Go, Maven/Gradle test for Java, clang-format/clang-tidy for C/C++)
+- Auto-detects project type from config files
+- Auto-discovers source directories (handles missing src/, tools/ dirs)
 - GitHub issue creation
-- Feature branch setup
-- Proper commit formatting
-- GitHub-only pushes (no gitee)
+- Feature branch setup with proper naming
+- Proper commit formatting (feat/fix types with issue references, no Co-Authored-By)
+- **Automatic push to GitHub** when all quality gates pass
+- GitHub-only pushes (verifies remote is GitHub.com)
 
 **Usage:**
 When you have staged files ready to push, Claude will automatically invoke this skill via description matching.
@@ -46,16 +49,6 @@ skills/
 Each skill is a self-contained directory with:
 - `SKILL.md` - Main reference document with frontmatter
 - Supporting files (if needed)
-
-## Creating New Skills
-
-Follow the TDD process for skills:
-
-1. **RED** - Run baseline scenarios WITHOUT skill
-2. **GREEN** - Write minimal skill addressing failures
-3. **REFACTOR** - Close loopholes and re-test
-
-See `skills/README.md` for detailed guidelines.
 
 ## License
 

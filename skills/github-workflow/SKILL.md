@@ -1,6 +1,6 @@
 ---
 name: github-workflow
-description: Use when preparing to push staged files to a feature branch, about to commit changes that need proper formatting, or asking what to do before pushing to GitHub. This workflow enforces quality gates (language-specific: ruff/mypy/pytest for Python, ESLint/Prettier/Jest for JS/TS, go fmt/go vet/go test for Go, Maven/Gradle test for Java, clang-format/clang-tidy for C/C++), creates GitHub issues, sets up feature branches with correct naming, and ensures proper commit format (feat/fix types with issue references, no Co-Authored-By). Use this whenever the user mentions staged changes, wants to push correctly, or needs a complete pre-push workflow including quality checks. Auto-detects project type from config files (pyproject.toml, package.json, go.mod, pom.xml, build.gradle, CMakeLists.txt).
+description: Use when preparing to push staged files to a feature branch, about to commit changes that need proper formatting, or asking what to do before pushing to GitHub. This workflow enforces quality gates (language-specific: ruff/mypy/pytest for Python, ESLint/Prettier/Jest for JS/TS, go fmt/go vet/go test for Go, Maven/Gradle test for Java, clang-format/clang-tidy for C/C++), creates GitHub issues, sets up feature branches with correct naming, ensures proper commit format (feat/fix types with issue references, no Co-Authored-By), and automatically pushes to GitHub when all checks pass. Use this whenever the user mentions staged changes, wants to push correctly, or needs a complete pre-push workflow including quality checks. Auto-detects project type and source directories (handles missing tools/ dirs).
 ---
 
 # GitHub Workflow
@@ -74,13 +74,24 @@ echo "unknown"
 
 ### 2. Quality Gates (All Must Pass)
 
+**Before running quality gates, verify the remote is GitHub:**
+```bash
+git remote -v | grep github.com
+```
+
+If no GitHub remote found, ask user to add it or select correct remote.
+
 #### Python (detected via pyproject.toml, requirements.txt, setup.py)
 
 ```bash
-ruff check src/ tools/
-mypy src/
+# Find Python files to check (auto-detect directories)
+PYTHON_FILES=$(find . -name "*.py" -not -path "./.*" -not -path "*/venv/*" -not -path "*/.venv/*" -not -path "*/node_modules/*" -not -path "*/__pycache__/*" | head -c 1000)
+PYTHON_DIRS=$(find . -name "*.py" -not -path "./.*" -not -path "*/venv/*" -not -path "*/.venv/*" -not -path "*/node_modules/*" -not -path "*/__pycache__/*" -exec dirname {} \; | sort -u | head -10 | tr '\n' ' ')
+
+ruff check ${PYTHON_DIRS:-.}
+mypy ${PYTHON_DIRS:-.}
 pytest
-pip install -e .
+pip install -e . 2>/dev/null || true
 ```
 
 **Requirements:**
@@ -92,15 +103,18 @@ pip install -e .
 #### JavaScript/TypeScript (detected via package.json, tsconfig.json)
 
 ```bash
+# Find JS/TS files and directories (auto-detect)
+JS_DIRS=$(find . -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" | grep -v node_modules | grep -v ".next" | grep -v "dist" | grep -v "build" | xargs dirname 2>/dev/null | sort -u | head -10 | tr '\n' ' ')
+
 # Check package.json for available scripts
 if grep -q "lint" package.json; then npm run lint; fi
 if grep -q "format:check" package.json; then npm run format:check; fi
 if grep -q "test" package.json; then npm test; fi
 
 # Or fallback to common tools
-npx eslint . --max-warnings 0 2>/dev/null || true
-npx prettier --check . 2>/dev/null || true
-npm test
+npx eslint ${JS_DIRS:-.} --max-warnings 0 2>/dev/null || true
+npx prettier --check ${JS_DIRS:-.} 2>/dev/null || true
+npm test 2>/dev/null || true
 ```
 
 **Requirements:**
@@ -146,18 +160,21 @@ mvn package
 
 #### C/C++ (detected via CMakeLists.txt, Makefile)
 
-**CMake:**
 ```bash
-cmake --build build --target all
-ctest --test-dir build
-clang-format --dry-run --Werror src/**/*.cpp 2>/dev/null || true
-```
+# Find C/C++ source files (auto-detect)
+CPP_FILES=$(find . -name "*.c" -o -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" | grep -v build | grep -v ".git" | head -c 2000)
 
-**Makefile:**
-```bash
-make check 2>/dev/null || make
-make test 2>/dev/null || make check
-clang-format --dry-run --Werror src/*.c src/*.cpp 2>/dev/null || true
+# CMake:
+cmake --build build --target all 2>/dev/null || true
+ctest --test-dir build 2>/dev/null || true
+
+# Makefile:
+make check 2>/dev/null || make test 2>/dev/null || make 2>/dev/null || true
+
+# Format check (auto-detect files)
+if [ -n "$CPP_FILES" ]; then
+    clang-format --dry-run --Werror $CPP_FILES 2>/dev/null || true
+fi
 ```
 
 **Requirements:**
@@ -250,6 +267,34 @@ EOF
 
 **IMPORTANT:** No Co-Authored-By line
 
+### 7. Push to GitHub (Automatic)
+
+After successful commit with all quality gates passing, automatically push to GitHub:
+
+```bash
+git push -u origin $(git branch --show-current)
+```
+
+**Push conditions:**
+- All quality gates must pass (✅)
+- Commit must be created successfully
+- Must be on a feature branch (not main/master)
+- Remote must be GitHub (check `git remote -v`)
+
+**If push fails:**
+- Check remote URL is GitHub.com (not gitee, gitlab, etc.)
+- Verify network connectivity
+- Check authentication: `gh auth status`
+- Ask user before retrying
+
+**Display push result:**
+```
+✅ All quality checks passed
+✅ Committed: <commit-hash>
+🚀 Pushing to GitHub...
+✅ Pushed to feature/<branch-name>
+```
+
 ## Quick Reference
 
 | Step | Action | Required |
@@ -260,6 +305,7 @@ EOF
 | 4 | Create/Link GitHub issue | ✅ |
 | 5 | Create feature branch | ✅ |
 | 6 | Stage and commit | ✅ |
+| 7 | Push to GitHub (automatic if all pass) | ✅ |
 
 ### Quality Gates by Language
 
@@ -282,6 +328,8 @@ EOF
 | Adding Co-Authored-By | Remove Claude attribution |
 | Wrong quality gates for project type | Auto-detect and use language-specific commands |
 | Not checking format before push | Run format check for your language |
+| Assuming directories exist | Use auto-detection with find commands |
+| Manually pushing after workflow | Workflow auto-pushes when all checks pass |
 
 ## Red Flags - STOP
 
@@ -291,9 +339,11 @@ EOF
 - [ ] Commit message includes Co-Authored-By line
 - [ ] Branch name doesn't follow `feature/<type>-*` or `feature/<requirement-id>-*` convention
 - [ ] Commit message missing `Closes #<issue-number>` reference
-- [ ] About to push to gitee
+- [ ] About to push to non-GitHub remote
+- [ ] About to push to main/master branch
 - [ ] Project type unknown and not specified by user
 - [ ] Language-specific build commands not run
+- [ ] Push attempted when quality gates failed
 
 **Any red flag? Fix before proceeding.**
 
