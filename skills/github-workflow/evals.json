@@ -1,0 +1,23 @@
+{
+  "skill_name": "github-workflow",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have some staged Python changes ready to push. I want to make sure everything passes quality checks before pushing to my feature branch. The repo uses pyproject.toml for configuration.",
+      "expected_output": "A comprehensive response that: 1) Detects Python project type, 2) Runs quality gates (ruff, mypy, pytest), 3) Reviews changes with git diff, 4) Creates a feature branch with proper naming, 5) Commits with correct format (feat/fix with issue reference, no Co-Authored-By), 6) Pushes to GitHub automatically when all checks pass, 7) Creates a pull request automatically after push.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I've just made some changes to my JavaScript project and want to push them to a new feature branch. What should I do before pushing? The project has a package.json file.",
+      "expected_output": "A response that follows the github-workflow process: 1) Detects JavaScript/TypeScript project type from package.json, 2) Runs quality gates (eslint, prettier, npm test), 3) Reviews changes with git diff, 4) Creates GitHub issue for tracking, 5) Creates feature branch with proper naming, 6) Stages files and commits with correct format, 7) Pushes to GitHub automatically when quality checks pass, 8) Creates pull request automatically.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I need to push my Go code changes. There's a go.mod file. What are the steps I should follow before committing?",
+      "expected_output": "A response that follows the github-workflow process for Go: 1) Detects Go project type from go.mod, 2) Runs quality gates (go fmt, go vet, go test, go build), 3) Reviews changes with git diff, 4) Creates GitHub issue or asks for existing issue number, 5) Creates feature branch (feature/<type>-* or feature/<requirement-id>-*), 6) Commits with proper format (feat/fix: description, Closes #N, no Co-Authored-By), 7) Pushes to GitHub automatically when all checks pass, 8) Creates PR automatically after push.",
+      "files": []
+    }
+  ]
+}

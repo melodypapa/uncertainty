@@ -1,0 +1,169 @@
+{
+  "skill_name": "sync-req",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Extract ISO 29148 compliant requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/sync-req/tools/extract_requirements.py. Create living requirements with bidirectional traceability - each requirement must link to specific code locations (file:line:column), include verification criteria that reference back to the code, and track implementation status.",
+      "expected_output": "A Markdown file containing ISO 29148 compliant living requirements. Each requirement should have Implementation field with code location, Last Validated date, and Verification criteria that check back to code.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Output is a Markdown file with ISO 29148 structured requirements",
+          "description": "The output file should have .md extension and contain ISO 29148 compliant requirements structure"
+        },
+        {
+          "text": "Requirements use 'shall' language per ISO 29148 standard",
+          "description": "All requirement descriptions should use 'shall' for mandatory requirements"
+        },
+        {
+          "text": "Each requirement has unique ID in REQ-### format",
+          "description": "Requirements should be numbered sequentially as REQ-001, REQ-002, etc."
+        },
+        {
+          "text": "All requirements include Implementation field with code location",
+          "description": "Each requirement must have an Implementation field linking to file:line:column"
+        },
+        {
+          "text": "All requirements include verification criteria",
+          "description": "Each requirement must have a Verification field describing how to verify it"
+        },
+        {
+          "text": "Requirements include Status field (Draft, Pending, Implemented, etc.)",
+          "description": "Status tracking should be present for each requirement"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Create living requirements for a user authentication system based on this user story: 'As a user, I want to log in with email and password so that I can access my protected resources.' Include code implementation locations, verification criteria, and traceability information following ISO 29148.",
+      "expected_output": "A Markdown file with ISO 29148 structured living requirements covering authentication workflow, with Implementation, Verification, and Status fields for each requirement.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Output is a Markdown file with ISO 29148 structured requirements",
+          "description": "The output file should have .md extension"
+        },
+        {
+          "text": "Requirements use 'shall' language per ISO 29148 standard",
+          "description": "All requirement descriptions should use 'shall' for mandatory requirements"
+        },
+        {
+          "text": "Includes functional requirements covering authentication workflow",
+          "description": "Requirements should cover login, logout, session management"
+        },
+        {
+          "text": "Each requirement has Implementation field",
+          "description": "Implementation field with code location should be present"
+        },
+        {
+          "text": "Each requirement has verification criteria",
+          "description": "All requirements must have a Verification field"
+        },
+        {
+          "text": "Each requirement has Status and Last Validated fields",
+          "description": "Status tracking metadata should be included"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Generate a DOORS-compatible CSV file with requirements for a REST API that manages user profiles. The CSV should include ID, Text, Type, Priority, Status, Verification, Implementation, Last_Validated, and Rationale columns. Include traceability information linking requirements to code locations.",
+      "expected_output": "A CSV file with proper DOORS column structure containing user profile management requirements in ISO 29148 format with Implementation and traceability columns.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Output is a CSV file with proper DOORS column structure",
+          "description": "CSV should have headers including Implementation, Last_Validated"
+        },
+        {
+          "text": "CSV uses UTF-8 encoding",
+          "description": "File should be UTF-8 encoded"
+        },
+        {
+          "text": "Requirements use 'shall' language",
+          "description": "Requirement text should use 'shall' for mandatory requirements"
+        },
+        {
+          "text": "Each requirement has unique ID in REQ-### format",
+          "description": "Requirements should be numbered sequentially"
+        },
+        {
+          "text": "Each requirement has Verification criteria",
+          "description": "Verification field should describe how to verify"
+        },
+        {
+          "text": "Each requirement has Implementation field",
+          "description": "Implementation field should contain code location reference"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Extract living requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/sync-req/tools/extract_requirements.py. Save them to a custom output directory named 'custom_docs'. Each requirement must include Implementation field with file:line:column, verification criteria, and status tracking.",
+      "expected_output": "Requirements extracted and saved to 'custom_docs' directory with a requirements.md file containing ISO 29148 compliant living requirements with traceability.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Output is saved to the specified custom directory 'custom_docs'",
+          "description": "The output should be in a custom_docs directory"
+        },
+        {
+          "text": "Output is a Markdown file with ISO 29148 structured requirements",
+          "description": "The output file should have .md extension"
+        },
+        {
+          "text": "Requirements use 'shall' language",
+          "description": "All requirement descriptions should use 'shall'"
+        },
+        {
+          "text": "Each requirement has unique ID in REQ-### format",
+          "description": "Requirements should be numbered sequentially"
+        },
+        {
+          "text": "All requirements include Implementation field",
+          "description": "Each requirement must have Implementation with code location"
+        },
+        {
+          "text": "All requirements include verification criteria",
+          "description": "Each requirement must have a Verification field"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Extract living requirements from the Python test file at /tmp/multi_feature_test.py. Split the output into multiple files based on features, each with traceability information. Save to test_output directory. Create an index.md that links to all feature files.",
+      "expected_output": "Multiple Markdown files organized by feature areas with an index.md file. Each requirement should have Implementation, Verification, and Status fields.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Output directory contains multiple Markdown files",
+          "description": "Multiple .md files should be created for different features"
+        },
+        {
+          "text": "An index.md file exists with links to feature files",
+          "description": "Main index file should be created with navigation links"
+        },
+        {
+          "text": "Feature files are named appropriately (e.g., *_requirements.md)",
+          "description": "Feature files should have descriptive names"
+        },
+        {
+          "text": "Index contains links to feature-specific files",
+          "description": "Index should contain markdown links to each feature file"
+        },
+        {
+          "text": "Requirements use 'shall' language",
+          "description": "All requirement descriptions should use 'shall'"
+        },
+        {
+          "text": "Each requirement has Implementation field",
+          "description": "Implementation field with code location should be present"
+        },
+        {
+          "text": "Each requirement has unique ID in REQ-### format",
+          "description": "Requirements should be numbered sequentially"
+        }
+      ]
+    }
+  ]
+}

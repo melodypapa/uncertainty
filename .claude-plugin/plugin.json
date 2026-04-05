@@ -1,7 +1,7 @@
 {
   "name": "uncertainty-skills",
   "description": "Claude Code skills for GitHub workflow management and requirements synchronization",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "melodypapa",
     "email": "ray@example.com"
