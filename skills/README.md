@@ -104,6 +104,21 @@ Run `/superpowers:writing-skills` for complete documentation on skill creation i
 
 ## Available Skills
 
+### github-workflow
+
+Complete preparation workflow before pushing staged files to a feature branch.
+
+**Features:**
+- Quality gates (language-specific: ruff/mypy/pytest for Python, ESLint/Prettier/Jest for JS/TS, go fmt/go vet/go test for Go, Maven/Gradle test for Java, clang-format/clang-tidy for C/C++)
+- Auto-detects project type and source directories
+- GitHub issue creation
+- Feature branch setup with proper naming
+- Proper commit formatting (feat/fix types with issue references, no Co-Authored-By)
+- Automatic push to GitHub when all checks pass
+
+**Usage:**
+When you have staged files ready to push, Claude will automatically invoke this skill via description matching.
+
 ### sync-req
 
 Generate ISO/IEC/IEEE 29148:2018 compliant software requirements from code implementation or manual entry.
