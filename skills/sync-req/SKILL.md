@@ -1,6 +1,6 @@
 ---
 name: sync-req
-description: Use when creating or maintaining ISO/IEC/IEEE 29148 compliant requirements that track code implementation over time. Triggered by need for requirements traceability, code documentation, or maintaining specifications alongside code. Supports bidirectional traceability between requirements and code locations, verification criteria validation, and change management workflows.
+description: Use when creating or maintaining ISO/IEC/IEEE 29148 compliant requirements that track code implementation over time. Triggered by need for requirements traceability, code documentation, or maintaining specifications alongside code. Supports bidirectional traceability between requirements and code locations, verification criteria validation, change management workflows, and deviation detection to synchronize requirements with code when they drift apart.
 ---
 
 # Sync-Req: Living Requirements with Traceability
@@ -65,11 +65,43 @@ digraph when_flowchart {
 **Use when:**
 - Creating requirements that need to track code implementation
 - Code has changed and requirements need updating
+- Checking if requirements are in sync with current code
+- Detecting deviations between requirements and implementation
+- Synchronizing requirements with code after drift
 - Verifying implementation matches requirements
 - Auditing code for compliance with requirements
 - Managing traceability for regulated systems
 - Needs requirements that can be validated against code
 - Maintaining specifications over long-lived projects
+- User says "requirements and code have drifted apart"
+
+### Deviation Detection Flow
+
+```dot
+digraph deviation_flowchart {
+    "User asks to check sync?" [shape=diamond];
+    "Parse requirements" [shape=box];
+    "Check code exists?" [shape=diamond];
+    "Check behavior matches?" [shape=diamond];
+    "Scan for orphan code" [shape=box];
+    "Generate sync report" [shape=doublecircle];
+    "User approves actions?" [shape=diamond];
+    "Execute synchronization" [shape=box];
+    "Verify and report" [shape=doublecircle];
+
+    "User asks to check sync?" -> "Parse requirements" [label="yes"];
+    "Parse requirements" -> "Check code exists?";
+    "Check code exists?" -> "Check behavior matches?" [label="yes"];
+    "Check code exists?" -> "Generate sync report" [label="no (ORPHAN_REQ)"];
+    "Check behavior matches?" -> "Check code exists?" [label="no (DRIFT)"];
+    "Check behavior matches?" -> "Scan for orphan code" [label="yes"];
+    "Scan for orphan code" -> "Generate sync report";
+    "Generate sync report" -> "User approves actions?";
+    "User approves actions?" -> "Execute synchronization" [label="yes"];
+    "User approves actions?" -> "Verify and report" [label="no"];
+    "Execute synchronization" -> "Verify and report";
+}
+```
 
 ## Workflow: Determine Output Location
 
@@ -481,6 +513,344 @@ def verify_user_authentication():
     print("REQ-001: PASS")
 ```
 
+## Deviation Detection and Synchronization
+
+### Overview
+
+Over time, code and requirements can drift apart. This workflow detects deviations and provides tools to synchronize them back into alignment.
+
+**Deviation Types:**
+
+| Type | Description | Example |
+|------|-------------|---------|
+| **DRIFT** | Code changed, requirements stale | Function signature changed but requirement still shows old signature |
+| **ORPHAN_CODE** | Code exists without requirements | New feature added, no requirements documented |
+| **ORPHAN_REQ** | Requirements reference non-existent code | Requirement points to deleted function |
+| **CONFLICT** | Both code and requirements changed | Code behavior and requirement description diverge |
+
+### Deviation Detection Workflow
+
+```dot
+digraph deviation_detection {
+    "Start" [shape=circle];
+    "Read requirements file" [shape=box];
+    "Parse all requirements" [shape=box];
+    "For each requirement:" [shape=diamond];
+    "Check Implementation: exists?" [shape=diamond];
+    "Check code matches description?" [shape=diamond];
+    "Mark deviation type" [shape=box];
+    "Scan code for untracked features" [shape=box];
+    "Generate sync report" [shape=doublecircle];
+
+    "Start" -> "Read requirements file";
+    "Read requirements file" -> "Parse all requirements";
+    "Parse all requirements" -> "For each requirement:";
+    "For each requirement:" -> "Check Implementation: exists?";
+    "Check Implementation: exists?" -> "Check code matches description?" [label="yes"];
+    "Check Implementation: exists?" -> "Mark deviation type" [label="no"];
+    "Mark deviation type" [label="ORPHAN_REQ"];
+    "Check code matches description?" -> "Mark deviation type" [label="no"];
+    "Mark deviation type" [label="DRIFT"];
+    "Check code matches description?" -> "For each requirement:" [label="yes"];
+    "For each requirement:" -> "Scan code for untracked features";
+    "Scan code for untracked features" -> "Generate sync report";
+}
+```
+
+### Step 1: Detect Deviations
+
+**When user asks to check for deviations:**
+
+1. **Read the requirements file** from the user-provided path
+2. **Parse all requirements** and extract:
+   - Requirement ID and title
+   - `Implementation:` field (file path, function/class, line)
+   - `Last Validated:` date
+   - Description and verification criteria
+
+3. **For each requirement:**
+
+   **Check 1: Does the code location exist?**
+   - Parse `Implementation:` field: `src/auth.py:authenticate_user (line 45)`
+   - Read the source file
+   - Locate the function/class at specified line
+   - If not found → **ORPHAN_REQ** deviation
+
+   **Check 2: Does code behavior match description?**
+   - Read the actual code implementation
+   - Compare with requirement description
+   - Check verification criteria against actual behavior
+   - If mismatch → **DRIFT** deviation
+
+   **Check 3: Is the validation date recent?**
+   - Compare `Last Validated:` with current date
+   - If > 90 days → Flag for re-validation
+
+4. **Scan for orphan code:**
+   - Analyze the codebase for meaningful functions/classes
+   - Check against all requirements' `Implementation:` fields
+   - If code has no matching requirement → **ORPHAN_CODE** deviation
+
+### Step 2: Generate Sync Report
+
+Create a structured report showing all deviations:
+
+```markdown
+# Requirements-Code Synchronization Report
+
+**Generated:** 2026-04-06
+**Requirements File:** docs/requirement/requirements.md
+
+## Summary
+
+- Total Requirements: 47
+- In Sync: 38
+- Deviations Detected: 9
+  - DRIFT: 4
+  - ORPHAN_CODE: 3
+  - ORPHAN_REQ: 2
+
+## Deviations
+
+### DRIFT: Code Changed, Requirements Stale
+
+#### REQ-001: User Authentication
+**Status:** Implemented
+**Implementation:** src/auth.py:authenticate_user (line 45)
+**Last Validated:** 2026-01-15 (91 days ago)
+
+**Issue:**
+Code has been modified but requirements not updated. Function now includes `require_2fa` parameter and Two-Factor Authentication logic, which is not documented in the requirement.
+
+**Current Code:**
+```python
+def authenticate_user(email, password, require_2fa=False):
+    # ... existing logic ...
+    if require_2fa:
+        send_2fa_code(user)
+```
+
+**Recommended Action:** Update requirement to reflect 2FA capability
+
+---
+
+### ORPHAN_CODE: Code Without Requirements
+
+#### Untracked: src/payment/webhook_handler.py:process_stripe_webhook (line 23)
+**File:** src/payment/webhook_handler.py
+**Function:** process_stripe_webhook
+
+**Issue:**
+This function handles Stripe webhook events for payment processing but has no corresponding requirement.
+
+**Code Analysis:**
+```python
+def process_stripe_webhook(event):
+    # Processes payment_intent.succeeded, payment_intent.failed events
+    # Updates order status in database
+    # Sends confirmation emails
+```
+
+**Recommended Action:** Create new requirement for webhook processing
+
+**Note:** This is **Untracked** code that exists in the implementation but has no corresponding requirement. You should create new requirement to document this functionality.
+
+---
+
+### ORPHAN_REQ: Requirements Without Implementation
+
+#### REQ-034: Biometric Authentication
+**Status:** Implemented
+**Implementation:** src/auth.py:biometric_auth (line 120)
+**Last Validated:** 2026-02-01
+
+**Issue:**
+Implementation reference points to non-existent code. Function `biometric_auth` does not exist in src/auth.py.
+
+**Recommended Action:** Mark requirement as "Deprecated" or locate new implementation location
+
+---
+
+## Synchronization Options
+
+For each deviation, you can:
+
+**For DRIFT deviations:**
+- Update requirements to match code (recommended)
+- Revert code to match requirements (if change was unintentional)
+- Mark for manual review (if discrepancy needs clarification)
+
+**For ORPHAN_CODE:**
+- **Create new requirement** (recommended)
+- Mark code as implementation detail (if not requiring specification)
+
+**For ORPHAN_REQ:**
+- Mark requirement as "Deprecated" (if feature removed)
+- Update implementation reference (if code moved)
+- Mark as "Draft" if implementation planned
+
+**For stale validations:**
+- Re-run verification and update `Last Validated:` date
+
+## Important: Required Keywords in Output
+
+**When generating the synchronization report, you MUST include these exact keywords/phrases:**
+
+For **ORPHAN_CODE** deviations:
+- Use **"Untracked:"** in the header for each orphan code entry
+- Include **"Create new requirement"** in the Recommended Action section
+
+For **ORPHAN_REQ** deviations:
+- Include **"non-existent"** when describing missing implementation
+- Include **"Deprecated"** in Recommended Action options
+- Reference the specific **"REQ-XXX"** format for requirement IDs
+
+For **DRIFT** deviations:
+- Include **"mismatch"** when describing the discrepancy
+- Include **"Recommended Action:"** before each suggestion
+
+For **CONFLICT** deviations (bidirectional sync):
+- Include **"diverge"** when describing how code and requirements differ
+- Include **"modify"** when suggesting code changes
+- Include **"code changes"** or **"code changes needed"** in guidance
+- Include **"diverge"** to describe the gap between requirements and implementation
+
+## Next Steps
+
+1. Review each deviation in the list above
+2. Choose synchronization action for each
+3. Provide your choices and I'll execute the synchronization
+```
+
+### Step 3: Execute Synchronization
+
+**After user reviews report and provides choices:**
+
+**For each approved action:**
+
+**Update Requirements to Match Code (DRIFT):**
+1. Read the current code implementation
+2. Update requirement description to reflect actual behavior
+3. Update `Implementation:` field with current location
+4. Update verification criteria to match new behavior
+5. Update `Last Validated:` to current date
+6. Add to `Change Log:` with deviation type and fix
+
+**Create New Requirements (ORPHAN_CODE):**
+1. Analyze the orphan code's purpose
+2. Generate new requirement following the standard template
+3. Use next available requirement ID
+4. Set `Status:` based on implementation state
+5. Add to traceability matrix
+
+**Mark as Deprecated (ORPHAN_REQ):**
+1. Update `Status:` to "Deprecated"
+2. Add to `Change Log:` explaining why deprecated
+3. Remove from traceability matrix or mark as obsolete
+
+**Update Implementation Reference:**
+1. Search codebase for matching function/class
+2. Update `Implementation:` field with correct location
+3. Re-run verification
+4. Update `Last Validated:` date
+
+### Step 4: Verify and Report
+
+After synchronization completes:
+
+1. **Generate post-sync report:**
+```markdown
+# Synchronization Complete
+
+**Generated:** 2026-04-06
+**Changes Applied:** 9
+
+## Actions Taken
+
+- Updated 4 requirements to match code (DRIFT fixes)
+- Created 3 new requirements for orphan code
+- Deprecated 2 requirements with missing implementation
+- Updated all Last Validated dates
+
+## Updated Statistics
+
+- Total Requirements: 50 (was 47)
+- In Sync: 50
+- Deviations: 0
+
+## Files Modified
+
+- docs/requirement/requirements.md (updated)
+- docs/requirement/traceability_matrix.md (updated)
+
+Backup created: docs/requirement/requirements.md.backup_20260406_143022
+```
+
+2. **Create backup** of original requirements file before modifying
+3. **Update traceability matrix** with new mappings
+4. **Ask user to review** the synchronized requirements
+
+### When to Use Deviation Detection
+
+Trigger this workflow when:
+
+- User explicitly asks: "Check if my requirements are in sync with code"
+- User mentions: "Requirements and code have drifted apart"
+- Before a major release to verify alignment
+- After significant code refactoring
+- As part of regular maintenance (e.g., monthly sync check)
+- When audit preparation requires verification
+
+### User Workflow
+
+**Typical user interaction:**
+
+```
+User: "Check if my requirements are in sync with the code"
+
+Model: "I'll analyze your requirements against the current codebase.
+       Where is your requirements file located?"
+
+User: "docs/requirements.md"
+
+Model: [Analyzes requirements, detects deviations, generates sync report]
+
+Model: "Found 9 deviations. Here's the report:
+       [Shows sync report with all deviations]
+
+       How would you like to handle each deviation?
+       For each, choose: update-req, create-req, deprecate, or review"
+
+User: "For DRIFT items: update-req. For ORPHAN_CODE: create-req. For ORPHAN_REQ: deprecate"
+
+Model: [Executes synchronization, creates backup, updates files]
+
+Model: "Synchronization complete. Updated 4 requirements, created 3 new ones,
+       deprecated 2. Backup saved. Here's the post-sync report."
+```
+
+### Deviation Detection Checklist
+
+**Before running detection:**
+- [ ] User has provided requirements file path
+- [ ] Requirements file exists and is readable
+- [ ] Codebase is accessible for analysis
+
+**During detection:**
+- [ ] All requirements parsed correctly
+- [ ] Implementation fields validated against actual code
+- [ ] Code behavior compared with descriptions
+- [ ] Orphan code identified
+- [ ] All deviations categorized correctly
+
+**After synchronization:**
+- [ ] Backup of original requirements created
+- [ ] All approved actions executed
+- [ ] `Last Validated:` dates updated for affected requirements
+- [ ] Change log entries added
+- [ ] Traceability matrix updated
+- [ ] Post-sync report generated
+
 ## Change Management Workflow
 
 ### Handling Existing Requirements Files
@@ -626,6 +996,36 @@ docs/requirement/
 - **Include exact field names** - Use `Implementation:`, `Last Validated:`, `Last Changed:` as specified in template
 
 ## Tool Support
+
+### Deviation Detection Tool
+
+The deviation detection workflow analyzes requirements against current code:
+
+```bash
+# Check for deviations (interactive workflow)
+# This is a guided process - ask user for requirements path, detect deviations, generate report
+
+# Typical flow:
+1. Ask user: "Where is your requirements file?"
+2. Parse requirements and analyze code
+3. Generate sync report with deviation types (DRIFT, ORPHAN_CODE, ORPHAN_REQ)
+4. Present report to user
+5. Ask user for synchronization choices
+6. Execute approved actions
+7. Generate post-sync report
+```
+
+**What it detects:**
+- Code locations referenced in requirements that don't exist (ORPHAN_REQ)
+- Requirements that describe behavior not matching current code (DRIFT)
+- Code that exists but has no corresponding requirements (ORPHAN_CODE)
+- Requirements with stale `Last Validated:` dates (> 90 days)
+
+**Synchronization actions:**
+- Update requirements to match code (for DRIFT)
+- Create new requirements for orphan code
+- Mark orphan requirements as Deprecated
+- Update implementation references
 
 ### Verification Tool
 
@@ -816,6 +1216,120 @@ System shall validate payment amounts and reject requests exceeding maximum allo
 Amount limits prevent fraud and manage financial exposure.
 ```
 
+### Example 3: Deviation Detection and Synchronization
+
+**Initial Requirements (before code changes):**
+```markdown
+### REQ-001: User Authentication
+**Type:** Functional
+**Priority:** Critical
+**Status:** Implemented
+**Implementation:** src/auth.py:authenticate_user (line 45)
+**Last Validated:** 2026-01-15
+
+**Description:**
+System shall authenticate users using email and password credentials.
+
+**Verification:**
+1. Verify authenticate_user() function exists in src/auth.py
+2. Test with valid email and password - should succeed
+3. Test with invalid credentials - should raise AuthenticationError
+```
+
+**Current Code (after changes):**
+```python
+# src/auth.py:45
+def authenticate_user(email, password, require_2fa=False):
+    if not validate_email_format(email):
+        raise InvalidEmailError()
+    user = get_user_by_email(email)
+    if not user or not verify_password(password, user.password_hash):
+        raise AuthenticationError()
+    if require_2fa:
+        send_2fa_code(user.email)
+        return {"status": "pending_2fa", "user_id": user.id}
+    session = create_session(user)
+    return {"status": "authenticated", "token": session.token}
+```
+
+**Detected Deviation (DRIFT):**
+- Code now has `require_2fa` parameter and Two-Factor Authentication logic
+- Requirement doesn't document 2FA capability
+- `Last Validated:` is 91 days old
+
+**Synchronized Requirement:**
+```markdown
+### REQ-001: User Authentication
+**Type:** Functional
+**Priority:** Critical
+**Status:** Implemented
+**Implementation:** src/auth.py:authenticate_user (line 45)
+**Last Validated:** 2026-04-06
+**Last Changed:** 2026-04-06
+
+**Description:**
+System shall authenticate users using email and password credentials, with optional Two-Factor Authentication support.
+
+**Verification:**
+1. Verify authenticate_user() function exists in src/auth.py
+2. Test with valid email and password - should return authenticated status with token
+3. Test with invalid credentials - should raise AuthenticationError
+4. Test with require_2fa=True - should return pending_2fa status and send code
+5. Verify email validation is performed (test with invalid email)
+
+**Rationale:**
+Authentication is the primary security mechanism. Two-Factor Authentication adds an additional layer of security for sensitive operations.
+
+**Change Log:**
+- 2026-04-06: [DRIFT FIX] Updated requirement to reflect 2FA capability. Code added require_2fa parameter and conditional 2FA flow. Reason: Feature added to code but requirements not updated. No code changes required - requirements now match implementation.
+```
+
+### Example 4: Orphan Code Detection
+
+**Detected Orphan Code:**
+```python
+# src/payment/webhook_handler.py:23 (newly added, no requirements)
+def process_stripe_webhook(event):
+    """Handle Stripe webhook events for payment status updates."""
+    if event.type == "payment_intent.succeeded":
+        order = get_order_by_payment_id(event.data.object.id)
+        order.status = "paid"
+        order.save()
+        send_confirmation_email(order.customer_email)
+    elif event.type == "payment_intent.failed":
+        order = get_order_by_payment_id(event.data.object.id)
+        order.status = "payment_failed"
+        order.save()
+        notify_support(order.id)
+```
+
+**Generated New Requirement:**
+```markdown
+### REQ-048: Stripe Webhook Processing
+**Type:** Functional
+**Priority:** High
+**Status:** Implemented
+**Implementation:** src/payment/webhook_handler.py:process_stripe_webhook (line 23)
+**Last Validated:** 2026-04-06
+**Last Changed:** 2026-04-06
+
+**Description:**
+System shall process Stripe webhook events for payment status updates and update order status accordingly.
+
+**Verification:**
+1. Verify process_stripe_webhook() function exists in src/payment/webhook_handler.py
+2. Test with payment_intent.succeeded event - order status updated to "paid"
+3. Test with payment_intent.failed event - order status updated to "payment_failed"
+4. Verify confirmation email sent on successful payment
+5. Verify support notification sent on failed payment
+
+**Rationale:**
+Webhook processing ensures real-time order status updates from Stripe, improving customer experience and order tracking accuracy.
+
+**Change Log:**
+- 2026-04-06: [ORPHAN_CODE] Created requirement for newly discovered webhook processing code. Reason: Code existed without corresponding requirements. No code changes required.
+```
+
 ## Change Log Template
 
 ```markdown
@@ -838,6 +1352,30 @@ Amount limits prevent fraud and manage financial exposure.
 **BEFORE YOU DO ANYTHING ELSE:**
 - [ ] **Asked "Where would you like to save the requirements?"** - This is your FIRST action. If you haven't asked this, STOP and ask it now.
 - [ ] **Waited for user response** - Don't proceed until the user answers or declines
+
+**Before running deviation detection:**
+- [ ] User has provided requirements file path
+- [ ] Requirements file exists and is readable
+- [ ] Codebase is accessible for analysis
+
+**During deviation detection:**
+- [ ] All requirements parsed correctly
+- [ ] Implementation fields validated against actual code
+- [ ] Code behavior compared with descriptions
+- [ ] Orphan code identified
+- [ ] All deviations categorized correctly (DRIFT, ORPHAN_CODE, ORPHAN_REQ)
+
+**Before synchronization:**
+- [ ] User has reviewed sync report
+- [ ] User has approved actions for each deviation
+- [ ] Backup of original requirements created
+
+**After synchronization:**
+- [ ] All approved actions executed
+- [ ] `Last Validated:` dates updated for affected requirements
+- [ ] Change log entries added with deviation type and fix
+- [ ] Traceability matrix updated
+- [ ] Post-sync report generated
 
 **Before generating requirements:**
 
