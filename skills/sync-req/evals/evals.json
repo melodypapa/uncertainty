@@ -1,0 +1,193 @@
+{
+  "skill_name": "sync-req",
+  "evals": [
+    {
+      "id": 1,
+      "name": "simple-drift-detection",
+      "prompt": "Check if my requirements are in sync with the code. My requirements file is at docs/requirements.md",
+      "expected_output": "The skill should analyze the requirements file, detect deviations between requirements and code (specifically DRIFT type where code changed but requirements are stale), generate a synchronization report showing the drift, and ask the user how to handle it.",
+      "files": [
+        "src/auth.py",
+        "docs/requirements.md"
+      ],
+      "assertions": [
+        {
+          "name": "detects_drift_deviation",
+          "check_type": "contains_keyword",
+          "target": "DRIFT",
+          "description": "Output should identify DRIFT deviation type"
+        },
+        {
+          "name": "generates_sync_report",
+          "check_type": "contains_keyword",
+          "target": "Synchronization Report",
+          "description": "Output should include a synchronization report"
+        },
+        {
+          "name": "asks_user_action",
+          "check_type": "contains_keyword",
+          "target": "Recommended Action",
+          "description": "Output should recommend actions for handling drift"
+        },
+        {
+          "name": "identifies_mismatch",
+          "check_type": "contains_keyword",
+          "target": "mismatch",
+          "description": "Output should identify mismatch between code and requirements"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "orphan-code-detection",
+      "prompt": "My code has changed recently. Can you check if my requirements document matches the current implementation? The requirements are at requirements/functional.md",
+      "expected_output": "The skill should detect ORPHAN_CODE (new code without requirements), identify the untracked functions/classes, and recommend creating new requirements for them.",
+      "files": [
+        "src/payment/webhook_handler.py",
+        "requirements/functional.md"
+      ],
+      "assertions": [
+        {
+          "name": "detects_orphan_code",
+          "check_type": "contains_keyword",
+          "target": "ORPHAN_CODE",
+          "description": "Output should identify ORPHAN_CODE deviation type"
+        },
+        {
+          "name": "identifies_untracked_function",
+          "check_type": "contains_keyword",
+          "target": "Untracked",
+          "description": "Output should identify untracked code"
+        },
+        {
+          "name": "recommends_new_requirement",
+          "check_type": "contains_keyword",
+          "target": "Create new requirement",
+          "description": "Output should recommend creating new requirements"
+        },
+        {
+          "name": "shows_function_details",
+          "check_type": "contains_keyword",
+          "target": "function",
+          "description": "Output should show details of untracked functions"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "orphan-requirement-detection",
+      "prompt": "Check for deviations between my requirements and code. I have a requirements file at docs/specs/requirements.md",
+      "expected_output": "The skill should detect ORPHAN_REQ (requirements referencing non-existent code), identify which requirements point to deleted or moved code, and recommend deprecating or updating them.",
+      "files": [
+        "docs/specs/requirements.md",
+        "src/old_module.py"
+      ],
+      "assertions": [
+        {
+          "name": "detects_orphan_requirement",
+          "check_type": "contains_keyword",
+          "target": "ORPHAN_REQ",
+          "description": "Output should identify ORPHAN_REQ deviation type"
+        },
+        {
+          "name": "identifies_missing_implementation",
+          "check_type": "contains_keyword",
+          "target": "non-existent",
+          "description": "Output should identify non-existent implementation"
+        },
+        {
+          "name": "recommends_deprecation",
+          "check_type": "contains_keyword",
+          "target": "Deprecated",
+          "description": "Output should recommend marking requirements as Deprecated"
+        },
+        {
+          "name": "shows_requirement_id",
+          "check_type": "contains_keyword",
+          "target": "REQ-",
+          "description": "Output should reference specific requirement IDs"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "bidirectional-sync-workflow",
+      "prompt": "I want to update my code to match the requirements. Check the requirements at docs/requirements.md and tell me what code changes are needed.",
+      "expected_output": "The skill should detect CONFLICT deviations where requirements and code have diverged, identify what needs to be changed in code to match requirements, and provide guidance on code modifications needed.",
+      "files": [
+        "docs/requirements.md",
+        "src/auth.py"
+      ],
+      "assertions": [
+        {
+          "name": "detects_conflict",
+          "check_type": "contains_keyword",
+          "target": "CONFLICT",
+          "description": "Output should identify CONFLICT deviation type"
+        },
+        {
+          "name": "identifies_code_changes_needed",
+          "check_type": "contains_keyword",
+          "target": "code changes",
+          "description": "Output should identify code changes needed"
+        },
+        {
+          "name": "provides_modification_guidance",
+          "check_type": "contains_keyword",
+          "target": "modify",
+          "description": "Output should provide guidance on code modifications"
+        },
+        {
+          "name": "compares_requirements_to_code",
+          "check_type": "contains_keyword",
+          "target": "diverge",
+          "description": "Output should compare requirements to code implementation"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "complex-multiple-deviations",
+      "prompt": "My project has gone through a lot of refactoring. Please check if the requirements at docs/requirements.md are still accurate and help me synchronize them with the current code.",
+      "expected_output": "The skill should detect multiple deviation types (DRIFT, ORPHAN_CODE, ORPHAN_REQ) simultaneously, categorize each correctly, generate a comprehensive sync report with all deviations, and ask user for synchronization choices for each type.",
+      "files": [
+        "docs/requirements.md",
+        "src/auth.py",
+        "src/payment/webhook_handler.py",
+        "src/api/routes.py"
+      ],
+      "assertions": [
+        {
+          "name": "detects_multiple_deviation_types",
+          "check_type": "contains_multiple_keywords",
+          "target": ["DRIFT", "ORPHAN_CODE", "ORPHAN_REQ"],
+          "description": "Output should detect all three deviation types"
+        },
+        {
+          "name": "generates_comprehensive_report",
+          "check_type": "contains_keyword",
+          "target": "Summary",
+          "description": "Output should include a summary section"
+        },
+        {
+          "name": "categorizes_each_deviation",
+          "check_type": "contains_keyword",
+          "target": "Deviation Type",
+          "description": "Output should categorize each deviation by type"
+        },
+        {
+          "name": "asks_user_for_choices",
+          "check_type": "contains_keyword",
+          "target": "How would you like",
+          "description": "Output should ask user for synchronization choices"
+        },
+        {
+          "name": "provides_action_options",
+          "check_type": "contains_multiple_keywords",
+          "target": ["update-req", "create-req", "deprecate"],
+          "description": "Output should provide action options for each deviation"
+        }
+      ]
+    }
+  ]
+}
