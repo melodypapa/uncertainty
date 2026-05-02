@@ -4,13 +4,15 @@
     {
       "id": 0,
       "prompt": "I have some staged Python changes ready to push. I want to make sure everything passes quality checks before pushing to my feature branch. The repo uses pyproject.toml for configuration.",
-      "expected_output": "A comprehensive response that: 1) Checks for staged files first (early exit optimization), 2) Detects Python project type, 3) Runs quality gates (ruff, mypy, pytest), 4) If quality checks fail, asks user choice: 'Quality checks failed. Would you like to: 1) Fix the issues and re-check, or 2) Continue anyway?', 5) Reviews changes with git diff, 6) Creates a feature branch with proper naming, 7) Commits with correct format (feat/fix with issue reference, no Co-Authored-By), 8) Pushes to GitHub, 9) Creates a pull request after push.",
+      "expected_output": "A response that: 1) Checks for staged files first (early exit), 2) Verifies GitHub remote and gh CLI, 3) Detects Python project type, 4) Runs quality gates (ruff, mypy, pytest) with || exit 1, 5) If any check fails, workflow stops immediately, 6) Reviews changes, 7) Asks about existing issue or creates new one, 8) Creates feature branch, 9) Commits with correct format (no Co-Authored-By), 10) Pushes to GitHub, 11) Creates PR.",
       "files": [],
       "assertions": [
         "Early exit check performed - skill checked for staged files before running quality gates",
+        "GitHub remote and gh CLI verified",
         "Python project type detected correctly (via pyproject.toml)",
         "Quality gates executed: ruff check, mypy, pytest",
-        "User choice prompt offered when quality checks fail (if applicable)",
+        "Quality gates use || exit 1 to stop on failure",
+        "User asked about existing issue number or new issue creation",
         "Commit format includes type (feat/fix) and issue reference (Closes #N)",
         "Commit message does NOT contain Co-Authored-By line"
       ]
@@ -18,44 +20,92 @@
     {
       "id": 1,
       "prompt": "I've just made some changes to my JavaScript project and want to push them to a new feature branch. What should I do before pushing? The project has a package.json file.",
-      "expected_output": "A response that follows the github-workflow process: 1) Checks for staged files first (early exit optimization), 2) Detects JavaScript/TypeScript project type from package.json, 3) Runs quality gates (eslint, prettier, npm test), 4) If quality checks fail, asks user choice: 'Quality checks failed. Would you like to: 1) Fix the issues and re-check, or 2) Continue anyway?', 5) Reviews changes with git diff, 6) Creates GitHub issue for tracking, 7) Creates feature branch with proper naming, 8) Stages files and commits with correct format, 9) Pushes to GitHub, 10) Creates pull request automatically.",
+      "expected_output": "A response that follows the github-workflow process: 1) Checks for staged files first, 2) Verifies GitHub remote, 3) Detects JavaScript/TypeScript project type, 4) Runs quality gates (lint, format check, npm test) with || exit 1, 5) Reviews changes, 6) Asks about existing issue, 7) Creates feature branch, 8) Commits correctly, 9) Pushes, 10) Asks about draft PR option.",
       "files": [],
       "assertions": [
-        "Early exit check performed - skill checked for staged files before running quality gates",
+        "Early exit check performed",
         "JavaScript/TypeScript project type detected correctly (via package.json)",
-        "Quality gates executed: eslint/prettier format check, npm test",
-        "User choice prompt offered when quality checks fail (if applicable)",
-        "Commit format includes type (feat/fix) and issue reference (Closes #N)",
-        "Commit message does NOT contain Co-Authored-By line"
+        "Quality gates executed with || exit 1",
+        "User asked about existing issue number",
+        "Commit message does NOT contain Co-Authored-By line",
+        "User asked about draft PR option"
       ]
     },
     {
       "id": 2,
       "prompt": "I need to push my Go code changes. There's a go.mod file. What are the steps I should follow before committing?",
-      "expected_output": "A response that follows the github-workflow process for Go: 1) Checks for staged files first (early exit optimization), 2) Detects Go project type from go.mod, 3) Runs quality gates (go fmt, go vet, go test, go build), 4) If quality checks fail, asks user choice: 'Quality checks failed. Would you like to: 1) Fix the issues and re-check, or 2) Continue anyway?', 5) Reviews changes with git diff, 6) Creates GitHub issue or asks for existing issue number, 7) Creates feature branch (feature/<type>-* or feature/<requirement-id>-*), 8) Commits with proper format (feat/fix: description, Closes #N, no Co-Authored-By), 9) Pushes to GitHub, 10) Creates PR automatically after push.",
+      "expected_output": "A response that follows the github-workflow process for Go: 1) Checks for staged files, 2) Verifies GitHub remote, 3) Detects Go project type, 4) Runs quality gates (go fmt, go vet, go test, go build) with || exit 1, 5) Reviews changes, 6) Asks about existing issue, 7) Checks current branch (main/master vs feature), 8) Commits correctly, 9) Pushes, 10) Creates PR.",
       "files": [],
       "assertions": [
-        "Early exit check performed - skill checked for staged files before running quality gates",
+        "Early exit check performed",
         "Go project type detected correctly (via go.mod)",
-        "Quality gates executed: go fmt, go vet, go test, go build",
-        "User choice prompt offered when quality checks fail (if applicable)",
-        "Commit format includes type (feat/fix) and issue reference (Closes #N)",
+        "Quality gates executed with || exit 1",
+        "Current branch checked before creating new branch",
+        "User asked about existing issue number",
         "Commit message does NOT contain Co-Authored-By line"
       ]
     },
     {
       "id": 3,
-      "prompt": "I have staged Python changes but the linter is showing errors. I still want to push these changes to a feature branch anyway.",
-      "expected_output": "A response that: 1) Checks for staged files, 2) Detects Python project type, 3) Runs quality gates and reports errors clearly, 4) Asks user choice: 'Quality checks failed. Would you like to: 1) Fix the issues and re-check, or 2) Continue anyway?', 5) Since user explicitly wants to continue anyway, proceeds to create feature branch, commit with correct format, push to GitHub, and create PR.",
+      "prompt": "I have staged Python changes but the linter is showing errors.",
+      "expected_output": "A response that: 1) Checks for staged files, 2) Runs quality gates, 3) Quality gates FAIL and workflow STOPS immediately (|| exit 1), 4) Reports errors clearly, 5) Does NOT proceed to commit/push, 6) User must fix issues and re-run workflow.",
       "files": [],
       "assertions": [
-        "Early exit check performed - skill checked for staged files before running quality gates",
-        "Python project type detected correctly (via pyproject.toml)",
-        "Quality gates executed and errors reported clearly",
-        "User choice prompt was offered with options to fix or continue",
-        "When user chose to continue, workflow proceeded to create issue, branch, commit, push, and PR",
-        "Commit format includes type (feat/fix) and issue reference (Closes #N)",
+        "Early exit check performed",
+        "Quality gates executed and failed",
+        "Workflow stopped immediately on failure (|| exit 1)",
+        "Errors reported clearly",
+        "Did NOT proceed to commit/push"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I have staged C code changes ready to push. The project uses CMake for building. What steps should I follow before pushing to my feature branch?",
+      "expected_output": "A response that follows the github-workflow process for C/C++: 1) Checks for staged files, 2) Verifies GitHub remote, 3) Detects C/C++ project type, 4) Runs quality gates (cmake build, ctest or make test) with || exit 1, 5) Reviews changes, 6) Asks about existing issue, 7) Creates feature branch, 8) Commits correctly, 9) Pushes, 10) Creates PR.",
+      "files": [],
+      "assertions": [
+        "Early exit check performed",
+        "C/C++ project type detected correctly (via CMakeLists.txt or Makefile)",
+        "Quality gates executed with || exit 1",
+        "User asked about existing issue number",
         "Commit message does NOT contain Co-Authored-By line"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I want to push my changes. I already have an issue #42 for this work.",
+      "expected_output": "A response that: 1) Checks for staged files, 2) Runs quality gates, 3) Asks user about existing issue, 4) User provides issue #42, 5) Uses that issue number in commit message (Closes #42), 6) Creates branch, commits, pushes, creates PR.",
+      "files": [],
+      "assertions": [
+        "Early exit check performed",
+        "User asked about existing issue number",
+        "Issue #42 used in commit message (Closes #42)",
+        "Commit message does NOT contain Co-Authored-By line"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "I'm already on a feature branch called feature/add-login. I have staged changes ready to push.",
+      "expected_output": "A response that: 1) Checks for staged files, 2) Checks current branch, 3) Notices user is already on feature branch, 4) Asks if user wants to stay on current branch or create new one, 5) Proceeds with quality gates, commit, push, PR.",
+      "files": [],
+      "assertions": [
+        "Early exit check performed",
+        "Current branch checked (feature/add-login detected)",
+        "User asked if they want to stay on current branch or create new one",
+        "Quality gates executed",
+        "Commit message does NOT contain Co-Authored-By line"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "What should I do before pushing my changes to GitHub?",
+      "expected_output": "A response that: 1) Checks for staged files first, 2) If no staged files, informs user and exits early (does not run quality gates), 3) Suggests using git add to stage files.",
+      "files": [],
+      "assertions": [
+        "Early exit check performed",
+        "No staged files detected",
+        "Workflow exited early without running quality gates",
+        "User informed to stage files with git add"
       ]
     }
   ]
