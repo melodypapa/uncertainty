@@ -63,15 +63,15 @@ which gh || echo "Install GitHub CLI: brew install gh"
 
 ## Step 2: Run Quality Gates
 
-**Run checks. Stop immediately on failure.**
+**Run checks. Stop immediately on failure (`|| exit 1`).**
 
 | Language | Commands |
 |----------|----------|
-| Python | `ruff check . && mypy . && pytest` |
-| JS/TS | `npm run lint && npm test` |
-| Go | `go fmt ./... && go vet ./... && go test ./...` |
-| Java | `mvn test` or `./gradlew test` |
-| C/C++ | `cmake --build build && ctest --test-dir build` |
+| Python | `ruff check . && mypy . && pytest \|\| exit 1` |
+| JS/TS | `npm run lint && npm test \|\| exit 1` |
+| Go | `go fmt ./... && go vet ./... && go test ./... \|\| exit 1` |
+| Java | `mvn test \|\| exit 1` or `./gradlew test \|\| exit 1` |
+| C/C++ | `cmake --build build && ctest --test-dir build \|\| exit 1` |
 
 **Report:**
 ```
