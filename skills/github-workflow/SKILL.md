@@ -65,6 +65,8 @@ which gh || echo "Install GitHub CLI: brew install gh"
 
 **Run checks. Stop immediately on failure (`|| exit 1`).**
 
+### Language Projects
+
 | Language | Commands |
 |----------|----------|
 | Python | `ruff check . && mypy . && pytest \|\| exit 1` |
@@ -73,6 +75,16 @@ which gh || echo "Install GitHub CLI: brew install gh"
 | Java | `mvn test \|\| exit 1` or `./gradlew test \|\| exit 1` |
 | C/C++ | `cmake --build build && ctest --test-dir build \|\| exit 1` |
 
+### Skills
+
+**If changes include `skills/*/SKILL.md`:**
+
+| Check | Command |
+|-------|---------|
+| YAML frontmatter | `python3 -c "import yaml; yaml.safe_load(open('SKILL.md').read().split('---')[1])"` |
+| Discoverable | `npx skills install . --list` |
+| Evals (if exist) | Run evals.json assertions |
+
 **Report:**
 ```
 Check     Status
@@ -80,6 +92,7 @@ Check     Status
 Lint      ✅/❌
 Test      ✅/❌
 Build     ✅/❌
+Skills    ✅/❌
 ```
 
 ## Step 3: Review Changes
