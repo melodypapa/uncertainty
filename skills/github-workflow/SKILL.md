@@ -44,6 +44,7 @@ description: "Use when user has staged files ready to push, mentions commit/push
 - Pushing without tests passing
 - **Secrets detected in staged files**
 - **Branch name contains special characters**
+- **Suspicious or phishing remote domain detected**
 
 **If any red flag triggered: Stop and fix before proceeding.**
 
@@ -58,14 +59,25 @@ git diff --cached --name-only
 ## Step 1: Verify GitHub Remote
 
 ```bash
-git remote -v | grep -E 'github\.com[/:]'
+git remote -v | grep -E '(^|[^.])github\.com[/:]'
 which gh || echo "Install GitHub CLI: brew install gh"
 ```
 
 **Validate remote URL format:**
 - ✅ `git@github.com:owner/repo.git`
 - ✅ `https://github.com/owner/repo.git`
-- ❌ `git@github.com.malicious.com:owner/repo.git`
+- ❌ `git@github.com.malicious.com:owner/repo.git` (phishing domain)
+
+**Check for suspicious patterns:**
+```bash
+# Extract domain and check for phishing indicators
+REMOTE_DOMAIN=$(git remote -v | grep -oP '(?<=@|//)[^:/]+' | head -1)
+if echo "$REMOTE_DOMAIN" | grep -qE '\.(com|org|io|net|co|app)\.'; then
+    echo "WARNING: Possible phishing domain detected: $REMOTE_DOMAIN"
+    read -p "Continue? (y/N) " -n 1 -r
+    [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
+fi
+```
 
 **Multiple remotes?** Ask user which remote to use.
 
@@ -87,21 +99,35 @@ which gh || echo "Install GitHub CLI: brew install gh"
 
 **If changes include `skills/*/SKILL.md`:**
 
-| Check | Command |
-|-------|---------|
-| YAML frontmatter | `python3 -c "import yaml; yaml.safe_load(open('SKILL.md').read().split('---')[1])"` |
-| Discoverable | `npx skills install . --list` |
-| Evals (if exist) | Run evals.json assertions |
+| Check | Command | Purpose |
+|-------|---------|---------|
+| YAML frontmatter | `python3 -c "import yaml; yaml.safe_load(open('SKILL.md').read().split('---')[1])"` | Valid syntax |
+| Discoverable | `npx skills install . --list` | Can be found |
+| Evals (if exist) | Run evals.json assertions | Quality gates |
+| Security - secrets | `grep -lE '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY)' SKILL.md 2>/dev/null` | No hardcoded secrets |
+| Security - shell injection | `grep -lE '\$\(.*\)|`' + '.*\$\{|bash.*-c|sh.*-c' SKILL.md 2>/dev/null` | No command injection in examples |
+| Security - unsafe exec | `grep -lE '(exec|eval|system|os\.system|subprocess\.(shell|call))' SKILL.md 2>/dev/null` | No unsafe exec in examples |
+
+**If ANY security check fails:**
+1. **STOP immediately** - Do not proceed
+2. Fix the security issue (use env vars, input validation, safe APIs)
+3. Re-run all checks
+4. Only proceed when all security checks pass
 
 **Report:**
 ```
-Check     Status
-───────────────────
-Lint      ✅/❌
-Test      ✅/❌
-Build     ✅/❌
-Skills    ✅/❌
+Check                     Status
+───────────────────────────────────────
+Lint                      ✅/❌
+Test                      ✅/❌
+Build                     ✅/❌
+Skills - YAML             ✅/❌
+Skills - Discoverable     ✅/❌
+Skills - Evals            ✅/❌
+Skills - Security         ✅/❌
 ```
+
+**Security check failures are blocking.** Fix before committing.
 
 ## Step 2.5: Secrets Detection
 
@@ -165,9 +191,17 @@ digraph branch_decision {
 
 **Branch naming:** `feature/<type>-short-description`
 
+**Check for unsafe characters before sanitizing:**
+```bash
+if echo "$USER_INPUT" | grep -qE '[;&|$(\''"` ]'; then
+    echo "WARNING: Unsafe characters detected in branch name"
+fi
+```
+
 **Sanitize branch names:**
 ```bash
 BRANCH_NAME=$(echo "$USER_INPUT" | tr -cd 'a-zA-Z0-9/-' | tr '[:upper:]' '[:lower:]')
+[ -z "$BRANCH_NAME" ] && echo "ERROR: Branch name is empty after sanitization" && exit 1
 ```
 
 **Allowed characters:** letters, numbers, hyphens, forward slashes
@@ -235,4 +269,6 @@ Confirm:
 | Pushing without tests | Quality gates must pass |
 | Ignoring merge conflicts | Resolve before push |
 | Committing secrets | Run Step 2.5, use .gitignore |
+| Skill security issues | Fix secrets/injection/unsafe-exec before commit |
 | Unsafe branch names | Sanitize with `tr -cd` |
+| Suspicious remote domain | Verify URL, reject phishing domains |
