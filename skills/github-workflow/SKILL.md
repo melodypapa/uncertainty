@@ -1,182 +1,153 @@
 ---
 name: github-workflow
-description: "Use when user has staged files ready to push to a feature branch, needs to run pre-push quality checks, asks what to do before pushing staged changes, or mentions committing/pushing code to GitHub. Triggers on keywords: staged, commit, push, branch, PR, pull request, quality gates, pre-push checks."
+description: "Use when user has staged files ready to push, mentions commit/push/branch/PR, or asks what to do before pushing. Triggers: staged, commit, push, branch, PR, pull request, quality gates."
 ---
 
 # GitHub Workflow
 
-Execute this workflow directly - don't create documentation files. Focus on running commands and reporting results.
-
-## Overview
-
-**Core principle:** Run quality gates BEFORE committing. Stop immediately on any failure. Never push failing code.
+**Core principle:** Run quality gates BEFORE committing. Stop on failure. Never push failing code.
 
 ## When to Use
 
-- User has staged files (`git add` done) and wants to push
+- User has staged files and wants to push
 - User asks "what should I do before pushing?"
-- User mentions creating a PR or feature branch
-- User wants quality checks before commit
+- User mentions creating PR or feature branch
 
 ## When NOT to Use
 
-- **No staged changes** - User hasn't run `git add` yet
-- **Direct commits to main/master** - This workflow is for feature branches only
-- **Hotfixes on production** - Different urgency, skip quality gates if critical
-- **User explicitly wants to skip checks** - Respect user autonomy
+- No staged changes - user hasn't run `git add`
+- Direct commits to main/master - feature branches only
+- User explicitly wants to skip checks
 
 ## Quick Reference
 
 | Step | Command | Purpose |
 |------|---------|---------|
 | 0 | `git diff --cached --name-only` | Early exit if no staged files |
-| 1 | `git remote -v \| grep github.com` | Verify GitHub remote exists |
-| 2 | Quality gates (see below) | Run lint, test, build |
-| 3 | `git status && git diff --cached` | Review changes before commit |
+| 1 | `git remote -v \| grep github.com` | Verify GitHub remote |
+| 2 | Quality gates | Run lint, test, build |
+| 3 | `git diff --cached` | Review changes |
 | 4 | `gh issue create` | Create tracking issue |
 | 5 | `git checkout -b feature/...` | Create feature branch |
 | 6 | `git commit -m "..."` | Commit with proper format |
 | 7 | `git push -u origin ...` | Push to remote |
 | 8 | `gh pr create` | Create pull request |
+| 9 | `gh pr view` | Verify PR created |
 
-## Step 0: Early Exit Check (Performance)
+## Red Flags - STOP
 
-**First, check for staged files:**
+- Skipping quality gates
+- Committing directly to main/master
+- Missing issue reference in commit
+- Adding Co-Authored-By or AI attribution
+- Pushing without tests passing
+
+**If any red flag triggered: Stop and fix before proceeding.**
+
+## Step 0: Early Exit Check
+
 ```bash
 git diff --cached --name-only
 ```
 
-**If no staged files are found:**
-- Inform the user: "No staged changes found. Stage files first with `git add <files>`."
-- **Exit immediately** - do not proceed with quality gates or any other steps.
-
-This prevents unnecessary test runs and improves performance when there's nothing to commit.
+**No staged files?** Inform user to run `git add` first. Exit immediately.
 
 ## Step 1: Verify GitHub Remote
 
 ```bash
 git remote -v | grep github.com
+which gh || echo "Install GitHub CLI: brew install gh"
 ```
 
-If no GitHub remote is found, inform the user and exit.
-
-**Check for `gh` CLI:**
-```bash
-which gh || echo "GitHub CLI not installed. Install with: brew install gh"
-```
+**Multiple remotes?** Ask user which remote to use.
 
 ## Step 2: Run Quality Gates
 
-**Run all quality checks and report results. STOP immediately if any check fails.**
+**Run checks. Stop immediately on failure (`|| exit 1`).**
 
-**Python:**
-```bash
-PYTHON_DIRS=$(find . -name "*.py" -not -path "*/venv/*" -not -path "*/.venv/*" -not -path "*/node_modules/*" -not -path "*/__pycache__/*" -exec dirname {} \; 2>/dev/null | sort -u | head -10 | tr '\n' ' ')
-ruff check ${PYTHON_DIRS:-.} || exit 1
-mypy ${PYTHON_DIRS:-.} || exit 1
-pytest || exit 1
-```
+### Language Projects
 
-**JavaScript/TypeScript:**
-```bash
-if grep -q "lint" package.json; then npm run lint || exit 1; else npx eslint . --max-warnings 0 2>/dev/null || true; fi
-if grep -q "format:check" package.json; then npm run format:check || exit 1; else npx prettier --check . 2>/dev/null || true; fi
-npm test || exit 1
-```
+| Language | Commands |
+|----------|----------|
+| Python | `ruff check . && mypy . && pytest \|\| exit 1` |
+| JS/TS | `npm run lint && npm test \|\| exit 1` |
+| Go | `go fmt ./... && go vet ./... && go test ./... \|\| exit 1` |
+| Java | `mvn test \|\| exit 1` or `./gradlew test \|\| exit 1` |
+| C/C++ | `cmake --build build && ctest --test-dir build \|\| exit 1` |
 
-**Go:**
-```bash
-go fmt ./... || exit 1
-go vet ./... || exit 1
-go test ./... || exit 1
-go build ./... || exit 1
-```
+### Skills
 
-**Java (Maven):**
-```bash
-mvn checkstyle:check || exit 1
-mvn test || exit 1
-mvn package || exit 1
-```
+**If changes include `skills/*/SKILL.md`:**
 
-**Java (Gradle):**
-```bash
-./gradlew checkstyleMain || exit 1
-./gradlew test || exit 1
-./gradlew build || exit 1
-```
+| Check | Command |
+|-------|---------|
+| YAML frontmatter | `python3 -c "import yaml; yaml.safe_load(open('SKILL.md').read().split('---')[1])"` |
+| Discoverable | `npx skills install . --list` |
+| Evals (if exist) | Run evals.json assertions |
 
-**C/C++:**
-```bash
-cmake --build build 2>/dev/null || make check 2>/dev/null || exit 1
-ctest --test-dir build 2>/dev/null || make test 2>/dev/null || exit 1
+**Report:**
 ```
-
-**Report summary:**
+Check     Status
+───────────────────
+Lint      ✅/❌
+Test      ✅/❌
+Build     ✅/❌
+Skills    ✅/❌
 ```
-Check        Status
-───────────────────────
-Linting      ✅ Pass / ❌ Fail
-Formatting   ✅ Pass / ❌ Fail
-Tests        ✅ Pass / ❌ Fail
-Build        ✅ Pass / ❌ Fail
-```
-
-**NOTE:** The `|| exit 1` in commands above ensures the workflow stops immediately if any check fails. User must fix issues and re-run the workflow.
 
 ## Step 3: Review Changes
 
 ```bash
-git status && git diff --cached
+git diff --cached --stat
+git diff --cached
 ```
 
-## Step 4: Create or Reference GitHub Issue
+## Step 4: Create or Reference Issue
 
-**Ask user:** "Do you have an existing issue number, or should I create a new one?"
+**Ask:** "Existing issue number, or create new?"
 
-**If creating new:**
+**Create new:**
 ```bash
-gh issue create --title "<type>: <brief description>" --body "## Summary\n\n## Changes\n\n## Test Coverage"
+gh issue create --title "<type>: <description>" --body "## Summary"
 ```
-
-**If existing:** Capture the issue number for commit message.
 
 Types: feat, fix, docs, refactor, test, chore
 
-## Step 5: Create or Verify Feature Branch
+## Step 5: Feature Branch Decision
 
-**Check current branch:**
-```bash
-git branch --show-current
+```dot
+digraph branch_decision {
+    rankdir=TB
+    node [shape=box]
+    
+    start [label="Check current branch" shape=diamond]
+    main [label="On main/master?"]
+    create [label="Create: git checkout -b feature/<name>"]
+    ask [label="Ask: Stay on current branch\nor create new?"]
+    done [label="Proceed to commit"]
+    
+    start -> main
+    main -> create [label="yes"]
+    main -> ask [label="no"]
+    ask -> done [label="stay"]
+    ask -> create [label="new"]
+    create -> done
+}
 ```
 
-**If already on a feature branch:** Ask user if they want to stay on current branch or create a new one.
+**Branch naming:** `feature/<type>-short-description`
 
-**If on main/master:**
-```bash
-git checkout -b feature/<type>-short-description
-```
-
-## Step 6: Stage and Commit
+## Step 6: Commit
 
 ```bash
-git add <relevant-files>
 git commit -m "<type>: <description>
 
-<detailed description>
+<details>
 
-Closes #<issue-number>"
+Closes #<issue>"
 ```
 
-**CRITICAL COMMIT RULES:**
-1. **NEVER add Co-Authored-By line** - Do not include any attribution to AI assistants
-2. Commit message format: `<type>: <description>` followed by blank line, then details, then `Closes #N`
-3. Types: feat, fix, docs, refactor, test, chore
-
-**Verify commit message does NOT contain:**
-- "Co-Authored-By:"
-- "Signed-off-by:" (unless user explicitly requests)
-- Any AI attribution
+**CRITICAL: Never add Co-Authored-By or AI attribution.**
 
 ## Step 7: Push to GitHub
 
@@ -184,32 +155,46 @@ Closes #<issue-number>"
 git push -u origin $(git branch --show-current)
 ```
 
+**Push rejected?** Handle merge conflicts (see below).
+
+### Merge Conflict Handling
+
+```bash
+git pull --rebase origin $(git branch --show-current)
+```
+
+**If conflicts:**
+1. Edit conflicted files (look for `<<<<<<<` markers)
+2. `git add <resolved-files>`
+3. `git rebase --continue`
+4. Retry push
+
 ## Step 8: Create Pull Request
 
 ```bash
-gh pr create --title "<type>: <brief description>" --body "## Summary\n\n## Changes\n\nCloses #<issue-number>"
+gh pr create --title "<type>: <description>" --body "Closes #<issue>"
 ```
 
-**Ask user:** "Should this be a draft PR?" If yes, add `--draft` flag.
+**Draft?** Add `--draft` flag if requested.
+
+## Step 9: Verify PR
+
+```bash
+gh pr view
+```
+
+Confirm:
+- PR URL is accessible
+- CI checks are running
+- Base branch is correct
 
 ## Common Mistakes
 
 | Mistake | Fix |
 |---------|-----|
-| Skipping quality gates | Always run Step 2. Use `|| exit 1` to enforce. |
-| Committing to main/master | Always create feature branch first (Step 5) |
-| Missing issue reference | Always include `Closes #N` in commit message |
-| Adding Co-Authored-By | **NEVER** add AI attribution to commits |
-| Pushing without tests | Quality gates must pass before push |
-| Forgetting `git add` | Step 0 catches this - early exit |
-
-## Workflow Behavior
-
-**Quality Gate Failures:**
-- Workflow stops immediately when any quality check fails (via `|| exit 1`)
-- User must fix issues and re-run the workflow
-- This ensures only passing code is committed and pushed
-
-**Commit Messages:**
-- Never include Co-Authored-By or AI attribution lines
-- Format: `<type>: <description>` with `Closes #N` reference
+| Skipping quality gates | Always run Step 2 |
+| Committing to main | Create feature branch first |
+| Missing issue reference | Include `Closes #N` |
+| Adding Co-Authored-By | Never add AI attribution |
+| Pushing without tests | Quality gates must pass |
+| Ignoring merge conflicts | Resolve before push |
