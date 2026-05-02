@@ -1,0 +1,166 @@
+name: Skill Quality Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'skills/**'
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint Skills
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install skills-check
+        run: npm install -g skills-check
+
+      - name: Find modified skills
+        id: skills
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED_SKILLS=$(git diff --name-only origin/main...HEAD | grep -E '^skills/[^/]+/SKILL\.md$' | sed 's|/SKILL.md||' | sed 's|skills/||' | tr '\n' ' ')
+          else
+            CHANGED_SKILLS=$(git diff --name-only HEAD~1 HEAD | grep -E '^skills/[^/]+/SKILL\.md$' | sed 's|/SKILL.md||' | sed 's|skills/||' | tr '\n' ' ')
+          fi
+          echo "skills=$CHANGED_SKILLS" >> $GITHUB_OUTPUT
+          echo "Changed skills: $CHANGED_SKILLS"
+
+      - name: Lint skills
+        run: |
+          SKILLS="${{ steps.skills.outputs.skills }}"
+          if [ -n "$SKILLS" ]; then
+            for skill in $SKILLS; do
+              echo "Linting skill: $skill"
+              npx skills-check lint "skills/$skill" || exit 1
+            done
+          else
+            echo "No skill changes detected"
+          fi
+
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install skills-check
+        run: npm install -g skills-check
+
+      - name: Find modified skills
+        id: skills
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED_SKILLS=$(git diff --name-only origin/main...HEAD | grep -E '^skills/[^/]+/SKILL\.md$' | sed 's|/SKILL.md||' | sed 's|skills/||' | tr '\n' ' ')
+          else
+            CHANGED_SKILLS=$(git diff --name-only HEAD~1 HEAD | grep -E '^skills/[^/]+/SKILL\.md$' | sed 's|/SKILL.md||' | sed 's|skills/||' | tr '\n' ' ')
+          fi
+          echo "skills=$CHANGED_SKILLS" >> $GITHUB_OUTPUT
+          echo "Changed skills: $CHANGED_SKILLS"
+
+      - name: Audit skills
+        run: |
+          SKILLS="${{ steps.skills.outputs.skills }}"
+          if [ -n "$SKILLS" ]; then
+            for skill in $SKILLS; do
+              echo "Auditing skill: $skill"
+              npx skills-check audit "skills/$skill" || true
+            done
+          else
+            echo "No skill changes detected"
+          fi
+
+  budget:
+    name: Context Budget Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install skills-check
+        run: npm install -g skills-check
+
+      - name: Find modified skills
+        id: skills
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED_SKILLS=$(git diff --name-only origin/main...HEAD | grep -E '^skills/[^/]+/SKILL\.md$' | sed 's|/SKILL.md||' | sed 's|skills/||' | tr '\n' ' ')
+          else
+            CHANGED_SKILLS=$(git diff --name-only HEAD~1 HEAD | grep -E '^skills/[^/]+/SKILL\.md$' | sed 's|/SKILL.md||' | sed 's|skills/||' | tr '\n' ' ')
+          fi
+          echo "skills=$CHANGED_SKILLS" >> $GITHUB_OUTPUT
+          echo "Changed skills: $CHANGED_SKILLS"
+
+      - name: Check context budget
+        run: |
+          SKILLS="${{ steps.skills.outputs.skills }}"
+          if [ -n "$SKILLS" ]; then
+            for skill in $SKILLS; do
+              echo "Checking budget for skill: $skill"
+              npx skills-check budget "skills/$skill"
+            done
+          else
+            echo "No skill changes detected"
+          fi
+
+  secrets-scan:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan for secrets
+        run: |
+          echo "Scanning for potential secrets in skill files..."
+          find skills -name "SKILL.md" -exec grep -l -E '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY)=[^[:space:]]' {} \; 2>/dev/null || echo "No hardcoded secrets found"
+
+      - name: Scan for shell injection patterns
+        run: |
+          echo "Scanning for shell injection patterns..."
+          find skills -name "SKILL.md" -exec grep -l -E '\$\([^)]*\)|`[^`]*\$\{' {} \; 2>/dev/null || echo "No shell injection patterns found"
+
+      - name: Scan for unsafe exec patterns
+        run: |
+          echo "Scanning for unsafe exec patterns..."
+          find skills -name "SKILL.md" -exec grep -l -E '(exec\(|eval\(|os\.system|subprocess\.(shell|call))' {} \; 2>/dev/null || echo "No unsafe exec patterns found"
+
+  summary:
+    name: Quality Summary
+    runs-on: ubuntu-latest
+    needs: [lint, audit, budget, secrets-scan]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          echo "## Skill Quality Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Audit | ${{ needs.audit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Budget | ${{ needs.budget.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secrets Scan | ${{ needs.secrets-scan.result }} |" >> $GITHUB_STEP_SUMMARY
