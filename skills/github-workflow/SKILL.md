@@ -1,6 +1,11 @@
 ---
 name: github-workflow
 description: "Use when user has staged files ready to push, mentions commit/push/branch/PR, or asks what to do before pushing. Triggers: staged, commit, push, branch, PR, pull request, quality gates."
+author: melodypapa
+license: MIT
+repository: https://github.com/melodypapa/uncertainty
+version: 1.0.0
+keywords: [github, workflow, commit, pr, quality-gates]
 ---
 
 # GitHub Workflow
