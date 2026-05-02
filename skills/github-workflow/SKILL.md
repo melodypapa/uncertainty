@@ -1,6 +1,6 @@
 ---
 name: github-workflow
-description: Use when user has staged files ready to push to a feature branch, needs to run pre-push quality checks, asks what to do before pushing staged changes, or mentions committing/pushing code to GitHub. Triggers on keywords: staged, commit, push, branch, PR, pull request, quality gates, pre-push checks.
+description: "Use when user has staged files ready to push to a feature branch, needs to run pre-push quality checks, asks what to do before pushing staged changes, or mentions committing/pushing code to GitHub. Triggers on keywords: staged, commit, push, branch, PR, pull request, quality gates, pre-push checks."
 ---
 
 # GitHub Workflow
