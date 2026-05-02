@@ -1,6 +1,13 @@
 ---
 name: sync-req
 description: Use when creating or maintaining ISO/IEC/IEEE 29148 compliant requirements that track code implementation over time. Triggered by need for requirements traceability, code documentation, or maintaining specifications alongside code. Supports bidirectional traceability between requirements and code locations, verification criteria validation, change management workflows, and deviation detection to synchronize requirements with code when they drift apart.
+author: melodypapa
+license: MIT
+repository: https://github.com/melodypapa/uncertainty
+version: 1.0.0
+product-version: 1.0.0
+spec-version: 1.0.0
+keywords: [requirements, traceability, iso-29148, documentation]
 ---
 
 # Sync-Req: Living Requirements with Traceability

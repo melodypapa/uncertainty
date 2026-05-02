@@ -103,6 +103,8 @@ fi
 |-------|---------|---------|
 | YAML frontmatter | `python3 -c "import yaml; yaml.safe_load(open('SKILL.md').read().split('---')[1])"` | Valid syntax |
 | Discoverable | `npx skills install . --list` | Can be found |
+| Skills audit | `npx skills audit .` | Compliance check |
+| Skills check | `npx skills-check .` | Quality validation |
 | Evals (if exist) | Run evals.json assertions | Quality gates |
 | Security - secrets | `grep -lE '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY)' SKILL.md 2>/dev/null` | No hardcoded secrets |
 | Security - shell injection | `grep -lE '\$\(.*\)|`' + '.*\$\{|bash.*-c|sh.*-c' SKILL.md 2>/dev/null` | No command injection in examples |
@@ -123,6 +125,8 @@ Test                      ✅/❌
 Build                     ✅/❌
 Skills - YAML             ✅/❌
 Skills - Discoverable     ✅/❌
+Skills - Audit            ✅/❌
+Skills - Check            ✅/❌
 Skills - Evals            ✅/❌
 Skills - Security         ✅/❌
 ```
