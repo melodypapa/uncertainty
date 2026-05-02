@@ -163,6 +163,23 @@
         "User warned about security issue",
         "User asked to confirm remote before proceeding"
       ]
+    },
+    {
+      "id": 12,
+      "prompt": "I have staged a skill file (SKILL.md) with changes and want to push to a feature branch. Help me follow the proper workflow with quality checks.",
+      "expected_output": "A response that: 1) Checks for staged files, 2) Detects skill file changes, 3) Runs skill quality gates: YAML frontmatter validation, npx skills discoverability check, evals verification, 4) Runs skill security checks: secrets detection, shell injection detection, unsafe exec detection, 5) If security issues found, STOPS immediately, 6) Reports security violations, 7) Does NOT proceed to commit, 8) Advises fixing security issues first.",
+      "files": [],
+      "assertions": [
+        "Early exit check performed",
+        "Skills section identified (SKILL.md changes detected)",
+        "YAML frontmatter validation check present",
+        "Discoverable check present",
+        "Security - secrets check for skill files present",
+        "Security - shell injection check present",
+        "Security - unsafe exec check present",
+        "Security violations detected and workflow stopped",
+        "User instructed to fix security issues before proceeding"
+      ]
     }
   ]
 }
