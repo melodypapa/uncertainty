@@ -24,8 +24,9 @@ description: "Use when user has staged files ready to push, mentions commit/push
 | Step | Command | Purpose |
 |------|---------|---------|
 | 0 | `git diff --cached --name-only` | Early exit if no staged files |
-| 1 | `git remote -v \| grep github.com` | Verify GitHub remote |
+| 1 | `git remote -v \| grep -E 'github\.com[/:]'` | Verify GitHub remote |
 | 2 | Quality gates | Run lint, test, build |
+| 2.5 | Secrets detection | Check for API keys, tokens |
 | 3 | `git diff --cached` | Review changes |
 | 4 | `gh issue create` | Create tracking issue |
 | 5 | `git checkout -b feature/...` | Create feature branch |
@@ -41,6 +42,8 @@ description: "Use when user has staged files ready to push, mentions commit/push
 - Missing issue reference in commit
 - Adding Co-Authored-By or AI attribution
 - Pushing without tests passing
+- **Secrets detected in staged files**
+- **Branch name contains special characters**
 
 **If any red flag triggered: Stop and fix before proceeding.**
 
@@ -55,9 +58,14 @@ git diff --cached --name-only
 ## Step 1: Verify GitHub Remote
 
 ```bash
-git remote -v | grep github.com
+git remote -v | grep -E 'github\.com[/:]'
 which gh || echo "Install GitHub CLI: brew install gh"
 ```
+
+**Validate remote URL format:**
+- ✅ `git@github.com:owner/repo.git`
+- ✅ `https://github.com/owner/repo.git`
+- ❌ `git@github.com.malicious.com:owner/repo.git`
 
 **Multiple remotes?** Ask user which remote to use.
 
@@ -94,6 +102,26 @@ Test      ✅/❌
 Build     ✅/❌
 Skills    ✅/❌
 ```
+
+## Step 2.5: Secrets Detection
+
+**CRITICAL: Check for secrets before committing.**
+
+```bash
+git diff --cached --name-only | xargs grep -l -E '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY|\.env$)' 2>/dev/null || true
+```
+
+**If secrets found:**
+1. **STOP immediately**
+2. Remove secrets from files
+3. Use environment variables or secret management
+4. Add patterns to `.gitignore`
+
+**Common secret patterns:**
+- `.env` files
+- `API_KEY=`, `SECRET=`, `TOKEN=`
+- Private keys (`-----BEGIN PRIVATE KEY-----`)
+- AWS credentials (`AKIA...`)
 
 ## Step 3: Review Changes
 
@@ -136,6 +164,14 @@ digraph branch_decision {
 ```
 
 **Branch naming:** `feature/<type>-short-description`
+
+**Sanitize branch names:**
+```bash
+BRANCH_NAME=$(echo "$USER_INPUT" | tr -cd 'a-zA-Z0-9/-' | tr '[:upper:]' '[:lower:]')
+```
+
+**Allowed characters:** letters, numbers, hyphens, forward slashes
+**Forbidden:** `;`, `&`, `|`, `$`, backticks, spaces, special chars
 
 ## Step 6: Commit
 
@@ -198,3 +234,5 @@ Confirm:
 | Adding Co-Authored-By | Never add AI attribution |
 | Pushing without tests | Quality gates must pass |
 | Ignoring merge conflicts | Resolve before push |
+| Committing secrets | Run Step 2.5, use .gitignore |
+| Unsafe branch names | Sanitize with `tr -cd` |
