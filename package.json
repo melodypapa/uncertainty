@@ -1,0 +1,20 @@
+{
+  "name": "uncertainty-skills",
+  "version": "1.0.0",
+  "description": "A collection of reusable skills for Claude Code automation workflows",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skills",
+    "github-workflow",
+    "sync-req",
+    "requirements",
+    "automation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/melodypapa/uncertainty.git"
+  },
+  "author": "melodypapa",
+  "license": "MIT"
+}

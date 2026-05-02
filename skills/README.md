@@ -2,6 +2,60 @@
 
 This directory contains custom skills for Claude Code.
 
+## Available Skills
+
+### github-workflow
+
+Complete preparation workflow before pushing staged files to a feature branch.
+
+**Features:**
+- Quality gates (language-specific: ruff/mypy/pytest for Python, ESLint/Prettier/Jest for JS/TS, go fmt/go vet/go test for Go, Maven/Gradle test for Java, clang-format/clang-tidy for C/C++)
+- Auto-detects project type and source directories
+- GitHub issue creation
+- Feature branch setup with proper naming
+- Proper commit formatting (feat/fix types with issue references, no Co-Authored-By)
+- Automatic push to GitHub when all checks pass
+
+**Usage:**
+When you have staged files ready to push, Claude will automatically invoke this skill via description matching.
+
+### sync-req
+
+Generate ISO/IEC/IEEE 29148:2018 compliant software requirements from code implementation or manual entry.
+
+**Features:**
+- Reverse engineering: Extract requirements from code
+- Forward engineering: Create requirements from scratch
+- Multi-format output: Markdown, Excel, DOORS-compatible CSV
+- Multi-language support: Python, JavaScript/TypeScript, Go, Java, C/C++
+
+**Usage:**
+When you need to create requirements specifications, document what code implements, or generate DOORS import files, Claude will automatically invoke this skill.
+
+## Installation
+
+### Using npx skills (Recommended)
+
+```bash
+# Install all skills from this repository
+npx skills install github:melodypapa/uncertainty
+
+# Or install specific skills
+npx skills install github:melodypapa/uncertainty --skills github-workflow
+npx skills install github:melodypapa/uncertainty --skills sync-req
+```
+
+### Verify Installation
+
+```bash
+# List installed skills
+npx skills list
+
+# Check skill details
+npx skills show github-workflow
+npx skills show sync-req
+```
+
 ## How to Create a Skill
 
 **IMPORTANT: Follow the TDD process - test before writing!**
@@ -101,33 +155,3 @@ Run `/superpowers:writing-skills` for complete documentation on skill creation i
 - Skill spec: https://agentskills.io/specification
 - Test methodology: @superpowers/marketplace/superpowers/5.0.6/skills/writing-skills/testing-skills-with-subagents.md
 - Graphviz conventions: @superpowers/marketplace/superpowers/5.0.6/skills/writing-skills/graphviz-conventions.dot
-
-## Available Skills
-
-### github-workflow
-
-Complete preparation workflow before pushing staged files to a feature branch.
-
-**Features:**
-- Quality gates (language-specific: ruff/mypy/pytest for Python, ESLint/Prettier/Jest for JS/TS, go fmt/go vet/go test for Go, Maven/Gradle test for Java, clang-format/clang-tidy for C/C++)
-- Auto-detects project type and source directories
-- GitHub issue creation
-- Feature branch setup with proper naming
-- Proper commit formatting (feat/fix types with issue references, no Co-Authored-By)
-- Automatic push to GitHub when all checks pass
-
-**Usage:**
-When you have staged files ready to push, Claude will automatically invoke this skill via description matching.
-
-### sync-req
-
-Generate ISO/IEC/IEEE 29148:2018 compliant software requirements from code implementation or manual entry.
-
-**Features:**
-- Reverse engineering: Extract requirements from code
-- Forward engineering: Create requirements from scratch
-- Multi-format output: Markdown, Excel, DOORS-compatible CSV
-- Multi-language support: Python, JavaScript/TypeScript, Go, Java, C/C++
-
-**Usage:**
-When you need to create requirements specifications, document what code implements, or generate DOORS import files, Claude will automatically invoke this skill.
