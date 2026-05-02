@@ -118,7 +118,8 @@ digraph deviation_flowchart {
 
 1. Ask: **"Where would you like to save the requirements?"**
 2. Wait for the user's response
-3. Use the exact path they specify
+3. **Validate the path for security** (see Security Checks below)
+4. Use the validated path
 
 **User may specify:**
 - A specific file path: `requirements.md`, `docs/requirements.md`
@@ -128,6 +129,40 @@ digraph deviation_flowchart {
 **Default behavior ONLY if user declines to specify:**
 - For reverse engineering (code → requirements): Save to `docs/requirement/requirements.md`
 - For forward engineering (user story → requirements): Save to `docs/requirement/requirements.md`
+
+### Step 0.5: Validate Output Path Security
+
+**CRITICAL: Validate user-provided output path for security issues.**
+
+**Path Traversal Protection:**
+
+```bash
+# Check for parent directory references that could escape intended directory
+if echo "$PATH" | grep -qE '\.\./|\.\.\\\\'; then
+    echo "ERROR: Path traversal detected. Parent directory references (../ or ..\\\\) are not allowed."
+    echo "Please provide a safe output path without directory traversal."
+    exit 1
+fi
+
+# Check for absolute path access to sensitive system directories
+if echo "$PATH" | grep -qE '^/(etc|var|sys|proc|tmp|Users/ray/.*\\.ssh)'; then
+    echo "ERROR: Access to sensitive system directories is not allowed."
+    echo "Please provide a safe output path."
+    exit 1
+fi
+```
+
+**Rejected patterns:**
+- `../` or `..\\` (parent directory traversal)
+- Absolute paths to `/etc`, `/var`, `/sys`, `/proc`, `/tmp`
+- Paths to `.ssh`, `.aws`, `.kubeconfig` directories
+- `./../../` (nested traversal)
+- `%2e%2e%2f` (URL-encoded traversal)
+
+**Allowed patterns:**
+- Relative paths without parent references: `docs/requirements.md`, `output/`
+- Safe absolute paths within project: `/project/docs/`
+- Current directory: `./requirements.md`, `requirements.md`
 
 ### Step 0.5: Check for Existing Requirements
 
@@ -139,12 +174,78 @@ digraph deviation_flowchart {
    - **Option C:** Update existing requirements in place
    - **Option D:** Create a new version/backup first
 
-2. Proceed according to user's choice
+2. **CRITICAL: Create backup before modifying existing requirements:**
+   - Backup format: `requirements.md.backup_YYYYMMDD_HHMMSS`
+   - Always backup when overwriting or updating
+   - Never delete original file without backup
+
+3. Require explicit user confirmation: "Are you sure you want to overwrite [path]? Type 'yes' to confirm."
+
+4. Proceed according to user's choice
 
 **Why this matters:**
 - Prevents accidental overwriting of existing requirements
 - Allows incremental requirements development
 - Supports iterative refinement
+- Protects against data loss
+
+### Step 0.75: Secrets Detection in Requirements
+
+**CRITICAL: Scan generated requirements for hardcoded secrets.**
+
+```bash
+# Check for common secret patterns in requirements
+grep -lE '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY|CONNECTION_STRING|AWS_ACCESS_KEY|AWS_SECRET_KEY|DATABASE_URL|DB_PASSWORD|AUTH_TOKEN)' requirements.md 2>/dev/null
+```
+
+**If secrets found:**
+
+1. **STOP** - Do not save requirements with actual secrets
+2. Show user the detected secrets
+3. Advise using placeholder values instead
+
+**Secret patterns to detect:**
+- `API_KEY=`, `SECRET_KEY=`, `PRIVATE_KEY=`
+- `PASSWORD=`, `PASS=`
+- `TOKEN=`, `AUTH_TOKEN=`, `JWT=`
+- `CONNECTION_STRING=`, `DATABASE_URL=`
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- Credentials in URLs: `://user:pass@host`
+
+**Replace with placeholders:**
+- `API_KEY=sk-12345` → `YOUR_API_KEY_HERE`
+- `PASSWORD=secret123` → `your_password_here`
+- `CONNECTION_STRING=mongodb://admin:pass@...` → `your_connection_string_here`
+
+### Step 0.875: Injection Protection in Verification Criteria
+
+**CRITICAL: Scan verification criteria for injection vulnerabilities.**
+
+**SQL Injection patterns:**
+```bash
+grep -lE '(SELECT|INSERT|UPDATE|DELETE).*\+.*user|eval.*\".*user|\\$.*user.*WHERE' requirements.md 2>/dev/null
+```
+
+**Shell Injection patterns:**
+```bash
+grep -lE '(system|exec|eval|popen).*\\$.*user|`.*user.*`|\\$\\(.*user' requirements.md 2>/dev/null
+```
+
+**Code Injection patterns:**
+```bash
+grep -lE 'eval\\(.*user|exec\\(.*user|compile\\(.*user' requirements.md 2>/dev/null
+```
+
+**If injection patterns found:**
+
+1. **WARN** user about injection vulnerabilities
+2. Advise using parameterized queries/prepared statements
+3. Show example of safe alternative
+
+**Safe verification patterns:**
+- SQL: Use prepared statements with placeholders: `WHERE id = ?`
+- Shell: Avoid user input in commands, use array arguments
+- Eval: Never use eval() with user input
 
 ### Step 1: Determine File Organization
 
@@ -984,6 +1085,17 @@ docs/requirement/
 - **Use "Source:" instead of "Implementation:"** - MUST use `Implementation:` field for code location
 - **Omit "Last Validated:" and "Last Changed:" dates** - Every requirement needs these fields
 
+### Security Pitfalls
+
+**CRITICAL: These are security deal-breakers.**
+
+- **NEVER accept paths with directory traversal** - Reject `../`, `..\\`, `%2e%2e%2f` immediately
+- **NEVER allow access to system directories** - Block `/etc`, `/var`, `/sys`, `/proc`, `/tmp`, `.ssh`, `.aws`, `.kubeconfig`
+- **NEVER save requirements with hardcoded secrets** - Detect API_KEY, PASSWORD, TOKEN, CONNECTION_STRING and replace with placeholders
+- **NEVER overwrite files without backup** - Always create timestamped backup before modifying
+- **NEVER require only implicit confirmation** - Get explicit "yes" confirmation before overwriting
+- **NEVER include injection vulnerabilities in verification** - Flag SQL injection, shell injection, eval() patterns in verification criteria
+
 ### ✓ Do This
 
 - **ALWAYS start by asking "Where would you like to save the requirements?"** - This is your first action. Nothing else happens until the user answers.
@@ -1387,8 +1499,12 @@ Webhook processing ensures real-time order status updates from Stripe, improving
 **Before generating requirements:**
 
 - [ ] **Have the output path confirmed** - User provided a path or explicitly declined
+- [ ] **Validated output path for security** - No path traversal (`../`, `..\\`), no system directories
 - [ ] **Checked if file exists** - If requirements file exists, asked user what to do (Replace/Append/Update/Merge)
-- [ ] **Created backup if needed** - Before modifying existing requirements
+- [ ] **Created backup if needed** - Before modifying existing requirements (timestamped backup)
+- [ ] **Got explicit confirmation for overwrite** - User typed "yes" to confirm file overwriting
+- [ ] **Scanned for secrets** - No API_KEY, PASSWORD, TOKEN, CONNECTION_STRING in generated requirements
+- [ ] **Scanned for injection patterns** - No SQL/shell/code injection in verification criteria
 - [ ] **Determined file organization** - Single file or split by type/feature
 - [ ] **Confirmed split strategy if needed** - Know which files to create and what goes in each
 
