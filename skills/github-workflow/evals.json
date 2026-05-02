@@ -107,6 +107,22 @@
         "Workflow exited early without running quality gates",
         "User informed to stage files with git add"
       ]
+    },
+    {
+      "id": 8,
+      "prompt": "I have staged changes to skills/github-workflow/SKILL.md. I want to push them to my feature branch.",
+      "expected_output": "A response that: 1) Checks for staged files, 2) Detects skill file changes, 3) Runs language quality gates (if applicable), 4) Runs skill quality gates: YAML frontmatter validation, npx skills discoverability check, evals verification, 5) Reviews changes, 6) Creates issue, branch, commit, push, PR.",
+      "files": [],
+      "assertions": [
+        "Early exit check performed",
+        "Skill file changes detected (skills/*/SKILL.md)",
+        "Skill quality gates executed: YAML frontmatter validation",
+        "Skill quality gates executed: npx skills discoverability check",
+        "Skill quality gates executed: evals verification (if evals.json exists)",
+        "Report includes Skills status",
+        "User asked about existing issue number",
+        "Commit message does NOT contain Co-Authored-By line"
+      ]
     }
   ]
 }
