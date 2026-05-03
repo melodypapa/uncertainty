@@ -4,8 +4,8 @@ description: "Use when user has staged files ready to push, mentions commit/push
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
-version: 1.0.1
 keywords: [github, workflow, commit, pr, quality-gates]
+version: "1.0.1"
 ---
 
 # GitHub Workflow
@@ -23,6 +23,17 @@ keywords: [github, workflow, commit, pr, quality-gates]
 - No staged changes - user hasn't run `git add`
 - Direct commits to main/master - feature branches only
 - User explicitly wants to skip checks
+
+## Gotchas
+
+Environment-specific facts that defy reasonable assumptions:
+
+- **Phishing domains**: GitHub phishing uses subdomain tricks like `github.com.malicious.com` - always verify the actual domain is `github.com`
+- **Branch naming**: Some projects use `main`, others use `master` - check `git branch -r` before assuming default branch name
+- **Force push danger**: `git push --force` on shared branches can lose others' work - always confirm with user first
+- **Pre-commit hooks**: May block commits; only use `--no-verify` if user explicitly requests skipping
+- **Quality gate failures**: Should stop the workflow - never auto-retry with `--no-verify` after failure
+- **Draft PRs**: Creating as draft allows work-in-progress; check if user wants this vs. ready-for-review
 
 ## Quick Reference
 
