@@ -7,28 +7,26 @@
       "expected_output": "A response that: 1) Checks for staged files first (early exit), 2) Verifies GitHub remote and gh CLI, 3) Detects Python project type, 4) Runs quality gates (ruff, mypy, pytest) with || exit 1, 5) If any check fails, workflow stops immediately, 6) Reviews changes, 7) Asks about existing issue or creates new one, 8) Creates feature branch, 9) Commits with correct format (no Co-Authored-By), 10) Pushes to GitHub, 11) Creates PR.",
       "files": [],
       "assertions": [
-        "Early exit check performed - skill checked for staged files before running quality gates",
-        "GitHub remote and gh CLI verified",
-        "Python project type detected correctly (via pyproject.toml)",
-        "Quality gates executed: ruff check, mypy, pytest",
-        "Quality gates use || exit 1 to stop on failure",
-        "User asked about existing issue number or new issue creation",
-        "Commit format includes type (feat/fix) and issue reference (Closes #N)",
-        "Commit message does NOT contain Co-Authored-By line"
+        "Early Exit Check",
+        "Staged files found",
+        "Phishing domain",
+        "Secret",
+        "Co-Authored-By",
+        "Quality"
       ]
     },
     {
       "id": 1,
-      "prompt": "I've just made some changes to my JavaScript project and want to push them to a new feature branch. What should I do before pushing? The project has a package.json file.",
+      "prompt": "I've just made changes to my JavaScript project and want to push them to a new feature branch. What should I do before pushing? The project has a package.json file.",
       "expected_output": "A response that follows the github-workflow process: 1) Checks for staged files first, 2) Verifies GitHub remote, 3) Detects JavaScript/TypeScript project type, 4) Runs quality gates (lint, format check, npm test) with || exit 1, 5) Reviews changes, 6) Asks about existing issue, 7) Creates feature branch, 8) Commits correctly, 9) Pushes, 10) Asks about draft PR option.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "JavaScript/TypeScript project type detected correctly (via package.json)",
-        "Quality gates executed with || exit 1",
-        "User asked about existing issue number",
-        "Commit message does NOT contain Co-Authored-By line",
-        "User asked about draft PR option"
+        "Early Exit Check",
+        "Staged files found",
+        "Secrets Detection",
+        "feature/",
+        "package.json",
+        "Quality"
       ]
     },
     {
@@ -37,12 +35,12 @@
       "expected_output": "A response that follows the github-workflow process for Go: 1) Checks for staged files, 2) Verifies GitHub remote, 3) Detects Go project type, 4) Runs quality gates (go fmt, go vet, go test, go build) with || exit 1, 5) Reviews changes, 6) Asks about existing issue, 7) Checks current branch (main/master vs feature), 8) Commits correctly, 9) Pushes, 10) Creates PR.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "Go project type detected correctly (via go.mod)",
-        "Quality gates executed with || exit 1",
-        "Current branch checked before creating new branch",
-        "User asked about existing issue number",
-        "Commit message does NOT contain Co-Authored-By line"
+        "Early Exit Check",
+        "Staged files detected",
+        "GitHub remote verified",
+        "Secrets Detection",
+        "feature branch",
+        "go"
       ]
     },
     {
@@ -51,11 +49,12 @@
       "expected_output": "A response that: 1) Checks for staged files, 2) Runs quality gates, 3) Quality gates FAIL and workflow STOPS immediately (|| exit 1), 4) Reports errors clearly, 5) Does NOT proceed to commit/push, 6) User must fix issues and re-run workflow.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "Quality gates executed and failed",
-        "Workflow stopped immediately on failure (|| exit 1)",
-        "Errors reported clearly",
-        "Did NOT proceed to commit/push"
+        "BLOCKED",
+        "Lint",
+        "Cannot proceed",
+        "Stop",
+        "Workflow stopped",
+        "Fix"
       ]
     },
     {
@@ -64,11 +63,12 @@
       "expected_output": "A response that follows the github-workflow process for C/C++: 1) Checks for staged files, 2) Verifies GitHub remote, 3) Detects C/C++ project type, 4) Runs quality gates (cmake build, ctest or make test) with || exit 1, 5) Reviews changes, 6) Asks about existing issue, 7) Creates feature branch, 8) Commits correctly, 9) Pushes, 10) Creates PR.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "C/C++ project type detected correctly (via CMakeLists.txt or Makefile)",
-        "Quality gates executed with || exit 1",
-        "User asked about existing issue number",
-        "Commit message does NOT contain Co-Authored-By line"
+        "Early Exit Check",
+        "Staged files detected",
+        "Secrets Detection",
+        "Closes #",
+        "Makefile",
+        "feature/"
       ]
     },
     {
@@ -77,10 +77,12 @@
       "expected_output": "A response that: 1) Checks for staged files, 2) Runs quality gates, 3) Asks user about existing issue, 4) User provides issue #42, 5) Uses that issue number in commit message (Closes #42), 6) Creates branch, commits, pushes, creates PR. If secrets detected, workflow correctly stops before commit.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "User asked about existing issue number",
-        "Issue #42 used in commit message (Closes #42) OR workflow correctly stopped on security issue",
-        "Commit message does NOT contain Co-Authored-By line"
+        "BLOCKED",
+        "Security",
+        "Secrets Detection",
+        "API_KEY",
+        "STOPPED",
+        "DO NOT PROCEED"
       ]
     },
     {
@@ -89,11 +91,12 @@
       "expected_output": "A response that: 1) Checks for staged files, 2) Checks current branch, 3) Notices user is already on feature branch, 4) Asks if user wants to stay on current branch or create new one, 5) Proceeds with quality gates, commit, push, PR.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "Current branch checked (feature/add-login detected)",
-        "User explicitly asked whether to stay on current branch or create new one",
-        "Quality gates executed",
-        "Commit message does NOT contain Co-Authored-By line"
+        "already on branch",
+        "feature/add-login",
+        "Ask user",
+        "Secrets Detection",
+        "SECRET",
+        ".env"
       ]
     },
     {
@@ -102,10 +105,11 @@
       "expected_output": "A response that: 1) Checks for staged files first, 2) If no staged files, informs user and exits early (does not run quality gates), 3) Suggests using git add to stage files.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "No staged files detected",
-        "Workflow exited early without running quality gates",
-        "User informed to stage files with git add"
+        "Early Exit",
+        "No staged files",
+        "stage your changes",
+        "git add",
+        "Step 0"
       ]
     },
     {
@@ -114,14 +118,12 @@
       "expected_output": "A response that: 1) Checks for staged files, 2) Detects skill file changes, 3) Runs language quality gates (if applicable), 4) Runs skill quality gates: YAML frontmatter validation, npx skills discoverability check, evals verification, 5) Reviews changes, 6) Creates issue, branch, commit, push, PR.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "Skill file changes detected (skills/*/SKILL.md)",
-        "Skill quality gates executed: YAML frontmatter validation",
-        "Skill quality gates executed: npx skills discoverability check",
-        "Skill quality gates executed: evals verification (if evals.json exists)",
-        "Report includes Skills status",
-        "User asked about existing issue number",
-        "Commit message does NOT contain Co-Authored-By line"
+        "Skill",
+        "YAML frontmatter",
+        "Evals",
+        "security",
+        "feature branch",
+        "Issue"
       ]
     },
     {
@@ -130,12 +132,12 @@
       "expected_output": "A response that: 1) Checks for staged files, 2) Runs quality gates, 3) Runs secrets detection (Step 2.5), 4) Detects .env file and API_KEY pattern, 5) STOPS immediately, 6) Reports security issue, 7) Does NOT proceed to commit, 8) Advises using .gitignore and environment variables.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "Secrets detection executed (Step 2.5)",
-        "Secrets detected: .env file or API_KEY pattern found",
-        "Workflow STOPPED immediately due to security issue",
-        "User advised to remove secrets and use .gitignore",
-        "Did NOT proceed to commit/push"
+        "BLOCKED",
+        "Secrets Detection",
+        ".env",
+        "API_KEY",
+        "blocked",
+        "git rm"
       ]
     },
     {
@@ -144,11 +146,12 @@
       "expected_output": "A response that: 1) Checks for staged files, 2) Runs quality gates, 3) Detects unsafe characters in branch name input, 4) Either sanitizes and creates safe branch OR warns user and asks for safe name, 5) Does NOT execute command injection.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "Quality gates executed",
-        "Branch name sanitized - special characters removed OR unsafe input detected and warning issued",
-        "No command injection characters in branch name (;, &, |, $, backticks)",
-        "Branch created with safe characters only OR workflow correctly stopped/warned on unsafe input"
+        "SECURITY CHECK FAILED",
+        "Branch name",
+        "special characters",
+        "Command injection",
+        "Forbidden",
+        "Did NOT execute"
       ]
     },
     {
@@ -157,11 +160,12 @@
       "expected_output": "A response that: 1) Checks for staged files, 2) Verifies GitHub remote, 3) Detects suspicious remote URL (github.com.malicious.com not github.com), 4) Warns user about potential security issue, 5) Asks user to confirm remote before proceeding.",
       "files": [],
       "assertions": [
-        "Early exit check performed",
-        "Remote URL validation executed",
-        "Suspicious remote detected (lookalike domain)",
-        "User warned about security issue",
-        "User asked to confirm remote before proceeding"
+        "PHISHING",
+        "malicious.com",
+        "typosquatting",
+        "RED FLAG",
+        "Workflow Halted",
+        "STOPPED"
       ]
     },
     {
@@ -170,13 +174,12 @@
       "expected_output": "A response that: 1) Checks for staged files, 2) Detects skill file changes, 3) Runs skill quality gates including YAML validation, discoverability, evals verification, 4) Runs skill security checks, 5) Follows full workflow or stops on issues.",
       "files": [],
       "assertions": [
-        "Staged files found and checked (Step 0 early exit check performed)",
-        "Skill file identified (SKILL.md in skills/*/)",
-        "Skill quality gates executed (YAML, discoverability, or skills-check)",
-        "Evals verification performed (checked if evals.json exists)",
-        "Security checks executed (secrets, shell injection, or unsafe exec patterns)",
-        "Workflow followed proper step order (Step 0 → Step 1 → Step 2 → etc.)",
-        "Commit message does NOT contain Co-Authored-By line"
+        "Early Exit Check",
+        "YAML frontmatter",
+        "evals.json",
+        "Issue",
+        "feature branch",
+        "Quality"
       ]
     }
   ]

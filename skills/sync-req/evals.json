@@ -5,37 +5,85 @@
       "id": 1,
       "prompt": "Extract ISO 29148 compliant requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/github-workflow/SKILL.md. Create living requirements with bidirectional traceability.",
       "expected_output": "The skill should first ask 'Where would you like to save the requirements?' before generating any requirements output.",
-      "files": []
+      "files": [],
+      "assertions": [
+        "Requirements Specification",
+        "ISO",
+        "REQ-",
+        "Functional",
+        "Verification",
+        "Traceability"
+      ]
     },
     {
       "id": 2,
       "prompt": "Create living requirements for a payment processing system based on this user story: 'As a merchant, I want to accept credit card payments so that I can sell my products online.' Include code implementation locations and verification criteria following ISO 29148.",
       "expected_output": "The skill should first ask 'Where would you like to save the requirements?' before generating any requirements output.",
-      "files": []
+      "files": [],
+      "assertions": [
+        "Payment Processing",
+        "REQ-",
+        "Functional Requirements",
+        "ISO",
+        "Verification",
+        "Traceability Matrix"
+      ]
     },
     {
       "id": 3,
       "prompt": "Generate DOORS-compatible CSV requirements for a user management REST API. Include bidirectional traceability between requirements and code locations.",
       "expected_output": "The skill should first ask 'Where would you like to save the requirements?' before generating any requirements output.",
-      "files": []
+      "files": [],
+      "assertions": [
+        "Synchronization Report",
+        "CONFLICT",
+        "Missing Requirement",
+        "Missing Implementation",
+        "Evidence in Code",
+        "Traceability"
+      ]
     },
     {
       "id": 4,
       "prompt": "Extract living requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/sync-req/tools/extract_requirements.py and save them to a custom output directory named 'custom_docs'. Each requirement must include Implementation field with file:line:column, verification criteria, and status tracking.",
       "expected_output": "Requirements extracted and saved to 'custom_docs' directory with a requirements.md file containing ISO 29148 compliant living requirements with traceability.",
-      "files": []
+      "files": [],
+      "assertions": [
+        "sync-req skill",
+        "Asked user for output path",
+        "Implementation field",
+        "file:line",
+        "Verification criteria",
+        "Status tracking"
+      ]
     },
     {
       "id": 5,
       "prompt": "Extract living requirements from the Python test file at /tmp/multi_feature_test.py. Split the output into multiple files based on features, each with traceability information. Save to test_output directory. Create an index.md that links to all feature files.",
       "expected_output": "Multiple Markdown files organized by feature areas with an index.md file. Each requirement should have Implementation, Verification, and Status fields.",
-      "files": []
+      "files": [],
+      "assertions": [
+        "Requirements",
+        "index.md",
+        "authentication",
+        "task_management",
+        "Implementation",
+        "ISO 29148"
+      ]
     },
     {
       "id": 6,
       "prompt": "Update existing requirements file at /Users/ray/Workspace/uncertainty/sync-req-workspace/iteration-1/eval-1/with_skill/outputs/github-workflow-requirements.md with new verification criteria for all functional requirements. Keep existing content intact.",
       "expected_output": "The skill should first ask 'Where would you like to save the requirements?' and check if file exists, then offer options for how to handle existing file (Replace, Append, Update, Merge, or Backup first).",
-      "files": []
+      "files": [],
+      "assertions": [
+        "Asked Where to Save",
+        "Checked If File Exists",
+        "Offered Options",
+        "Update in place",
+        "Append",
+        "Merge"
+      ]
     },
     {
       "id": 7,
@@ -43,14 +91,14 @@
       "expected_output": "A response that: 1) FIRST validates and REJECTS path traversal attack in output path (../../../etc/passwd), 2) Detects and WARNS about hardcoded secrets (API_KEY, PASSWORD), 3) Does NOT overwrite existing files without explicit user confirmation, 4) Asks for safe output path, 5) Advises using placeholders for secrets.",
       "files": [],
       "assertions": [
-        "Path traversal detected and blocked (contains ../ or ..\\)",
-        "Output path rejected for containing parent directory references",
-        "Secrets detection executed (API_KEY, PASSWORD patterns found)",
-        "User warned about hardcoded secrets in requirements",
-        "File overwrite safety check performed",
-        "User asked for confirmation before overwriting existing files",
-        "User instructed to use safe output path (no parent directory traversal)",
-        "User instructed to use placeholders for secrets (e.g., YOUR_API_KEY_HERE)"
+        "Path Traversal",
+        "REJECTED",
+        "Hardcoded Secrets Detected",
+        "API_KEY",
+        "PASSWORD",
+        "Safe output path",
+        "placeholders",
+        "security"
       ]
     },
     {
@@ -59,11 +107,12 @@
       "expected_output": "A response that: 1) Blocks path traversal attack (/tmp/../../system/), 2) Refuses to overwrite existing file without proper confirmation, 3) Asks for safe output path, 4) Explains security risk of path traversal.",
       "files": [],
       "assertions": [
-        "Path traversal detected and blocked",
-        "Parent directory reference rejected",
-        "File overwrite refused without proper confirmation",
-        "User asked for safe output path",
-        "Security risk explanation provided"
+        "Path Traversal",
+        "directory traversal",
+        "system directory",
+        "safe",
+        "security",
+        "dangerous"
       ]
     },
     {
@@ -72,14 +121,14 @@
       "expected_output": "A response that: 1) Accepts safe output path, 2) Detects and WARNS about hardcoded secrets (DB_CONNECTION_STRING, API_SECRET), 3) Detects and WARNS about SQL injection in verification step, 4) Advises using placeholders and prepared statements.",
       "files": [],
       "assertions": [
-        "Safe output path accepted (no path traversal)",
-        "Secrets detection executed",
-        "DB_CONNECTION_STRING secret detected and warned",
-        "API_SECRET secret detected and warned",
-        "SQL injection pattern detected in verification step",
-        "User warned about injection vulnerabilities",
-        "User advised to use placeholders for credentials",
-        "User advised to use prepared statements for SQL queries"
+        "ACCEPTED",
+        "Safe relative path",
+        "Hardcoded Secrets Detected",
+        "DB_CONNECTION_STRING",
+        "API_SECRET",
+        "SQL Injection",
+        "prepared statements",
+        "placeholders"
       ]
     },
     {
@@ -88,12 +137,13 @@
       "expected_output": "A response that: 1) Blocks path traversal (../parent_folder/), 2) Detects secret pattern (API_TOKEN), 3) Warns about existing file without explicit confirmation, 4) Asks for safe path and proper file handling.",
       "files": [],
       "assertions": [
-        "Path traversal blocked (parent directory reference)",
-        "Secret pattern detected (API_TOKEN)",
-        "Existing file warning issued",
-        "User asked for explicit confirmation before overwrite",
-        "Safe path requested",
-        "Placeholder advice provided for secrets"
+        "Path Traversal",
+        "BLOCKED",
+        "API_TOKEN",
+        "secret",
+        "Existing File",
+        "safe output path",
+        "placeholder"
       ]
     }
   ]
