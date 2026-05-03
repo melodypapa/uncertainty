@@ -9,7 +9,25 @@
 .DS_Store
 Thumbs.db
 
-*-workspace
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+
+# Eval workspaces
+*-workspace/
+
+# Output
+output/
+
+# Environment
+.env
+.env.*
 
 # Claude Code
 .claude
