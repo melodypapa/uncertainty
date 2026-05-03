@@ -57,7 +57,7 @@ class EvalRunner:
             self.workspace = script_dir / skill_name / f"{skill_name}-workspace" / f"iteration-{iteration}"
 
         self.skills_dir = Path(__file__).parent
-        self.evals_config = self.skills_dir / skill_name / "evals.json"
+        self.evals_config = self.skills_dir / skill_name / "evals" / "evals.json"
 
     def load_evals_config(self) -> Dict:
         """Load the main evals.json configuration."""
