@@ -4,7 +4,7 @@ description: "Use when user has staged files ready to push, mentions commit/push
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
-version: 1.0.3
+version: 1.0.1
 keywords: [github, workflow, commit, pr, quality-gates]
 ---
 
