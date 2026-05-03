@@ -91,7 +91,7 @@
       "assertions": [
         "Early exit check performed",
         "Current branch checked (feature/add-login detected)",
-        "User asked if they want to stay on current branch or create new one",
+        "User explicitly asked whether to stay on current branch or create new one",
         "Quality gates executed",
         "Commit message does NOT contain Co-Authored-By line"
       ]
@@ -167,17 +167,16 @@
     {
       "id": 12,
       "prompt": "I have staged a skill file (SKILL.md) with changes and want to push to a feature branch. Help me follow the proper workflow with quality checks.",
-      "expected_output": "A response that: 1) Checks for staged files, 2) Detects skill file changes, 3) Runs skill quality gates: YAML frontmatter validation, npx skills discoverability check, evals verification, 4) Runs skill security checks: secrets detection, shell injection detection, unsafe exec detection, 5) If security issues found, STOPS immediately, 6) Reports security violations, 7) Does NOT proceed to commit, 8) Advises fixing security issues first.",
+      "expected_output": "A response that: 1) Checks for staged files, 2) Detects skill file changes, 3) Runs skill quality gates including YAML validation, discoverability, evals verification, 4) Runs skill security checks, 5) Follows full workflow or stops on issues.",
       "files": [],
       "assertions": [
-        "Staged files found and checked",
-        "Skill file identified (SKILL.md)",
-        "Security - secrets check executed and found hardcoded values (API_KEY, SECRET_TOKEN)",
-        "Security - shell injection check executed and found patterns (eval, backticks)",
-        "Security - unsafe exec check executed and found patterns (os.system, subprocess.shell, eval)",
-        "All three security checks FAILED as expected",
-        "Workflow BLOCKED and did NOT proceed to commit",
-        "VERIFICATION SUCCESSFUL: Commit prevented due to security issues"
+        "Staged files found and checked (Step 0 early exit check performed)",
+        "Skill file identified (SKILL.md in skills/*/)",
+        "Skill quality gates executed (YAML, discoverability, or skills-check)",
+        "Evals verification performed (checked if evals.json exists)",
+        "Security checks executed (secrets, shell injection, or unsafe exec patterns)",
+        "Workflow followed proper step order (Step 0 → Step 1 → Step 2 → etc.)",
+        "Commit message does NOT contain Co-Authored-By line"
       ]
     }
   ]

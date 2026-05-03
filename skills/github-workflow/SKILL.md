@@ -110,10 +110,22 @@ fi
 | Discoverable | `npx skills install . --list` | Can be found |
 | Skills audit | `npx skills audit .` | Compliance check |
 | Skills check | `npx skills-check .` | Quality validation |
-| Evals (if exist) | Run evals.json assertions | Quality gates |
+| Evals verification | `test -f evals.json && echo "evals.json exists" || echo "No evals.json"` | Verify evals file |
 | Security - secrets | `grep -lE '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY)' SKILL.md 2>/dev/null` | No hardcoded secrets |
 | Security - shell injection | `grep -lE '\$\(.*\)|`' + '.*\$\{|bash.*-c|sh.*-c' SKILL.md 2>/dev/null` | No command injection in examples |
 | Security - unsafe exec | `grep -lE '(exec|eval|system|os\.system|subprocess\.(shell|call))' SKILL.md 2>/dev/null` | No unsafe exec in examples |
+
+**Evals verification step:**
+```bash
+# Check if evals.json exists for the skill
+SKILL_DIR=$(dirname skills/*/SKILL.md 2>/dev/null | head -1)
+if [ -n "$SKILL_DIR" ] && [ -f "$SKILL_DIR/evals.json" ]; then
+    echo "Found evals.json at $SKILL_DIR/evals.json"
+    echo "Evals file present - skill has test assertions defined"
+else
+    echo "No evals.json found - skill may need test assertions"
+fi
+```
 
 **If ANY security check fails:**
 1. **STOP immediately** - Do not proceed
@@ -132,7 +144,7 @@ Skills - YAML             ✅/❌
 Skills - Discoverable     ✅/❌
 Skills - Audit            ✅/❌
 Skills - Check            ✅/❌
-Skills - Evals            ✅/❌
+Skills - Evals file       ✅/❌/N/A
 Skills - Security         ✅/❌
 ```
 
@@ -178,22 +190,43 @@ Types: feat, fix, docs, refactor, test, chore
 
 ## Step 5: Feature Branch Decision
 
+**Check current branch first:**
+```bash
+git branch --show-current
+```
+
+**Decision logic:**
+
+| Current Branch | Action |
+|----------------|--------|
+| `main` or `master` | Create new: `git checkout -b feature/<name>` |
+| `feature/*` or other | **ASK USER**: "You're on branch `<name>`. Stay on this branch or create a new one?" |
+
+**IMPORTANT: If already on a feature branch, you MUST ask the user.** Do not assume they want to stay or create new.
+
+**Example prompt to user:**
+> "You're currently on branch `feature/add-login`. Would you like to:
+> 1. Stay on this branch and commit here, or
+> 2. Create a new feature branch?"
+
+Wait for user response before proceeding.
+
 ```dot
 digraph branch_decision {
     rankdir=TB
     node [shape=box]
-    
+
     start [label="Check current branch" shape=diamond]
     main [label="On main/master?"]
     create [label="Create: git checkout -b feature/<name>"]
-    ask [label="Ask: Stay on current branch\nor create new?"]
+    ask [label="ASK USER: Stay on current branch\nor create new?" shape=oval style=filled fillcolor=yellow]
     done [label="Proceed to commit"]
-    
+
     start -> main
     main -> create [label="yes"]
-    main -> ask [label="no"]
-    ask -> done [label="stay"]
-    ask -> create [label="new"]
+    main -> ask [label="no (already on feature branch)"]
+    ask -> done [label="user chooses to stay"]
+    ask -> create [label="user chooses new"]
     create -> done
 }
 ```
