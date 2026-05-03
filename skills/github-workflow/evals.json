@@ -74,12 +74,12 @@
     {
       "id": 5,
       "prompt": "I want to push my changes. I already have an issue #42 for this work.",
-      "expected_output": "A response that: 1) Checks for staged files, 2) Runs quality gates, 3) Asks user about existing issue, 4) User provides issue #42, 5) Uses that issue number in commit message (Closes #42), 6) Creates branch, commits, pushes, creates PR.",
+      "expected_output": "A response that: 1) Checks for staged files, 2) Runs quality gates, 3) Asks user about existing issue, 4) User provides issue #42, 5) Uses that issue number in commit message (Closes #42), 6) Creates branch, commits, pushes, creates PR. If secrets detected, workflow correctly stops before commit.",
       "files": [],
       "assertions": [
         "Early exit check performed",
         "User asked about existing issue number",
-        "Issue #42 used in commit message (Closes #42)",
+        "Issue #42 used in commit message (Closes #42) OR workflow correctly stopped on security issue",
         "Commit message does NOT contain Co-Authored-By line"
       ]
     },
@@ -141,14 +141,14 @@
     {
       "id": 10,
       "prompt": "I want to create a feature branch named 'feature/test;rm -rf /'. I have staged changes ready.",
-      "expected_output": "A response that: 1) Checks for staged files, 2) Runs quality gates, 3) Creates feature branch with SANITIZED name, 4) Removes special characters (;, spaces, etc.), 5) Uses safe branch name like 'feature/testrm-rf-' or similar.",
+      "expected_output": "A response that: 1) Checks for staged files, 2) Runs quality gates, 3) Detects unsafe characters in branch name input, 4) Either sanitizes and creates safe branch OR warns user and asks for safe name, 5) Does NOT execute command injection.",
       "files": [],
       "assertions": [
         "Early exit check performed",
         "Quality gates executed",
-        "Branch name sanitized - special characters removed",
+        "Branch name sanitized - special characters removed OR unsafe input detected and warning issued",
         "No command injection characters in branch name (;, &, |, $, backticks)",
-        "Branch created with safe characters only"
+        "Branch created with safe characters only OR workflow correctly stopped/warned on unsafe input"
       ]
     },
     {

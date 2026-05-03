@@ -4,7 +4,7 @@ description: "Use when user has staged files ready to push, mentions commit/push
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
-version: 1.0.0
+version: 1.0.3
 keywords: [github, workflow, commit, pr, quality-gates]
 ---
 
@@ -79,10 +79,22 @@ which gh || echo "Install GitHub CLI: brew install gh"
 REMOTE_DOMAIN=$(git remote -v | grep -oP '(?<=@|//)[^:/]+' | head -1)
 if echo "$REMOTE_DOMAIN" | grep -qE '\.(com|org|io|net|co|app)\.'; then
     echo "WARNING: Possible phishing domain detected: $REMOTE_DOMAIN"
-    read -p "Continue? (y/N) " -n 1 -r
-    [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
+    # DO NOT proceed - ASK USER below
 fi
 ```
+
+**If suspicious domain detected:**
+1. **STOP immediately**
+2. Show warning with the detected domain
+3. **ASK USER:** "Suspicious remote domain detected: `<domain>`. This looks like a phishing domain. Do you want to proceed anyway?"
+4. Only proceed if user explicitly confirms
+
+**Example:**
+> "WARNING: Your git remote is set to `github.com.malicious.com` which appears to be a phishing domain (impersonating github.com).
+> 
+> Do you want to proceed anyway? (y/N)"
+
+**Do NOT proceed without explicit user confirmation.**
 
 **Multiple remotes?** Ask user which remote to use.
 
@@ -104,28 +116,32 @@ fi
 
 **If changes include `skills/*/SKILL.md`:**
 
+**Run each check in sequence. Stop on failure (`|| exit 1`).**
+
+```bash
+# 1. YAML frontmatter validation
+python3 -c "import yaml; yaml.safe_load(open('SKILL.md').read().split('---')[1])" || exit 1
+
+# 2. Discoverability check (MUST run)
+npx skills install . --list || exit 1
+
+# 3. Evals verification
+test -f evals.json && echo "evals.json exists" || echo "No evals.json"
+
+# 4. Security checks
+grep -lE '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY)' SKILL.md 2>/dev/null && echo "ERROR: Secrets detected" && exit 1 || true
+```
+
 | Check | Command | Purpose |
 |-------|---------|---------|
-| YAML frontmatter | `python3 -c "import yaml; yaml.safe_load(open('SKILL.md').read().split('---')[1])"` | Valid syntax |
-| Discoverable | `npx skills install . --list` | Can be found |
+| YAML frontmatter | `python3 -c "..."` | Valid syntax |
+| Discoverable | `npx skills install . --list` | **REQUIRED** - Can be found |
 | Skills audit | `npx skills audit .` | Compliance check |
 | Skills check | `npx skills-check .` | Quality validation |
-| Evals verification | `test -f evals.json && echo "evals.json exists" || echo "No evals.json"` | Verify evals file |
-| Security - secrets | `grep -lE '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY)' SKILL.md 2>/dev/null` | No hardcoded secrets |
-| Security - shell injection | `grep -lE '\$\(.*\)|`' + '.*\$\{|bash.*-c|sh.*-c' SKILL.md 2>/dev/null` | No command injection in examples |
-| Security - unsafe exec | `grep -lE '(exec|eval|system|os\.system|subprocess\.(shell|call))' SKILL.md 2>/dev/null` | No unsafe exec in examples |
-
-**Evals verification step:**
-```bash
-# Check if evals.json exists for the skill
-SKILL_DIR=$(dirname skills/*/SKILL.md 2>/dev/null | head -1)
-if [ -n "$SKILL_DIR" ] && [ -f "$SKILL_DIR/evals.json" ]; then
-    echo "Found evals.json at $SKILL_DIR/evals.json"
-    echo "Evals file present - skill has test assertions defined"
-else
-    echo "No evals.json found - skill may need test assertions"
-fi
-```
+| Evals verification | `test -f evals.json` | Verify evals file |
+| Security - secrets | `grep -lE '(API_KEY|...)' SKILL.md` | No hardcoded secrets |
+| Security - shell injection | `grep -lE '\$(.*)|`' + '`.*\${|bash.*-c' SKILL.md` | No command injection |
+| Security - unsafe exec | `grep -lE '(exec|eval|system)' SKILL.md` | No unsafe exec |
 
 **If ANY security check fails:**
 1. **STOP immediately** - Do not proceed
@@ -283,11 +299,18 @@ git pull --rebase origin $(git branch --show-current)
 
 ## Step 8: Create Pull Request
 
-```bash
-gh pr create --title "<type>: <description>" --body "Closes #<issue>"
-```
+**Ask user about draft PR:**
+> "Create as regular PR or draft PR?"
 
-**Draft?** Add `--draft` flag if requested.
+**Wait for user response before proceeding.**
+
+```bash
+# Regular PR
+gh pr create --title "<type>: <description>" --body "Closes #<issue>"
+
+# Draft PR (if user chose draft)
+gh pr create --draft --title "<type>: <description>" --body "Closes #<issue>"
+```
 
 ## Step 9: Verify PR
 
