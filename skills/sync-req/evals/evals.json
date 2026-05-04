@@ -8,9 +8,9 @@
       "files": [],
       "assertions": [
         "Requirements Specification",
-        "ISO",
+        "ISO 29148",
         "REQ-",
-        "Functional",
+        "Functional Requirements",
         "Verification",
         "Traceability"
       ]
@@ -24,7 +24,7 @@
         "Payment Processing",
         "REQ-",
         "Functional Requirements",
-        "ISO",
+        "ISO 29148",
         "Verification",
         "Traceability Matrix"
       ]
@@ -107,7 +107,7 @@
         "Path Traversal",
         "directory traversal",
         "system directory",
-        "safe",
+        "safe output path",
         "security",
         "dangerous"
       ]
@@ -137,7 +137,7 @@
         "Path Traversal",
         "BLOCKED",
         "API_TOKEN",
-        "secret",
+        "Hardcoded Secrets Detected",
         "Existing File",
         "safe output path",
         "placeholder"
@@ -169,7 +169,6 @@
         "Test Technique Selection",
         "Business Rules",
         "Multiple Conditions",
-        "Test Cases",
         "TC-",
         "Combinations"
       ]
@@ -197,7 +196,7 @@
         "Coverage Analysis",
         "Coverage Matrix",
         "UNCOVERED_REQ",
-        "60%",
+        "Coverage: 60%",
         "Coverage Percentage",
         "REQ-003",
         "REQ-005",

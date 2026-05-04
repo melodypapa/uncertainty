@@ -5,7 +5,7 @@ author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
-version: "1.2.0"
+version: "1.2.1"
 spec-version: "1.0.0"
 ---
 
@@ -36,9 +36,49 @@ Create and maintain ISO/IEC/IEEE 29148 compliant requirements that serve as a **
 ## Gotchas
 
 - **Requirement ID format**: Must use `REQ-###` format (REQ-001, REQ-002, etc.)
+- **Test Case ID format**: Must use `TC-###` format (TC-001, TC-002, etc.)
 - **Implementation reference syntax**: Use `file.py:function` (single colon), not `file.py::function`
 - **User approval required**: Never modify requirements without explicit user approval
 - **Orphan code detection**: Requires reading actual implementation code
+
+## Status Values
+
+**Requirement status values:**
+
+| Status | Description |
+|--------|-------------|
+| `Draft` | Requirement written, not yet implemented |
+| `Pending` | Code exists but doesn't fully meet requirement |
+| `Implemented` | Code meets requirement, recently verified |
+| `Deprecated` | Requirement no longer applies |
+| `Blocked` | Dependency not met, cannot proceed |
+| `Rejected` | Requirement rejected (e.g., security violation, invalid request) |
+
+**Security-related status values:**
+
+| Status | When to Use |
+|--------|-------------|
+| `BLOCKED` | Path traversal detected, system directory access attempted |
+| `REJECTED` | Security validation failed (secrets detected, injection patterns found) |
+
+## Output Patterns
+
+**Deviation detection output patterns:**
+
+| Pattern | Description |
+|---------|-------------|
+| `Evidence in Code` | Found in sync report when code matches requirement |
+| `Missing Requirement` | Code exists without corresponding requirement |
+| `Missing Implementation` | Requirement has no corresponding code |
+| `CONFLICT` | Both code and requirements changed independently |
+
+**Test coverage output patterns:**
+
+| Pattern | Description |
+|---------|-------------|
+| `Coverage Matrix` | Table mapping requirements to test cases |
+| `Coverage Percentage` | Percentage of requirements with test coverage |
+| `Traces-To` | Field linking test case to requirement |
 
 ## Workflow: Create/Regenerate Setup
 
