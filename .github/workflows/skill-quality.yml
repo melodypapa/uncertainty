@@ -21,6 +21,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Initialize skills-check registry
+        run: npx skills-check init
+
       - name: Run skills-check
         uses: voodootikigod/skills-check@v1
         with:
