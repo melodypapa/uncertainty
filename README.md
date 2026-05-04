@@ -155,7 +155,7 @@ npx skills-check check,audit,lint,budget \
 ```yaml
 - uses: voodootikigod/skills-check@v1
   with:
-    commands: 'check,audit,lint,budget'
+    commands: 'audit,lint,budget'
     audit-fail-on: 'high'
     budget-max-tokens: 50000
 ```
