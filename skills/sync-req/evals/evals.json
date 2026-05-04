@@ -145,6 +145,101 @@
         "safe output path",
         "placeholder"
       ]
+    },
+    {
+      "id": 11,
+      "prompt": "Derive test specifications from these requirements: REQ-001: System shall accept email addresses in format user@domain.com. REQ-002: System shall accept age values between 18 and 120. Use ISO 29119-4 test design techniques.",
+      "expected_output": "A response that: 1) Selects appropriate test techniques (Equivalence Partitioning for email, Boundary Value Analysis for age), 2) Derives test conditions, 3) Derives coverage items, 4) Generates test cases with TC-### IDs, 5) Links tests to requirements via Traces-To field.",
+      "files": [],
+      "assertions": [
+        "Test Specification",
+        "TC-",
+        "Equivalence Partitioning",
+        "Boundary Value",
+        "Test Conditions",
+        "Coverage Items",
+        "Traces-To",
+        "ISO 29119-4"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Select appropriate test design technique for this requirement: REQ-003: Login succeeds if email is valid, password is correct, and account is not locked. Derive test cases using the selected technique.",
+      "expected_output": "A response that: 1) Identifies this as a business rule with multiple conditions, 2) Selects Decision Table Testing, 3) Creates decision table with all combinations, 4) Generates test cases for each rule.",
+      "files": [],
+      "assertions": [
+        "Decision Table",
+        "Test Technique Selection",
+        "Business Rules",
+        "Multiple Conditions",
+        "Test Cases",
+        "TC-",
+        "Combinations"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Detect test deviations. Requirements file has REQ-001 (email validation) and REQ-002 (age validation). Test specifications have TC-001, TC-002 for REQ-001, but no tests for REQ-002. Also TC-003 references REQ-003 which was deleted.",
+      "expected_output": "A response that: 1) Detects UNCOVERED_REQ for REQ-002, 2) Detects STALE_TEST for TC-003, 3) Generates test deviation report, 4) Asks user for decisions on how to handle deviations.",
+      "files": [],
+      "assertions": [
+        "Test Deviation",
+        "UNCOVERED_REQ",
+        "STALE_TEST",
+        "Test Deviation Report",
+        "Coverage Gap",
+        "User Decision"
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Analyze test coverage for requirements REQ-001 through REQ-005. REQ-001 has TC-001, TC-002. REQ-002 has TC-003. REQ-003 has no tests. REQ-004 has TC-004. REQ-005 has no tests. Generate coverage analysis report.",
+      "expected_output": "A response that: 1) Calculates coverage percentage (60%), 2) Identifies uncovered requirements (REQ-003, REQ-005), 3) Generates coverage matrix, 4) Recommends test derivation for uncovered requirements.",
+      "files": [],
+      "assertions": [
+        "Coverage Analysis",
+        "Coverage Matrix",
+        "UNCOVERED_REQ",
+        "60%",
+        "Coverage Percentage",
+        "REQ-003",
+        "REQ-005",
+        "Test Derivation"
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "Code has changed: auth.py now uses bcrypt instead of SHA-256 for password hashing. REQ-002 still specifies SHA-256. Detect deviation and ask user what to do.",
+      "expected_output": "A response that: 1) Detects DRIFT deviation between code and requirement, 2) Asks user: 'Update requirements from code?', 3) Provides Yes/No options with impact descriptions, 4) Waits for user decision before making changes.",
+      "files": [],
+      "assertions": [
+        "DRIFT",
+        "Code Change",
+        "Update requirements from code",
+        "User Decision",
+        "Yes",
+        "No",
+        "Impact",
+        "bcrypt",
+        "SHA-256"
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "REQ-001 changed from 'email login' to 'OAuth login'. Test specification TC-001 still tests email login. Detect test deviation and ask user what to do.",
+      "expected_output": "A response that: 1) Detects TEST_DRIFT deviation, 2) Asks user: 'Update test cases from requirements?', 3) Provides Yes/No options with impact descriptions, 4) Waits for user decision before regenerating tests.",
+      "files": [],
+      "assertions": [
+        "TEST_DRIFT",
+        "Requirement Change",
+        "Update test cases from requirements",
+        "User Decision",
+        "Yes",
+        "No",
+        "Impact",
+        "OAuth",
+        "email login"
+      ]
     }
   ]
 }
