@@ -21,16 +21,23 @@ Complete preparation workflow before pushing staged files to a feature branch.
 - Proper commit formatting (feat/fix types with issue references, no Co-Authored-By)
 - Automatic push to GitHub when all quality gates pass
 - GitHub-only pushes (verifies remote is GitHub.com)
+- Security checks: secrets detection, branch name sanitization, phishing domain detection
 
 ### sync-req
 
-Generate ISO/IEC/IEEE 29148:2018 compliant software requirements from code implementation or manual entry.
+Generate ISO/IEC/IEEE 29148:2018 compliant software requirements with bidirectional traceability between requirements, code, and tests.
 
 **Features:**
 - Reverse engineering: Extract requirements from code
 - Forward engineering: Create requirements from scratch
 - Multi-format output: Markdown, Excel, DOORS-compatible CSV
 - Multi-language support: Python, JavaScript/TypeScript, Go, Java, C/C++
+- **Three-layer traceability**: Requirements ↔ Code ↔ Test Specifications
+- **Test design derivation**: ISO 29119-4 techniques (Equivalence Partitioning, Boundary Value Analysis, Decision Table Testing, State Transition Testing)
+- **Deviation detection**: DRIFT, ORPHAN_CODE, ORPHAN_REQ, TEST_DRIFT, UNCOVERED_REQ, STALE_TEST
+- **Coverage analysis**: Test coverage matrix and gap identification
+- **Workflow scope selection**: 6 options for different use cases
+- **Security validation**: Path traversal protection, secrets detection, injection prevention
 
 ## Installation
 
@@ -71,47 +78,165 @@ npx skills show github-workflow
 npx skills show sync-req
 ```
 
+## npx skills Commands
+
+The `npx skills` CLI provides skill management and discovery capabilities:
+
+### Installation & Management
+
+```bash
+# Install skills from GitHub
+npx skills install github:owner/repo
+
+# Install specific skills
+npx skills install github:owner/repo --skills skill-name
+
+# List installed skills
+npx skills list
+
+# Show skill details
+npx skills show <skill-name>
+
+# Discover skills in a directory
+npx skills install . --list
+```
+
+### Skill Information
+
+```bash
+# View skill metadata
+npx skills show <skill-name>
+
+# Check skill compatibility
+npx skills check <skill-name>
+```
+
+## npx skills-check Commands
+
+The `npx skills-check` CLI provides quality validation for agent skills — freshness, security, quality, and efficiency.
+
+### Quick Start
+
+```bash
+# Initialize registry
+npx skills-check init
+
+# Run all checks
+npx skills-check check,audit,lint,budget
+```
+
+### Commands
+
+| Command | Purpose |
+|---------|---------|
+| `check` | Detect version drift against npm registry |
+| `audit` | Scan for hallucinated packages, prompt injection, dangerous commands |
+| `lint` | Validate metadata (YAML frontmatter, required fields) |
+| `budget` | Measure token cost per skill |
+| `verify` | Validate semver bump matches content changes |
+| `test` | Run eval test suites for regression detection |
+| `refresh` | AI-assisted updates to stale skills |
+| `report` | Generate staleness report (markdown/JSON) |
+| `init` | Generate skills-check.json registry |
+| `doctor` | Validate environment prerequisites |
+| `fix` | Apply deterministic autofixes |
+
+### CI/CD Integration
+
+```bash
+# Run with thresholds
+npx skills-check check,audit,lint,budget \
+  --audit-fail-on high \
+  --budget-max-tokens 50000
+```
+
+### GitHub Action
+
+```yaml
+- uses: voodootikigod/skills-check@v1
+  with:
+    commands: 'check,audit,lint,budget'
+    audit-fail-on: 'high'
+    budget-max-tokens: 50000
+```
+
+[Full documentation →](https://www.skillscheck.ai/)
+
 ## Skill Structure
 
 ```
 skills/
-├── README.md
 ├── github-workflow/
 │   ├── SKILL.md           # Main skill definition
-│   └── evals.json         # Test cases and assertions
+│   └── evals/
+│       └── evals.json     # Test cases and assertions
 └── sync-req/
     ├── SKILL.md           # Main skill definition
-    ├── evals.json         # Test cases and assertions
-    ├── iso-29148.md       # ISO standard reference
-    ├── requirements.md    # Requirements template
-    └── doors-csv-format.md # DOORS import format
+    ├── evals/
+    │   └── evals.json     # Test cases and assertions
+    ├── references/        # Reference documentation
+    │   ├── iso-29148.md
+    │   ├── test-design-techniques.md
+    │   ├── test-spec-template.md
+    │   └── security-checks.md
+    └── tools/             # Utility scripts
+        └── extract_requirements.py
 ```
 
 Each skill is a self-contained directory with:
 - `SKILL.md` - Main reference document with frontmatter (required)
-- `evals.json` - Test cases for verification
-- Supporting files (reference docs, templates)
+- `evals/evals.json` - Test cases for verification
+- `references/` - Supporting documentation (loaded as needed)
+- `tools/` - Utility scripts for the skill
 
 ## Usage
 
 Skills are automatically invoked by Claude Code based on their descriptions:
 
 - **github-workflow**: Triggers when you have staged files ready to push, need pre-push quality checks, or ask about committing/pushing to GitHub
-- **sync-req**: Triggers when you need to create requirements specifications, document what code implements, or generate DOORS import files
+- **sync-req**: Triggers when you need to:
+  - Create requirements specifications
+  - Derive test cases from requirements
+  - Analyze test coverage
+  - Detect deviations between requirements, code, and tests
+  - Generate DOORS import files
+  - Maintain bidirectional traceability
 
 ## Development
 
 ### Testing Skills
 
+Each skill includes evaluation tests in `evals/evals.json`:
+
 ```bash
-# Run skill evaluations
-cd skills/github-workflow
-python github-workflow-workspace/iteration-6/verify_evals.py
+# Validate skill passes all checks
+npx skills-check lint ./skills/sync-req
+npx skills-check budget ./skills/sync-req
+
+# Run eval verification script (if available)
+python sync-req-workspace/iteration-2/test_workflow_scope.py
+```
+
+### Evals Structure
+
+Each eval in `evals.json` contains:
+- `id`: Unique identifier
+- `prompt`: Test prompt to evaluate
+- `expected_output`: Description of expected behavior
+- `assertions`: List of strings that must appear in output
+
+```json
+{
+  "id": 17,
+  "prompt": "I have a Python authentication module...",
+  "expected_output": "A response that asks 'Where would you like to save'...",
+  "assertions": ["Where would you like to save", "What would you like to do"]
+}
 ```
 
 ### Creating New Skills
 
-See [skills/README.md](skills/README.md) for the complete guide on creating skills following TDD methodology.
+See [writing-skills](https://github.com/melodypapa/uncertainty/tree/main/skills/writing-skills) for the complete guide on creating skills following TDD methodology.
 
 ## License
 
