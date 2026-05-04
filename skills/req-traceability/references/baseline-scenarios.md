@@ -1,4 +1,4 @@
-# Baseline Scenarios - sync-req WITHOUT Test Design Feature
+# Baseline Scenarios - req-traceability WITHOUT Test Design Feature
 
 **Date:** 2026-05-04
 **Skill Version:** 1.0.0
@@ -6,7 +6,7 @@
 
 ## Current Skill Capabilities
 
-### What sync-req 1.0.0 DOES Have:
+### What req-traceability 1.0.0 DOES Have:
 - ✅ Requirements extraction from code
 - ✅ Bidirectional traceability (Requirements ↔ Code)
 - ✅ Deviation detection (DRIFT, ORPHAN_CODE, ORPHAN_REQ, CONFLICT)
@@ -15,7 +15,7 @@
 - ✅ Multi-file organization support
 - ✅ DOORS CSV export
 
-### What sync-req 1.0.0 DOES NOT Have:
+### What req-traceability 1.0.0 DOES NOT Have:
 - ❌ Test design technique derivation
 - ❌ Test specification document generation
 - ❌ Three-layer traceability (Requirements ↔ Test Specifications ↔ Code)

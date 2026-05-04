@@ -1,5 +1,5 @@
 {
-  "skill_name": "sync-req",
+  "skill_name": "req-traceability",
   "evals": [
     {
       "id": 1,
@@ -45,11 +45,11 @@
     },
     {
       "id": 4,
-      "prompt": "Extract living requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/sync-req/tools/extract_requirements.py and save them to a custom output directory named 'custom_docs'. Each requirement must include Implementation field with file:line:column, verification criteria, and status tracking.",
+      "prompt": "Extract living requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/req-traceability/tools/extract_requirements.py and save them to a custom output directory named 'custom_docs'. Each requirement must include Implementation field with file:line:column, verification criteria, and status tracking.",
       "expected_output": "Requirements extracted and saved to 'custom_docs' directory with a requirements.md file containing ISO 29148 compliant living requirements with traceability. The skill asks workflow questions interactively (one at a time), waiting for user response before showing the next question. The assertions test for final output content, not the workflow sequence.",
       "files": [],
       "assertions": [
-        "sync-req skill",
+        "req-traceability skill",
         "Implementation field",
         "file:line",
         "Verification criteria",
@@ -72,7 +72,7 @@
     },
     {
       "id": 6,
-      "prompt": "Update existing requirements file at /Users/ray/Workspace/uncertainty/sync-req-workspace/iteration-1/eval-1/with_skill/outputs/github-workflow-requirements.md with new verification criteria for all functional requirements. Keep existing content intact.",
+      "prompt": "Update existing requirements file at /Users/ray/Workspace/uncertainty/req-traceability-workspace/iteration-1/eval-1/with_skill/outputs/github-workflow-requirements.md with new verification criteria for all functional requirements. Keep existing content intact.",
       "expected_output": "The skill asks workflow questions interactively (one at a time), waiting for user response before showing the next question. The assertions test for workflow-related content that would appear in the output, confirming the skill follows the correct sequence.",
       "files": [],
       "assertions": [
@@ -239,7 +239,7 @@
     },
     {
       "id": 17,
-      "prompt": "I have a Python authentication module and I want to use the sync-req skill. What should I do first?",
+      "prompt": "I have a Python authentication module and I want to use the req-traceability skill. What should I do first?",
       "expected_output": "A response that: 1) FIRST asks 'What would you like to do?' with 5 options (Interactive Mode, Requirements Only, Test Cases Only, Deviation Check, Coverage Analysis), 2) Shows all 5 options clearly in a table or list, 3) Waits for user selection before proceeding to Step 2. Since the skill is interactive, only Step 1 is shown in the first response.",
       "files": [],
       "assertions": [

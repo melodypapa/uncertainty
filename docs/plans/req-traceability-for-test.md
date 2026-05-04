@@ -1,6 +1,6 @@
 ---
-name: sync-req-29119-4-integration
-description: Use when integrating ISO/IEC/IEEE 29119-4 test design techniques into sync-req skill to extend Requirements ↔ Code traceability to three-layer Requirements ↔ Test Specifications ↔ Code system.
+name: req-traceability-29119-4-integration
+description: Use when integrating ISO/IEC/IEEE 29119-4 test design techniques into req-traceability skill to extend Requirements ↔ Code traceability to three-layer Requirements ↔ Test Specifications ↔ Code system.
 todos:
   - id: run-baseline-scenarios
     content: Run pressure scenarios WITHOUT test design feature - document baseline behavior and agent rationalizations
@@ -32,7 +32,7 @@ todos:
     dependencies:
       - update-evals
   - id: lint-and-verify
-    content: Run npx skills-check lint and budget on sync-req skill to verify quality
+    content: Run npx skills-check lint and budget on req-traceability skill to verify quality
     status: pending
     dependencies:
       - run-verification-scenarios
@@ -40,7 +40,7 @@ todos:
 
 ## Product Overview
 
-Integrate ISO/IEC/IEEE 29119-4 software test design techniques into the existing sync-req skill to enable automatic derivation from requirements to test specifications, and establish a three-layer bidirectional traceability system (Requirements <-> Test Specifications <-> Code).
+Integrate ISO/IEC/IEEE 29119-4 software test design techniques into the existing req-traceability skill to enable automatic derivation from requirements to test specifications, and establish a three-layer bidirectional traceability system (Requirements <-> Test Specifications <-> Code).
 
 ## Core Features
 
@@ -56,7 +56,7 @@ Integrate ISO/IEC/IEEE 29119-4 software test design techniques into the existing
 
 ## Tech Stack
 
-- Skill document format: Markdown + YAML frontmatter (following existing sync-req pattern)
+- Skill document format: Markdown + YAML frontmatter (following existing req-traceability pattern)
 - Reference documents: Split into independent .md files (following existing references/ pattern)
 - Test templates: Markdown templates (following existing requirements-template.md pattern)
 - Eval framework: Existing eval_runner.py + evals.json
@@ -101,7 +101,7 @@ Integrate ISO/IEC/IEEE 29119-4 software test design techniques into the existing
 
 ### Core Design Decisions
 
-1. **Extend Rather Than Create New Skill**: Add test design workflow to sync-req, reusing existing infrastructure such as security validation, output path prompting, and deviation detection framework. Rationale: Requirements and testing are naturally related; splitting into two skills would lead to context fragmentation and incomplete traceability chains.
+1. **Extend Rather Than Create New Skill**: Add test design workflow to req-traceability, reusing existing infrastructure such as security validation, output path prompting, and deviation detection framework. Rationale: Requirements and testing are naturally related; splitting into two skills would lead to context fragmentation and incomplete traceability chains.
 
 2. **Three-Layer Traceability Model**: The existing traceability chain is `REQ <-> Code`, extended to `REQ <-> TestSpec <-> Code`. Each Test Specification links to both upstream requirements (`Traces-To:`) and downstream test code (`Test Implementation:`), forming a complete traceability chain.
 
@@ -194,7 +194,7 @@ graph TD
 ### File Change Plan
 
 ```
-skills/sync-req/
+skills/req-traceability/
 ├── SKILL.md                          # [MODIFY] Add test design workflow entry, technique selection process, template references
 ├── references/
 │   ├── test-design-techniques.md     # [NEW] Complete reference for 29119-4 test design techniques (heavy document)
@@ -206,7 +206,7 @@ skills/sync-req/
 ## Directory Structure
 
 ```
-skills/sync-req/
+skills/req-traceability/
 ├── SKILL.md                          # [MODIFY] Add test design workflow, technique selection, traceability extension, deviation detection entry
 │                                     # - Update frontmatter description to include test design trigger conditions
 │                                     # - Update version to 1.1.0
@@ -302,13 +302,13 @@ Execute rollback if ANY of the following occur:
 - Any existing eval 1-10 fails after changes
 - SKILL.md lint errors cannot be fixed within 1 hour
 - User reports critical functionality regression
-- Three-layer traceability causes sync-req core features to malfunction
+- Three-layer traceability causes req-traceability core features to malfunction
 
 ### Rollback Steps
 
 ```bash
 # Step 1: Restore SKILL.md to previous version
-cd skills/sync-req
+cd skills/req-traceability
 git checkout HEAD~1 -- SKILL.md
 
 # Step 2: Remove new reference files
@@ -337,7 +337,7 @@ echo "Rollback complete. All existing evals should pass."
 ### Data Preservation
 
 During rollback, preserve for later analysis:
-- `sync-req-workspace/` test outputs from failed runs
+- `req-traceability-workspace/` test outputs from failed runs
 - Baseline scenario documentation from RED phase
 - Any user feedback collected
 

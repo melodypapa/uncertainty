@@ -1,5 +1,5 @@
 ---
-name: sync-req
+name: req-traceability
 description: "Use when creating requirements, deriving test cases, generating test specifications, analyzing test coverage, detecting test deviations, or maintaining bidirectional traceability between requirements, code, and tests. Triggers for requirements extraction, test design, coverage gaps, UNCOVERED_REQ, STALE_TEST, TEST_DRIFT, ISO 29119-4 techniques."
 author: melodypapa
 license: MIT
@@ -9,7 +9,7 @@ version: "1.2.1"
 spec-version: "1.0.0"
 ---
 
-# Sync-Req: Living Requirements with Traceability
+# Req-Traceability: Living Requirements with Traceability
 
 ## Overview
 

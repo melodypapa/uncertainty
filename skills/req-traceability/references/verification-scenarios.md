@@ -1,4 +1,4 @@
-# Verification Scenarios - sync-req WITH Test Design Feature
+# Verification Scenarios - req-traceability WITH Test Design Feature
 
 **Date:** 2026-05-04
 **Skill Version:** 1.1.0
@@ -153,7 +153,7 @@
 
 ## Conclusion
 
-**All baseline gaps have been addressed.** The sync-req skill now supports:
+**All baseline gaps have been addressed.** The req-traceability skill now supports:
 
 1. ✅ Test design technique derivation using ISO 29119-4
 2. ✅ Three-layer bidirectional traceability

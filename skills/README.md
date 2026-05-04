@@ -19,7 +19,7 @@ Complete preparation workflow before pushing staged files to a feature branch.
 **Usage:**
 When you have staged files ready to push, Claude will automatically invoke this skill via description matching.
 
-### sync-req
+### req-traceability
 
 Generate ISO/IEC/IEEE 29148:2018 compliant software requirements from code implementation or manual entry.
 
@@ -42,7 +42,7 @@ npx skills install github:melodypapa/uncertainty
 
 # Or install specific skills
 npx skills install github:melodypapa/uncertainty --skills github-workflow
-npx skills install github:melodypapa/uncertainty --skills sync-req
+npx skills install github:melodypapa/uncertainty --skills req-traceability
 ```
 
 ### Verify Installation
@@ -53,7 +53,7 @@ npx skills list
 
 # Check skill details
 npx skills show github-workflow
-npx skills show sync-req
+npx skills show req-traceability
 ```
 
 ## How to Create a Skill

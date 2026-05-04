@@ -12,10 +12,10 @@ Usage:
     python eval_runner.py <skill_name> <iteration> [options]
 
 Examples:
-    python eval_runner.py sync-req 2 --setup          # Setup eval directories
-    python eval_runner.py sync-req 2 --grade          # Grade existing outputs
-    python eval_runner.py sync-req 2 --aggregate      # Aggregate results
-    python eval_runner.py sync-req 2 --status         # Show completion status
+    python eval_runner.py req-traceability 2 --setup          # Setup eval directories
+    python eval_runner.py req-traceability 2 --grade          # Grade existing outputs
+    python eval_runner.py req-traceability 2 --aggregate      # Aggregate results
+    python eval_runner.py req-traceability 2 --status         # Show completion status
 """
 
 import json

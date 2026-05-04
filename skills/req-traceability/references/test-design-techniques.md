@@ -1,6 +1,6 @@
 # ISO/IEC/IEEE 29119-4 Test Design Techniques Reference
 
-**Purpose:** Complete reference for test design technique selection and application in sync-req skill.
+**Purpose:** Complete reference for test design technique selection and application in req-traceability skill.
 
 **Load this file when:** User requests test derivation from requirements, or test coverage analysis.
 
