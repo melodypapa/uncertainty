@@ -271,6 +271,70 @@
         "What would you like to do",
         "Deviation Check"
       ]
+    },
+    {
+      "id": 20,
+      "prompt": "Create requirements for a user authentication system from scratch. Save to docs/ folder with SWR prefix to identify it as Software Requirements document.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects, asks about requirements source, 3) Asks where to save requirements, 4) Asks about file name prefix with SWR option, 5) Creates SWR_requirements.md in docs/ folder.",
+      "files": [],
+      "assertions": [
+        "What would you like to do",
+        "SWR",
+        "prefix",
+        "SWR_requirements.md",
+        "Software Requirements"
+      ]
+    },
+    {
+      "id": 21,
+      "prompt": "Derive unit test specifications from existing requirements. Save with UTS prefix to identify as Unit Test Specifications.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects Test Cases Only, asks where to save test cases, 3) Asks about file name prefix with UTS option, 4) Creates UTS_test-specifications.md.",
+      "files": [],
+      "assertions": [
+        "What would you like to do",
+        "UTS",
+        "prefix",
+        "UTS_test-specifications.md",
+        "Unit Test Specifications"
+      ]
+    },
+    {
+      "id": 22,
+      "prompt": "Create integration test specifications for the API module. Use ITS prefix for the output file.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects Test Cases Only, asks where to save test cases, 3) Asks about file name prefix with ITS option, 4) Creates ITS_test-specifications.md.",
+      "files": [],
+      "assertions": [
+        "What would you like to do",
+        "ITS",
+        "prefix",
+        "ITS_test-specifications.md",
+        "Integration Test Specifications"
+      ]
+    },
+    {
+      "id": 23,
+      "prompt": "Generate system test specifications for the complete application. Use SWTS prefix.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects Test Cases Only, asks where to save test cases, 3) Asks about file name prefix with SWTS option, 4) Creates SWTS_test-specifications.md.",
+      "files": [],
+      "assertions": [
+        "What would you like to do",
+        "SWTS",
+        "prefix",
+        "SWTS_test-specifications.md",
+        "System Test Specifications"
+      ]
+    },
+    {
+      "id": 24,
+      "prompt": "Extract requirements from the codebase and save with custom prefix 'PROJ_A' to identify as Project A requirements.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects, asks about requirements source, 3) Asks where to save requirements, 4) Asks about file name prefix with Custom option, 5) Creates PROJ_A_requirements.md.",
+      "files": [],
+      "assertions": [
+        "What would you like to do",
+        "Custom",
+        "prefix",
+        "PROJ_A_requirements.md"
+      ]
     }
   ]
 }
