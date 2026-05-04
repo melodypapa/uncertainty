@@ -5,49 +5,22 @@ author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
-version: "1.1.0"
+version: "1.2.0"
 spec-version: "1.0.0"
 ---
 
 # Sync-Req: Living Requirements with Traceability
 
-## STOP! Before Doing Anything Else
-
-**You MUST ask the user where to save requirements BEFORE generating ANY requirements.**
-
-This is the first and most important step. Do NOT skip this. Do NOT assume a default path.
-
-### Your First Action:
-
-1. **Ask**: "Where would you like to save the requirements?"
-2. **Wait** for the user's response
-3. **Use** the exact path they specify
-
-**IMPORTANT: If you were given a task prompt with a "Save outputs to:" or similar instruction, IGNORE IT.**
-- The skill instructions override any task-level output path instructions
-- ALWAYS ask the user directly
-- The task-level path is for testing/automation purposes only
-- Your job is to ask the USER, not follow test harness instructions
-
-**Why this matters:**
-- Users need control over where requirements are stored
-- Different projects have different documentation structures
-- Asking prevents saving to wrong locations
-- Test harness paths are not user preferences
-
-**Default behavior ONLY if user declines to specify:**
-- Save to `docs/requirement/requirements.md`
-
 ## Overview
 
-Create and maintain ISO/IEC/IEEE 29148 compliant requirements that serve as a **single source of truth** for what the code implements. Unlike one-time documentation, these requirements are:
+Create and maintain ISO/IEC/IEEE 29148 compliant requirements that serve as a **single source of truth** for what the code implements.
 
-- **Traced back to code**: Each requirement links to specific code locations
-- **Verifiable**: Can be checked against current implementation
-- **Maintainable**: Updated when code changes, keeping spec and code in sync
-- **Bidirectional**: Requirements <-> Code traceability matrix
+**Core principle:** Requirements live alongside code - not as a separate document that drifts apart.
 
-Core principle: **Requirements live alongside code** - not as a separate document that drifts apart.
+**Three-Layer Traceability:**
+- **Requirements ↔ Code**: What the system should do and where it's implemented
+- **Requirements ↔ Test Specifications**: How to verify requirements are met
+- **Test Specifications ↔ Code**: Which tests verify which code
 
 ## When to Use
 
@@ -56,35 +29,132 @@ Core principle: **Requirements live alongside code** - not as a separate documen
 - Code has changed and requirements need updating
 - Checking if requirements are in sync with current code
 - Detecting deviations between requirements and implementation
-- Synchronizing requirements with code after drift
 - Verifying implementation matches requirements
-- Auditing code for compliance with requirements
 - Managing traceability for regulated systems
-- Maintaining specifications over long-lived projects
 - User says "requirements and code have drifted apart"
 
 ## Gotchas
 
-Environment-specific facts that defy reasonable assumptions:
+- **Requirement ID format**: Must use `REQ-###` format (REQ-001, REQ-002, etc.)
+- **Implementation reference syntax**: Use `file.py:function` (single colon), not `file.py::function`
+- **User approval required**: Never modify requirements without explicit user approval
+- **Orphan code detection**: Requires reading actual implementation code
 
-- **Requirement ID format**: Must use `REQ-###` format (REQ-001, REQ-002, etc.), not bare numbers or other prefixes
-- **Implementation reference syntax**: Use `file.py:function` (single colon), not `file.py::function` (double colon)
-- **DOORS CSV encoding**: Requires UTF-8 BOM encoding - standard UTF-8 will cause import failures
-- **User approval required**: Never modify requirements without explicit user approval (ISO compliance requirement)
-- **Status vs. deletion**: `Status: Deprecated` is different from removing a requirement - always use status field for lifecycle
-- **Orphan code detection**: Requires reading actual implementation code, not just checking file existence
-- **Verification criteria**: Must be step-by-step and testable, not vague statements like "works correctly"
+## Workflow: Create/Regenerate Setup
 
-## Workflow: Determine Output Location
+### Step 1: Confirm Overall Workflow Scope
 
-### Step 0: ALWAYS Ask User Where to Save Requirements
+**CRITICAL: This is the FIRST question you MUST ask. Do NOT skip this step. Do NOT infer the user's intent from their initial message. You MUST ask this question explicitly before ANY other questions.**
 
-**CRITICAL: Before generating ANY requirements, you MUST ask the user:**
+Ask: **"What would you like to do?"**
 
-1. Ask: **"Where would you like to save the requirements?"**
-2. Wait for the user's response
-3. **Validate the path for security** (see Security Checks reference)
-4. Use the validated path
+**Options:**
+
+| Option | Description | Questions Shown |
+|--------|-------------|-----------------|
+| **1. Interactive Mode** | Guide through creation/regeneration step-by-step | All questions |
+| **2. Requirements Only** | Skip test case questions, only ask about requirements | Requirements questions only |
+| **3. Test Cases Only** | Skip requirements questions, only ask about test cases | Test questions only |
+| **4. Deviation Check** | Check for deviations without creation/regeneration | No confirmations |
+| **5. Coverage Analysis** | Analyze test coverage gaps | No confirmations |
+
+**Wait for user selection before proceeding.**
+
+### Step 2: Confirm What to Create/Regenerate
+
+**CRITICAL: Ask these questions BEFORE any setup questions. This determines which paths to follow.**
+
+**Question 1:** **"Do you want to create or regenerate requirements?"**
+- **Yes** → Ask follow-up about source (code or scratch), then proceed with requirements path
+- **No** → Skip all requirements work, go to Question 2
+
+**Follow-up if Question 1 = Yes:**
+**"What is the source for requirements?"**
+- **Option A:** From current code (analyze existing implementation)
+- **Option B:** From scratch (based on user input, specs, user stories)
+
+**Question 2:** **"Do you want to create or regenerate test cases?"**
+- **Yes** → Proceed with test cases path (Steps 2e, 2f)
+- **No** → Skip all test case work
+
+**Wait for explicit Yes/No for each question before proceeding.**
+
+**IMPORTANT:** These are FULL CREATE/REGENERATE operations. If user says "Yes":
+- Requirements: Create complete requirements document from chosen source (overwrites existing)
+- Test cases: Create complete test specifications from requirements (overwrites existing)
+
+### Workflow Flowchart
+
+```dot
+digraph workflow {
+    node [shape=box, fontname="Arial"];
+    edge [fontname="Arial"];
+
+    Start [label="Start"];
+    Step1 [label="Step 1: Workflow Scope"];
+    Step2_Q1 [label="Step 2 Q1: Create/Regenerate Requirements?"];
+    Step2_Q2 [label="Step 2 Q2: Create/Regenerate Test Cases?"];
+    Step2_Source [label="Step 2a: Requirements Source?"];
+    Step2_FromCode [label="Source: From Code"];
+    Step2_FromScratch [label="Source: From Scratch"];
+    Step2b [label="Step 2b: Req File Location"];
+    Step2c [label="Step 2c: Check Existing Reqs"];
+    Step2d [label="Step 2d: Req File Org"];
+    Step2e [label="Step 2e: Test File Location"];
+    Step2f [label="Step 2f: Check Existing Tests"];
+    ReqWork_Code [label="Phase 1: Extract from Code"];
+    ReqWork_Scratch [label="Phase 2: Create from Input"];
+    ReqWork_Common [label="Phase 2-3: Requirements Verification"];
+    TestWork [label="Phase 4-5: Test Cases"];
+    Done [label="Done"];
+
+    Start -> Step1;
+    Step1 -> Step2_Q1;
+    Step2_Q1 -> Step2_Source [label="Yes"];
+    Step2_Q1 -> Step2_Q2 [label="No"];
+    Step2_Source -> Step2_FromCode;
+    Step2_Source -> Step2_FromScratch;
+    Step2_FromCode -> Step2b;
+    Step2_FromScratch -> Step2b;
+    Step2b -> Step2c;
+    Step2c -> Step2d;
+    Step2d -> ReqWork_Code;
+    Step2d -> ReqWork_Scratch;
+    ReqWork_Code -> ReqWork_Common;
+    ReqWork_Scratch -> ReqWork_Common;
+    ReqWork_Common -> Step2_Q2;
+    Step2_Q2 -> Step2e [label="Yes"];
+    Step2_Q2 -> Done [label="No"];
+    Step2e -> Step2f;
+    Step2f -> TestWork;
+    TestWork -> Done;
+}
+```
+
+### Requirements Path (Steps 2a-2d) - ONLY if Question 1 = Yes
+
+**Step 2a: Confirm Requirements Source**
+
+**CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
+
+**If user selected "From current code":**
+- Load `references/requirements-extraction.md` for extraction details
+- Requirements will be extracted from existing codebase
+- Phase 1 (Code -> Requirements) will be executed
+
+**If user selected "From scratch":**
+- Load `references/requirements-creation.md` for creation details
+- Ask: "What are the requirements based on? (user story, specification, design document, description)"
+- Requirements will be created from user input
+- Phase 1 (Code -> Requirements) is SKIPPED - go directly to Phase 2
+
+**Proceed to Step 2b after source is confirmed.**
+
+**Step 2b: Ask Requirements File Location**
+
+**CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
+
+Ask: **"Where would you like to save the requirements?"**
 
 **User may specify:**
 - A specific file path: `requirements.md`, `docs/requirements.md`
@@ -94,34 +164,11 @@ Environment-specific facts that defy reasonable assumptions:
 **Default behavior ONLY if user declines to specify:**
 - Save to `docs/requirement/requirements.md`
 
-### Step 0.1: Confirm Workflow Scope
+**Step 2c: Check for Existing Requirements**
 
-**CRITICAL: Before starting any work, ask the user what they want to do:**
+**CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
 
-Ask: **"What would you like to do?"**
-
-**Options:**
-
-| Option | Description | Steps Included |
-|--------|-------------|----------------|
-| **1. Full Workflow** | Extract requirements, derive tests, check deviations | All phases (1-5) |
-| **2. Requirements Only** | Extract/generate requirements from code | Phase 1-3 only |
-| **3. Test Design Only** | Derive test specifications from existing requirements | Phase 4-5 only |
-| **4. Deviation Check** | Check for deviations between requirements, code, and tests | Phase 3 only |
-| **5. Coverage Analysis** | Analyze test coverage and identify gaps | Phase 4 (coverage) only |
-| **6. Sync Only** | Synchronize existing requirements with code changes | Phase 2-3 only |
-
-**Wait for user selection before proceeding.**
-
-**Why this matters:**
-- User may only want specific functionality
-- Prevents unnecessary work on unwanted steps
-- Gives user control over workflow scope
-- Different use cases need different phases
-
-### Step 0.5: Check for Existing Requirements
-
-**After getting the output path, check if requirements already exist:**
+After getting the output path, check if requirements already exist:
 
 1. If the file exists, ask: "Requirements already exist at [path]. What would you like to do?"
    - **Option A:** Replace completely (create new requirements from scratch)
@@ -136,13 +183,41 @@ Ask: **"What would you like to do?"**
 
 3. Require explicit user confirmation: "Are you sure you want to overwrite [path]? Type 'yes' to confirm."
 
-### Step 1: Determine File Organization
+**Step 2d: Determine Requirements File Organization**
 
-**Ask the user if they want:** Single file, split by feature, or split by type.
+**CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
+
+Ask the user if they want: Single file, split by feature, or split by type.
 
 **When to split:** >100 requirements, multiple distinct features, or file size >500 KB.
 
 For directory structures, index.md templates, and multi-file best practices, read `references/multi-file-organization.md`.
+
+### Test Cases Path (Steps 2e-2f) - ONLY if Question 2 = Yes
+
+**Step 2e: Ask Test Cases File Location**
+
+**CRITICAL: Only ask this question if user answered "Yes" to Question 2.**
+
+Ask: **"Where would you like to save the test cases?"**
+
+**User may specify:**
+- A specific file path: `tests/test-specifications.md`, `docs/tests.md`
+- A directory: `tests/`, `test-specs/`
+- An absolute path: `/path/to/output/test-cases.md`
+
+**Default behavior ONLY if user declines to specify:**
+- Save to `tests/test-specifications.md`
+
+**Step 2f: Check for Existing Test Cases**
+
+**CRITICAL: Only ask this question if user answered "Yes" to Question 2.**
+
+Similar to Step 2c but for test cases:
+- Check if test cases file exists
+- Ask: Replace, Append, Update, or Create backup
+- Create backup with timestamp
+- Require explicit confirmation for overwrite
 
 ## Security Validation
 
@@ -154,211 +229,7 @@ For directory structures, index.md templates, and multi-file best practices, rea
 
 For exact patterns, bash commands, and replacement rules, read `references/security-checks.md`.
 
-## Core Concept: Three-Layer Traceability
-
-```
-+-----------------------------------------------------------+
-|                  Requirements Document                     |
-|  REQ-001: System shall authenticate users via email       |
-|  +-> Implementation: src/auth.py:login() line 45          |
-|      +-> Test Cases: TC-001, TC-002, TC-003               |
-|      Verification: Verify login() returns session token   |
-|      Last Validated: 2026-04-05                           |
-+-----------------------------------------------------------+
-          |                                    |
-          v                                    v
-+---------------------------+    +---------------------------+
-|    Code Implementation    |    |   Test Specifications     |
-|  def login(email, pwd):   |    |  TC-001: Valid email login|
-|      ...implementation... |    |  TC-002: Invalid email    |
-+---------------------------+    |  TC-003: Wrong password   |
-                                 +---------------------------+
-```
-
-**Three-Layer Traceability:**
-- **Requirements ↔ Code**: What the system should do and where it's implemented
-- **Requirements ↔ Test Specifications**: How to verify requirements are met
-- **Test Specifications ↔ Code**: Which tests verify which code
-
-**Benefits:**
-- When code changes, you know which requirements AND tests to update
-- When requirements change, you know which code AND tests to modify
-- When tests fail, you know which requirement and code are affected
-- Complete audit trail from requirement to verification
-
-## Workflow: Creating Living Requirements
-
-### Phase 1: Code -> Requirements (Initial Creation)
-
-**For each meaningful code unit:**
-
-1. **Locate the code**: Identify file, function/class, line numbers
-2. **Understand purpose**: What does this code actually do?
-3. **Write requirement**: "System shall [behavior] using [mechanism]"
-4. **Add traceability**: Link to `source_file:line:column`
-5. **Define verification**: How to verify this requirement in the code
-6. **Set validation status**: When was this requirement last validated?
-
-### Phase 2: Requirements -> Code (Change Management)
-
-**When requirements change:**
-
-1. **Trace to code**: Find `Implementation:` field
-2. **Update code**: Modify implementation to match new requirement
-3. **Mark requirement**: Update `Status:` and `Last Validated:`
-4. **Document changes**: Note what changed and why
-5. **Verify**: Run verification criteria
-
-For full change management procedures (Replace/Append/Update/Merge), read `references/change-management.md`.
-
-### Phase 3: Verification Loop
-
-**Regular verification process:**
-
-1. **Run verification criteria** for each requirement
-2. **Check code location** exists and matches requirement
-3. **Update status**: `Implemented` -> `Pending Update` -> `Implemented`
-4. **Document gaps**: Requirements without implementation or code without requirements
-
-**Verification status values:**
-- `Draft` - Requirement written, not yet implemented
-- `Pending` - Code exists but doesn't fully meet requirement
-- `Implemented` - Code meets requirement, recently verified
-- `Deprecated` - Requirement no longer applies
-- `Blocked` - Dependency not met
-
-### Phase 4: Test Design (ISO 29119-4)
-
-**Derive test specifications from requirements:**
-
-1. **Analyze requirement type** - Determine appropriate test design technique
-2. **Select technique** - Use decision table below
-3. **Derive test conditions** - What aspects to test
-4. **Derive coverage items** - How much to test
-5. **Derive test cases** - Specific inputs and expected outputs
-6. **Generate test specification document** - Using TC-### template
-
-**Technique Selection Decision Table:**
-
-| Requirement Type | Recommended Technique |
-|-----------------|----------------------|
-| Input validation | Equivalence Partitioning + Boundary Value Analysis |
-| Business rules | Decision Table Testing |
-| Workflow/States | State Transition Testing |
-| User interactions | Use Case Testing |
-| Non-Functional | Error Guessing + Exploratory |
-| Incomplete requirements | Experience-based techniques |
-
-**Three-step process for all techniques:**
-1. Derive Test Conditions → What to test
-2. Derive Coverage Items → How much to test
-3. Derive Test Cases → Specific test inputs and expected outputs
-
-For complete technique details, procedures, and examples, read `references/test-design-techniques.md`.
-
-### Phase 5: Test Synchronization
-
-**Keep tests in sync with requirements:**
-
-1. **Detect test deviations** - Compare test specs with requirements
-2. **Ask user decision** - Before making any changes
-3. **Execute approved actions** - Update tests or requirements
-4. **Verify changes** - Run test suite
-5. **Update traceability** - Three-layer matrix
-
-**User Decision Points (MANDATORY):**
-
-Before synchronization, ALWAYS ask the user:
-
-1. **"Update requirements from code?"** - When code has changed but requirements haven't
-   - **Yes** → Reverse sync requirements to match code
-   - **No** → Keep requirements unchanged, flag code deviation
-
-2. **"Update test cases from requirements?"** - When requirements have changed but tests haven't
-   - **Yes** → Regenerate test specs from updated requirements
-   - **No** → Keep test specs unchanged, flag test deviation
-
-**NEVER automatically update requirements or tests without explicit user approval.**
-
-For test deviation types, detection procedures, and sync actions, read `references/test-spec-template.md`.
-
-## Requirement Template
-
-### Document Header
-
-Always include this header at the top of your requirements file:
-
-```markdown
-# Software Requirements Specification
-
-**Output Path:** [user-specified or default path]
-**Generated:** [current date YYYY-MM-DD]
-**Source:** [source code path or "User Story" or user-provided description]
-**Language:** [Python | JavaScript | TypeScript | Go | Java | C/C++]
-```
-
-### Standard Format
-
-```markdown
-### REQ-###: [Requirement Title]
-
-**Type:** [Functional | Non-Functional | Interface | Data]
-**Priority:** [Critical | High | Medium | Low]
-**Status:** [Draft | Pending | Implemented | Deprecated | Blocked]
-
-**Implementation:** [file_path.py:function/class (line:column)]
-**Last Validated:** [YYYY-MM-DD]
-**Last Changed:** [YYYY-MM-DD]
-
-**Description:**
-[Clear, specific description of what the system shall do]
-
-**Verification:**
-[Step-by-step verification criteria, each linking back to code]
-1. Verify [specific check in code]
-2. Verify [specific check in code]
-3. Verify [specific behavior with test]
-
-**Rationale:**
-[Why this requirement exists - business or technical need]
-Note: This is about WHY the requirement exists, NOT WHERE the code lives (that's "Implementation:")
-
-**Dependencies:**
-[REQ-###, REQ-###] - Requirements this depends on
-
-**Dependants:**
-[REQ-###, REQ-###] - Requirements that depend on this
-
-**Change Log:**
-- [YYYY-MM-DD]: [Description of change, why, impact]
-```
-
-## Code Analysis Patterns
-
-### Detecting What Requires Requirements
-
-| Code Pattern | Should Generate Requirement? | Why/Why Not |
-|-------------|---------------------------|------------|
-| Business logic | **Yes** | Core functionality, needs specification |
-| Configuration constants | **Yes** | System constraints, thresholds |
-| Error handling | **Yes** | Edge cases, failure modes |
-| Logging/debug statements | **No** | Implementation detail, not behavior |
-| Helper utilities | **Maybe** | If they're business-critical |
-| Database queries | **Yes** | Data integrity, performance |
-| API endpoints | **Yes** | Interface contracts |
-| Validation logic | **Yes** | Data quality, security rules |
-| Test fixtures | **No** | Not production behavior |
-| Comments/docstrings | **No** | Already in code, redundant |
-| Import statements | **No** | Not behavior |
-
-### Handling Different Code Patterns
-
-**Functions:** Document behavior and edge cases
-**Classes:** Document role, methods, and invariants
-**Constants:** Document constraints and thresholds
-**Decorators:** Document security rules or cross-cutting concerns
-
-## Deviation Detection and Synchronization
+## Deviation Detection
 
 Deviation detection identifies when code and requirements have drifted apart.
 
@@ -368,38 +239,42 @@ Deviation detection identifies when code and requirements have drifted apart.
 - **ORPHAN_REQ** - Requirements reference non-existent code
 - **CONFLICT** - Both code and requirements changed
 
-**Key steps:** Detect deviations -> Generate sync report -> User approves actions -> Execute synchronization -> Verify and report
-
-For full procedures, deviation report templates, sync actions, and required output keywords, read `references/deviation-detection.md`.
-
-## Test Deviation Detection
-
-Test deviation detection identifies when test specifications and requirements/code have drifted apart.
-
 **Test deviation types:**
 - **TEST_DRIFT** - Requirement changed but test specification not updated
 - **UNCOVERED_REQ** - Requirement has no corresponding test coverage
 - **STALE_TEST** - Test specification references a deleted requirement
 - **ORPHAN_TEST** - Test code exists without test specification
 
-**Key steps:**
-1. **Detect test deviations** - Compare test specs with requirements and code
-2. **Generate test deviation report** - List all deviations with severity
-3. **Ask user decisions** - MANDATORY: Get approval before changes
-4. **Execute approved actions** - Update tests or flag for review
-5. **Update three-layer traceability matrix**
+For full procedures, deviation report templates, sync actions, and required output keywords, read `references/deviation-detection.md`.
 
-**User Decision Points:**
-- "Update requirements from code?" → Yes/No
-- "Update test cases from requirements?" → Yes/No
+## Reference Files (Load On-Demand)
 
-For test deviation report templates and sync procedures, read `references/test-spec-template.md`.
+**Only load these files when needed based on user selections:**
 
-## Traceability Matrix and Verification
+**Requirements work (Step 2 Q1 = Yes):**
+- `references/requirements-extraction.md` - Load ONLY if "From code" selected (Step 2a)
+- `references/requirements-creation.md` - Load ONLY if "From scratch" selected (Step 2a)
+- `references/requirements-template.md` - Load ONLY if creating requirements
+- `references/change-management.md` - Load for Phase 2 (Requirements -> Code)
+- `references/verification-and-traceability.md` - Load for Phase 3 (Verification Loop)
 
-Map requirements to code locations using the traceability matrix format. Supports markdown tables and CSV export for DOORS.
+**Test cases work (Step 2 Q2 = Yes):**
+- `references/test-design-techniques.md` - Load ONLY if creating test cases
+- `references/test-spec-template.md` - Load ONLY if creating test cases
 
-For manual verification checklists, automated verification scripts, and tool support, read `references/verification-and-traceability.md`.
+**Supporting files (load as needed):**
+- `references/security-checks.md` - Load for security validation
+- `references/deviation-detection.md` - Load for deviation detection
+- `references/multi-file-organization.md` - Load for file organization decisions
+- `references/examples.md` - Load for complete worked examples
+- `references/iso-29148.md` - Load for ISO 29148 standard details
+- `references/doors-csv-format.md` - Load for DOORS CSV export
+- `assets/doors-csv-template.csv` - DOORS CSV template file
+
+**Token savings:**
+- User skips requirements → saves ~200 tokens (no requirement content loaded)
+- User skips test cases → saves ~150 tokens (no test content loaded)
+- User skips both → saves ~350 tokens (only workflow steps loaded)
 
 ## Common Pitfalls
 
@@ -407,25 +282,19 @@ For manual verification checklists, automated verification scripts, and tool sup
 
 **CRITICAL: These are deal-breakers. If you do these, you've failed.**
 
-- **NEVER generate requirements without first asking "Where would you like to save the requirements?"** - This is MANDATORY. No exceptions.
-- **NEVER assume a default path** - Only use defaults if the user explicitly declines to specify
-- **NEVER skip the Output Path field** - Your document header MUST include `**Output Path:**`
+- **NEVER ask file location questions before confirming user wants to do the work** - Confirmations first (Step 2), then setup (Steps 2a-2f)
+- **NEVER proceed with requirements work if user said "No" to Question 1** - Skip all requirements steps
+- **NEVER proceed with test case work if user said "No" to Question 2** - Skip all test case steps
+- **NEVER assume requirements always come from code** - Confirm source (code or scratch) before proceeding
+- **NEVER skip the Output Path field** - Document header MUST include `**Output Path:**`
 - **NEVER overwrite existing requirements without asking** - Always check if file exists and ask what action to take
 - **NEVER create a single file with 100+ requirements** - Split into multiple files when requirements get large
 - **NEVER skip creating index.md when splitting files** - Always provide navigation
-- **NEVER automatically update requirements from code without user approval** - MUST ask user first
-- **NEVER automatically update test cases without user approval** - MUST ask user first
+- **NEVER automatically update requirements or tests without user approval**
+- **NEVER skip Step 1 or make assumptions about user's intent** - MUST ask "What would you like to do?" FIRST, no exceptions
 - **NEVER skip test derivation for functional requirements** - All functional requirements need test coverage
-- Write requirements without code references - Hard to trace
-- Copy-paste code into requirements - Redundant, maintenance nightmare
-- Ignore deprecated code - Creates orphan code and confusion
-- Skip verification - Requirements drift from implementation
-- Over-specify - Implementation details in requirements limit flexibility
-- Under-specify - Ambiguous requirements lead to divergent implementations
 - Use "Source:" instead of "Implementation:" - MUST use `Implementation:` field
 - Omit "Last Validated:" and "Last Changed:" dates - Every requirement needs these
-- Use only one test technique for all requirements - Different requirements need different techniques
-- Skip boundary testing - Errors cluster at boundaries
 
 ### Security Pitfalls
 
@@ -437,117 +306,34 @@ For manual verification checklists, automated verification scripts, and tool sup
 
 ### Do This
 
-- **ALWAYS start by asking "Where would you like to save the requirements?"** - First action, nothing else until answered
-- Wait for user response before proceeding
-- Use the exact path user provides
-- Include Output Path in document header
-- Check if requirements file exists before writing
-- Create backup before modifying existing requirements
-- Split large requirements into multiple files (>100 requirements or >500 KB)
-- Create index.md for multi-file structures
-- Link requirements to code locations using `Implementation:` field
-- Focus on behavior, not implementation - WHAT, not HOW
-- Keep requirements and code in sync
-- Make requirements testable - Verification criteria should be executable
-- Document changes using Change Log for audit trail
-
-## Reference Loading Guide
-
-Load these files only when needed:
-
-- `references/security-checks.md` - Exact bash commands and patterns for path traversal, secrets detection, injection protection
-- `references/deviation-detection.md` - Full deviation detection workflow, sync report template, execution procedures
-- `references/change-management.md` - Replace/Append/Update/Merge procedures, code change handling
-- `references/multi-file-organization.md` - Directory structures, index.md template, splitting rules
-- `references/verification-and-traceability.md` - Traceability matrix format, verification checklists, tool support
-- `references/examples.md` - Complete worked examples (auth module, API, deviation detection, orphan code)
-- `references/iso-29148.md` - ISO 29148 standard details and compliance requirements
-- `references/requirements-template.md` - Full requirement template with field descriptions
-- `references/doors-csv-format.md` - DOORS CSV export format specification
-- `references/test-design-techniques.md` - ISO 29119-4 test design techniques, selection decision table, three-step process
-- `references/test-spec-template.md` - Test specification document template, coverage matrix, deviation report template
-- `assets/doors-csv-template.csv` - DOORS CSV template file
+- **ALWAYS ask "What would you like to do?" FIRST** - Before ANY other question, before ANY inference, before proceeding
+- **Wait for user response** - Do not make assumptions from their initial message
+- **Follow the workflow in order** - Step 1 → Step 2 → (Step 2a-2f only if confirmed)
+- **Ask confirmations BEFORE setup questions** - Step 2 questions come before file location questions
 
 ## Quality Checklist
 
 **BEFORE YOU DO ANYTHING ELSE:**
-- [ ] **Asked "Where would you like to save the requirements?"** - This is your FIRST action. If you haven't asked this, STOP and ask it now.
-- [ ] **Waited for user response** - Don't proceed until the user answers or declines
+- [ ] **Completed Step 1** - Confirmed workflow scope
+- [ ] **Completed Step 2** - Got explicit Yes/No for requirements and test cases
 
-**Before running deviation detection:**
-- [ ] User has provided requirements file path
-- [ ] Requirements file exists and is readable
-- [ ] Codebase is accessible for analysis
+**Requirements path (only if Step 2 Q1 = Yes):**
+- [ ] **Confirmed requirements source** - From code or from scratch
+- [ ] **If from code: Loaded `references/requirements-extraction.md` and will execute Phase 1**
+- [ ] **If from scratch: Loaded `references/requirements-creation.md`, Phase 1 skipped, Phase 2 starts with user input**
+- [ ] **Asked "Where would you like to save the requirements?"** - Only if creating/regenerating requirements
+- [ ] **Waited for user response**
+- [ ] **Checked if requirements file exists**
+- [ ] **Created backup if needed**
+- [ ] **Got explicit confirmation for overwrite**
+- [ ] **Determined file organization**
 
-**During deviation detection:**
-- [ ] All requirements parsed correctly
-- [ ] Implementation fields validated against actual code
-- [ ] Code behavior compared with descriptions
-- [ ] Orphan code identified
-- [ ] All deviations categorized correctly (DRIFT, ORPHAN_CODE, ORPHAN_REQ)
-
-**Before synchronization:**
-- [ ] User has reviewed sync report
-- [ ] User has approved actions for each deviation
-- [ ] Backup of original requirements created
-
-**After synchronization:**
-- [ ] All approved actions executed
-- [ ] `Last Validated:` dates updated for affected requirements
-- [ ] Change log entries added with deviation type and fix
-- [ ] Traceability matrix updated
-- [ ] Post-sync report generated
-
-**Before generating requirements:**
-- [ ] **Have the output path confirmed** - User provided a path or explicitly declined
-- [ ] **Validated output path for security** - No path traversal, no system directories
-- [ ] **Checked if file exists** - If exists, asked user what to do
-- [ ] **Created backup if needed** - Timestamped backup before modifying
-- [ ] **Got explicit confirmation for overwrite** - User typed "yes"
-- [ ] **Scanned for secrets** - No hardcoded secrets in generated requirements
-- [ ] **Scanned for injection patterns** - No SQL/shell/code injection in verification
-- [ ] **Determined file organization** - Single file or split by type/feature
-
-**Before test design derivation:**
-- [ ] Requirements exist and are accessible
-- [ ] Analyzed requirement types for technique selection
-- [ ] Selected appropriate ISO 29119-4 technique
-- [ ] Derived test conditions for each requirement
-- [ ] Derived coverage items (boundaries, partitions, states)
-- [ ] Generated test cases with expected results
-- [ ] Created test specification document with TC-### IDs
-- [ ] Linked test cases to requirements (Traces-To field)
-
-**Before test synchronization:**
-- [ ] Detected test deviations (TEST_DRIFT, UNCOVERED_REQ, STALE_TEST, ORPHAN_TEST)
-- [ ] Generated test deviation report
-- [ ] **Asked user: "Update requirements from code?"** - Got explicit Yes/No
-- [ ] **Asked user: "Update test cases from requirements?"** - Got explicit Yes/No
-- [ ] User decisions recorded in sync report
-- [ ] Only approved actions executed
-
-**After test synchronization:**
-- [ ] Three-layer traceability matrix updated
-- [ ] Test coverage analysis complete
-- [ ] All UNCOVERED_REQ identified and reported
-- [ ] All STALE_TEST and ORPHAN_TEST flagged
-- [ ] Test deviation report generated
-
-**Before finalizing requirements document:**
-- [ ] Document header includes `**Output Path:**` field
-- [ ] If splitting: `index.md` exists with links to all files
-- [ ] If splitting: Traceability matrix is in its own file
-- [ ] If single file with >100 requirements: Warned user and suggested split
-- [ ] Every requirement has `Implementation:` field with file:line:column
-- [ ] Every requirement has `Last Validated:` and `Last Changed:` dates
-- [ ] Every requirement has verification criteria linking back to code
-- [ ] Traceability matrix is complete
-- [ ] No orphan code unless documented as intentional
-- [ ] No deprecated requirements without status change
-- [ ] Status reflects actual implementation state
-- [ ] Dependencies are documented
-- [ ] Change log entries are complete for recent changes
-- [ ] NO "Source:" field in individual requirements - MUST use "Implementation:"
+**Test cases path (only if Step 2 Q2 = Yes):**
+- [ ] **Asked "Where would you like to save the test cases?"** - Only if creating/regenerating test cases
+- [ ] **Waited for user response**
+- [ ] **Checked if test cases file exists**
+- [ ] **Created backup if needed**
+- [ ] **Got explicit confirmation for overwrite**
 
 ## Related Skills
 
