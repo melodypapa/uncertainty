@@ -5,7 +5,7 @@ author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
-version: "1.2.2"
+version: "1.2.3"
 spec-version: "1.0.0"
 ---
 
@@ -82,6 +82,19 @@ Create and maintain ISO/IEC/IEEE 29148 compliant requirements that serve as a **
 
 ## Output Structure
 
+**File naming prefixes:**
+
+Identify document types with standardized prefixes:
+
+| Document Type | Prefix | Example Filename |
+|---------------|--------|------------------|
+| Software Requirements | `SWR` | `SWR_requirements.md` |
+| Unit Test Specifications | `UTS` | `UTS_test-specifications.md` |
+| Integration Test Specifications | `ITS` | `ITS_test-specifications.md` |
+| System Test Specifications | `SWTS` | `SWTS_test-specifications.md` |
+
+**Format:** `{PREFIX}_{base_filename}.md` (underscore separator)
+
 **Default output locations:**
 
 | Output Type | Default Path | Description |
@@ -97,6 +110,7 @@ When user specifies a custom path:
 - File path: Save directly to specified location
 - Directory: Create `requirements.md` inside the directory
 - Absolute path: Use as-is (after security validation)
+- With prefix: Prepend prefix to filename (e.g., `SWR_requirements.md`)
 
 **Output file format:**
 
@@ -259,6 +273,19 @@ Ask: **"Where would you like to save the requirements?"**
 **Default behavior ONLY if user declines to specify:**
 - Save to `docs/requirement/requirements.md`
 
+**Step 2b-1: Ask File Name Prefix (Requirements)**
+
+**CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
+
+Ask: **"Add a prefix to identify the document type?"**
+
+**Options:**
+- **None** (default) → `requirements.md`
+- **SWR** (Software Requirements) → `SWR_requirements.md`
+- **Custom** → User provides prefix → `{PREFIX}_requirements.md`
+
+**Format:** `{PREFIX}_{filename}.md` (underscore separator)
+
 **Step 2c: Check for Existing Requirements**
 
 **CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
@@ -303,6 +330,21 @@ Ask: **"Where would you like to save the test cases?"**
 
 **Default behavior ONLY if user declines to specify:**
 - Save to `tests/test-specifications.md`
+
+**Step 2e-1: Ask File Name Prefix (Test Cases)**
+
+**CRITICAL: Only ask this question if user answered "Yes" to Question 2.**
+
+Ask: **"Add a prefix to identify the document type?"**
+
+**Options:**
+- **None** (default) → `test-specifications.md`
+- **UTS** (Unit Test Specifications) → `UTS_test-specifications.md`
+- **ITS** (Integration Test Specifications) → `ITS_test-specifications.md`
+- **SWTS** (System Test Specifications) → `SWTS_test-specifications.md`
+- **Custom** → User provides prefix → `{PREFIX}_test-specifications.md`
+
+**Format:** `{PREFIX}_{filename}.md` (underscore separator)
 
 **Step 2f: Check for Existing Test Cases**
 
@@ -417,6 +459,7 @@ For full procedures, deviation report templates, sync actions, and required outp
 - [ ] **If from code: Loaded `references/requirements-extraction.md` and will execute Phase 1**
 - [ ] **If from scratch: Loaded `references/requirements-creation.md`, Phase 1 skipped, Phase 2 starts with user input**
 - [ ] **Asked "Where would you like to save the requirements?"** - Only if creating/regenerating requirements
+- [ ] **Asked about file name prefix (Step 2b-1)** - SWR, custom, or none
 - [ ] **Waited for user response**
 - [ ] **Checked if requirements file exists**
 - [ ] **Created backup if needed**
@@ -425,6 +468,7 @@ For full procedures, deviation report templates, sync actions, and required outp
 
 **Test cases path (only if Step 2 Q2 = Yes):**
 - [ ] **Asked "Where would you like to save the test cases?"** - Only if creating/regenerating test cases
+- [ ] **Asked about file name prefix (Step 2e-1)** - UTS, ITS, SWTS, custom, or none
 - [ ] **Waited for user response**
 - [ ] **Checked if test cases file exists**
 - [ ] **Created backup if needed**
