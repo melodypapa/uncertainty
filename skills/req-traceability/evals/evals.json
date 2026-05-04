@@ -49,11 +49,12 @@
       "expected_output": "Requirements extracted and saved to 'custom_docs' directory with a requirements.md file containing ISO 29148 compliant living requirements with traceability. The skill asks workflow questions interactively (one at a time), waiting for user response before showing the next question. The assertions test for final output content, not the workflow sequence.",
       "files": [],
       "assertions": [
-        "req-traceability skill",
+        "Software Requirements Specification",
         "Implementation field",
         "file:line",
         "Verification criteria",
-        "Status tracking"
+        "Status tracking",
+        "Traceability Matrix"
       ]
     },
     {
@@ -62,12 +63,13 @@
       "expected_output": "Multiple Markdown files organized by feature areas with an index.md file. Each requirement should have Implementation, Verification, and Status fields. The skill asks workflow questions interactively (one at a time), waiting for user response before showing the next question. The assertions test for final output content, not the workflow sequence.",
       "files": [],
       "assertions": [
-        "Requirements",
+        "Software Requirements Specification",
         "index.md",
         "authentication",
         "task_management",
         "Implementation",
-        "ISO 29148"
+        "ISO 29148",
+        "Traceability Matrix"
       ]
     },
     {
@@ -197,7 +199,6 @@
         "Coverage Matrix",
         "UNCOVERED_REQ",
         "Coverage: 60%",
-        "Coverage Percentage",
         "REQ-003",
         "REQ-005",
         "Test Derivation"
