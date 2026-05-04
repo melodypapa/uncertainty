@@ -1,11 +1,12 @@
 ---
 name: sync-req
-description: Use when creating or maintaining ISO/IEC/IEEE 29148 requirements with bidirectional traceability between code and requirements. Handles extraction, generation, sync, and deviation detection.
+description: Use when creating or maintaining ISO/IEC/IEEE 29148 requirements with bidirectional traceability between code and requirements. Handles extraction, generation, sync, deviation detection, and test design derivation using ISO 29119-4 techniques.
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
-keywords: [requirements, traceability, iso-29148, documentation]
-version: "1.0.0"
+keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, documentation]
+version: "1.1.0"
+spec-version: "1.0.0"
 ---
 
 # Sync-Req: Living Requirements with Traceability
@@ -128,33 +129,37 @@ For directory structures, index.md templates, and multi-file best practices, rea
 
 For exact patterns, bash commands, and replacement rules, read `references/security-checks.md`.
 
-## Core Concept: Bidirectional Traceability
+## Core Concept: Three-Layer Traceability
 
 ```
 +-----------------------------------------------------------+
 |                  Requirements Document                     |
 |  REQ-001: System shall authenticate users via email       |
 |  +-> Implementation: src/auth.py:login() line 45          |
+|      +-> Test Cases: TC-001, TC-002, TC-003               |
 |      Verification: Verify login() returns session token   |
 |      Last Validated: 2026-04-05                           |
 +-----------------------------------------------------------+
-                            |
-                            v
-+-----------------------------------------------------------+
-|                  Code Implementation                       |
-|  def login(email, password):                              |
-|      if not validate_email(email):                       |
-|          raise InvalidEmailError()                         |
-|      user = authenticate(email, password)                  |
-|      return create_session(user)                           |
-+-----------------------------------------------------------+
+          |                                    |
+          v                                    v
++---------------------------+    +---------------------------+
+|    Code Implementation    |    |   Test Specifications     |
+|  def login(email, pwd):   |    |  TC-001: Valid email login|
+|      ...implementation... |    |  TC-002: Invalid email    |
++---------------------------+    |  TC-003: Wrong password   |
+                                 +---------------------------+
 ```
 
+**Three-Layer Traceability:**
+- **Requirements ↔ Code**: What the system should do and where it's implemented
+- **Requirements ↔ Test Specifications**: How to verify requirements are met
+- **Test Specifications ↔ Code**: Which tests verify which code
+
 **Benefits:**
-- When code changes, you know which requirements to update
-- When requirements change, you know which code to modify
-- Auditors can verify implementation matches requirements
-- Developers can understand business intent from code
+- When code changes, you know which requirements AND tests to update
+- When requirements change, you know which code AND tests to modify
+- When tests fail, you know which requirement and code are affected
+- Complete audit trail from requirement to verification
 
 ## Workflow: Creating Living Requirements
 
@@ -196,6 +201,61 @@ For full change management procedures (Replace/Append/Update/Merge), read `refer
 - `Implemented` - Code meets requirement, recently verified
 - `Deprecated` - Requirement no longer applies
 - `Blocked` - Dependency not met
+
+### Phase 4: Test Design (ISO 29119-4)
+
+**Derive test specifications from requirements:**
+
+1. **Analyze requirement type** - Determine appropriate test design technique
+2. **Select technique** - Use decision table below
+3. **Derive test conditions** - What aspects to test
+4. **Derive coverage items** - How much to test
+5. **Derive test cases** - Specific inputs and expected outputs
+6. **Generate test specification document** - Using TC-### template
+
+**Technique Selection Decision Table:**
+
+| Requirement Type | Recommended Technique |
+|-----------------|----------------------|
+| Input validation | Equivalence Partitioning + Boundary Value Analysis |
+| Business rules | Decision Table Testing |
+| Workflow/States | State Transition Testing |
+| User interactions | Use Case Testing |
+| Non-Functional | Error Guessing + Exploratory |
+| Incomplete requirements | Experience-based techniques |
+
+**Three-step process for all techniques:**
+1. Derive Test Conditions → What to test
+2. Derive Coverage Items → How much to test
+3. Derive Test Cases → Specific test inputs and expected outputs
+
+For complete technique details, procedures, and examples, read `references/test-design-techniques.md`.
+
+### Phase 5: Test Synchronization
+
+**Keep tests in sync with requirements:**
+
+1. **Detect test deviations** - Compare test specs with requirements
+2. **Ask user decision** - Before making any changes
+3. **Execute approved actions** - Update tests or requirements
+4. **Verify changes** - Run test suite
+5. **Update traceability** - Three-layer matrix
+
+**User Decision Points (MANDATORY):**
+
+Before synchronization, ALWAYS ask the user:
+
+1. **"Update requirements from code?"** - When code has changed but requirements haven't
+   - **Yes** → Reverse sync requirements to match code
+   - **No** → Keep requirements unchanged, flag code deviation
+
+2. **"Update test cases from requirements?"** - When requirements have changed but tests haven't
+   - **Yes** → Regenerate test specs from updated requirements
+   - **No** → Keep test specs unchanged, flag test deviation
+
+**NEVER automatically update requirements or tests without explicit user approval.**
+
+For test deviation types, detection procedures, and sync actions, read `references/test-spec-template.md`.
 
 ## Requirement Template
 
@@ -287,6 +347,29 @@ Deviation detection identifies when code and requirements have drifted apart.
 
 For full procedures, deviation report templates, sync actions, and required output keywords, read `references/deviation-detection.md`.
 
+## Test Deviation Detection
+
+Test deviation detection identifies when test specifications and requirements/code have drifted apart.
+
+**Test deviation types:**
+- **TEST_DRIFT** - Requirement changed but test specification not updated
+- **UNCOVERED_REQ** - Requirement has no corresponding test coverage
+- **STALE_TEST** - Test specification references a deleted requirement
+- **ORPHAN_TEST** - Test code exists without test specification
+
+**Key steps:**
+1. **Detect test deviations** - Compare test specs with requirements and code
+2. **Generate test deviation report** - List all deviations with severity
+3. **Ask user decisions** - MANDATORY: Get approval before changes
+4. **Execute approved actions** - Update tests or flag for review
+5. **Update three-layer traceability matrix**
+
+**User Decision Points:**
+- "Update requirements from code?" → Yes/No
+- "Update test cases from requirements?" → Yes/No
+
+For test deviation report templates and sync procedures, read `references/test-spec-template.md`.
+
 ## Traceability Matrix and Verification
 
 Map requirements to code locations using the traceability matrix format. Supports markdown tables and CSV export for DOORS.
@@ -305,6 +388,9 @@ For manual verification checklists, automated verification scripts, and tool sup
 - **NEVER overwrite existing requirements without asking** - Always check if file exists and ask what action to take
 - **NEVER create a single file with 100+ requirements** - Split into multiple files when requirements get large
 - **NEVER skip creating index.md when splitting files** - Always provide navigation
+- **NEVER automatically update requirements from code without user approval** - MUST ask user first
+- **NEVER automatically update test cases without user approval** - MUST ask user first
+- **NEVER skip test derivation for functional requirements** - All functional requirements need test coverage
 - Write requirements without code references - Hard to trace
 - Copy-paste code into requirements - Redundant, maintenance nightmare
 - Ignore deprecated code - Creates orphan code and confusion
@@ -313,6 +399,8 @@ For manual verification checklists, automated verification scripts, and tool sup
 - Under-specify - Ambiguous requirements lead to divergent implementations
 - Use "Source:" instead of "Implementation:" - MUST use `Implementation:` field
 - Omit "Last Validated:" and "Last Changed:" dates - Every requirement needs these
+- Use only one test technique for all requirements - Different requirements need different techniques
+- Skip boundary testing - Errors cluster at boundaries
 
 ### Security Pitfalls
 
@@ -351,6 +439,8 @@ Load these files only when needed:
 - `references/iso-29148.md` - ISO 29148 standard details and compliance requirements
 - `references/requirements-template.md` - Full requirement template with field descriptions
 - `references/doors-csv-format.md` - DOORS CSV export format specification
+- `references/test-design-techniques.md` - ISO 29119-4 test design techniques, selection decision table, three-step process
+- `references/test-spec-template.md` - Test specification document template, coverage matrix, deviation report template
 - `assets/doors-csv-template.csv` - DOORS CSV template file
 
 ## Quality Checklist
@@ -392,6 +482,31 @@ Load these files only when needed:
 - [ ] **Scanned for secrets** - No hardcoded secrets in generated requirements
 - [ ] **Scanned for injection patterns** - No SQL/shell/code injection in verification
 - [ ] **Determined file organization** - Single file or split by type/feature
+
+**Before test design derivation:**
+- [ ] Requirements exist and are accessible
+- [ ] Analyzed requirement types for technique selection
+- [ ] Selected appropriate ISO 29119-4 technique
+- [ ] Derived test conditions for each requirement
+- [ ] Derived coverage items (boundaries, partitions, states)
+- [ ] Generated test cases with expected results
+- [ ] Created test specification document with TC-### IDs
+- [ ] Linked test cases to requirements (Traces-To field)
+
+**Before test synchronization:**
+- [ ] Detected test deviations (TEST_DRIFT, UNCOVERED_REQ, STALE_TEST, ORPHAN_TEST)
+- [ ] Generated test deviation report
+- [ ] **Asked user: "Update requirements from code?"** - Got explicit Yes/No
+- [ ] **Asked user: "Update test cases from requirements?"** - Got explicit Yes/No
+- [ ] User decisions recorded in sync report
+- [ ] Only approved actions executed
+
+**After test synchronization:**
+- [ ] Three-layer traceability matrix updated
+- [ ] Test coverage analysis complete
+- [ ] All UNCOVERED_REQ identified and reported
+- [ ] All STALE_TEST and ORPHAN_TEST flagged
+- [ ] Test deviation report generated
 
 **Before finalizing requirements document:**
 - [ ] Document header includes `**Output Path:**` field
