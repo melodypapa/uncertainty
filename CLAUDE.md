@@ -17,7 +17,7 @@ skills/
 ├── README.md            # Skill development guidelines + TDD process
 ├── github-workflow/     # Pre-push workflow skill
 │   └── SKILL.md
-└── sync-req/            # Requirements engineering skill
+└── req-traceability/            # Requirements engineering skill
     └── SKILL.md
 ```
 
@@ -45,7 +45,7 @@ Details in `skills/README.md`. Use `/superpowers:writing-skills` for new skills.
 
 Test workspaces (gitignored, not in repo):
 - `skills/github-workflow/github-workflow-workspace/` — iterations (iter-1/, iter-2/, ...), evals (eval-0/, eval-1/, ...), benchmarks
-- `sync-req-workspace/` — same structure for sync-req skill
+- `req-traceability-workspace/` — same structure for req-traceability skill
 
 Each eval has `with_skill/` and `without_skill/` dirs. Benchmark files compare them.
 

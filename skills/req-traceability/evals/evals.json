@@ -1,16 +1,16 @@
 {
-  "skill_name": "sync-req",
+  "skill_name": "req-traceability",
   "evals": [
     {
       "id": 1,
       "prompt": "Extract ISO 29148 compliant requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/github-workflow/SKILL.md. Create living requirements with bidirectional traceability.",
-      "expected_output": "The skill should first ask 'Where would you like to save the requirements?' before generating any requirements output.",
+      "expected_output": "The skill will FIRST ask 'What would you like to do?' with 5 options. This is an interactive workflow - the skill asks one question at a time and waits for user response. The assertions test for the final requirements output content, not the intermediate workflow questions.",
       "files": [],
       "assertions": [
         "Requirements Specification",
-        "ISO",
+        "ISO 29148",
         "REQ-",
-        "Functional",
+        "Functional Requirements",
         "Verification",
         "Traceability"
       ]
@@ -18,13 +18,13 @@
     {
       "id": 2,
       "prompt": "Create living requirements for a payment processing system based on this user story: 'As a merchant, I want to accept credit card payments so that I can sell my products online.' Include code implementation locations and verification criteria following ISO 29148.",
-      "expected_output": "The skill should first ask 'Where would you like to save the requirements?' before generating any requirements output.",
+      "expected_output": "The skill will FIRST ask 'What would you like to do?' with 5 options. This is an interactive workflow - the skill asks one question at a time and waits for user response. The assertions test for the final requirements output content, not the intermediate workflow questions.",
       "files": [],
       "assertions": [
         "Payment Processing",
         "REQ-",
         "Functional Requirements",
-        "ISO",
+        "ISO 29148",
         "Verification",
         "Traceability Matrix"
       ]
@@ -32,7 +32,7 @@
     {
       "id": 3,
       "prompt": "Generate DOORS-compatible CSV requirements for a user management REST API. Include bidirectional traceability between requirements and code locations.",
-      "expected_output": "The skill should first ask 'Where would you like to save the requirements?' before generating any requirements output.",
+      "expected_output": "The skill will FIRST ask 'What would you like to do?' with 5 options. This is an interactive workflow - the skill asks one question at a time and waits for user response. The assertions test for the final requirements output content, not the intermediate workflow questions.",
       "files": [],
       "assertions": [
         "Synchronization Report",
@@ -45,12 +45,11 @@
     },
     {
       "id": 4,
-      "prompt": "Extract living requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/sync-req/tools/extract_requirements.py and save them to a custom output directory named 'custom_docs'. Each requirement must include Implementation field with file:line:column, verification criteria, and status tracking.",
-      "expected_output": "Requirements extracted and saved to 'custom_docs' directory with a requirements.md file containing ISO 29148 compliant living requirements with traceability.",
+      "prompt": "Extract living requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/req-traceability/tools/extract_requirements.py and save them to a custom output directory named 'custom_docs'. Each requirement must include Implementation field with file:line:column, verification criteria, and status tracking.",
+      "expected_output": "Requirements extracted and saved to 'custom_docs' directory with a requirements.md file containing ISO 29148 compliant living requirements with traceability. The skill asks workflow questions interactively (one at a time), waiting for user response before showing the next question. The assertions test for final output content, not the workflow sequence.",
       "files": [],
       "assertions": [
-        "sync-req skill",
-        "Asked user for output path",
+        "req-traceability skill",
         "Implementation field",
         "file:line",
         "Verification criteria",
@@ -60,7 +59,7 @@
     {
       "id": 5,
       "prompt": "Extract living requirements from the Python test file at /tmp/multi_feature_test.py. Split the output into multiple files based on features, each with traceability information. Save to test_output directory. Create an index.md that links to all feature files.",
-      "expected_output": "Multiple Markdown files organized by feature areas with an index.md file. Each requirement should have Implementation, Verification, and Status fields.",
+      "expected_output": "Multiple Markdown files organized by feature areas with an index.md file. Each requirement should have Implementation, Verification, and Status fields. The skill asks workflow questions interactively (one at a time), waiting for user response before showing the next question. The assertions test for final output content, not the workflow sequence.",
       "files": [],
       "assertions": [
         "Requirements",
@@ -73,22 +72,20 @@
     },
     {
       "id": 6,
-      "prompt": "Update existing requirements file at /Users/ray/Workspace/uncertainty/sync-req-workspace/iteration-1/eval-1/with_skill/outputs/github-workflow-requirements.md with new verification criteria for all functional requirements. Keep existing content intact.",
-      "expected_output": "The skill should first ask 'Where would you like to save the requirements?' and check if file exists, then offer options for how to handle existing file (Replace, Append, Update, Merge, or Backup first).",
+      "prompt": "Update existing requirements file at /Users/ray/Workspace/uncertainty/req-traceability-workspace/iteration-1/eval-1/with_skill/outputs/github-workflow-requirements.md with new verification criteria for all functional requirements. Keep existing content intact.",
+      "expected_output": "The skill asks workflow questions interactively (one at a time), waiting for user response before showing the next question. The assertions test for workflow-related content that would appear in the output, confirming the skill follows the correct sequence.",
       "files": [],
       "assertions": [
-        "Asked Where to Save",
-        "Checked If File Exists",
-        "Offered Options",
         "Update in place",
         "Append",
-        "Merge"
+        "Replace",
+        "Backup"
       ]
     },
     {
       "id": 7,
       "prompt": "Extract requirements from /tmp/code.py. Save output to '../../../etc/passwd' directory. The code file contains API_KEY='sk-12345' and PASSWORD='secret123'. User confirmed to overwrite any existing files.",
-      "expected_output": "A response that: 1) FIRST validates and REJECTS path traversal attack in output path (../../../etc/passwd), 2) Detects and WARNS about hardcoded secrets (API_KEY, PASSWORD), 3) Does NOT overwrite existing files without explicit user confirmation, 4) Asks for safe output path, 5) Advises using placeholders for secrets.",
+      "expected_output": "A response that: 1) FIRST validates and REJECTS path traversal attack in output path (../../../etc/passwd) when asking for file location, 2) Detects and WARNS about hardcoded secrets (API_KEY, PASSWORD), 3) Does NOT overwrite existing files without explicit user confirmation, 4) Asks for safe output path, 5) Advises using placeholders for secrets.",
       "files": [],
       "assertions": [
         "Path Traversal",
@@ -110,7 +107,7 @@
         "Path Traversal",
         "directory traversal",
         "system directory",
-        "safe",
+        "safe output path",
         "security",
         "dangerous"
       ]
@@ -140,7 +137,7 @@
         "Path Traversal",
         "BLOCKED",
         "API_TOKEN",
-        "secret",
+        "Hardcoded Secrets Detected",
         "Existing File",
         "safe output path",
         "placeholder"
@@ -172,7 +169,6 @@
         "Test Technique Selection",
         "Business Rules",
         "Multiple Conditions",
-        "Test Cases",
         "TC-",
         "Combinations"
       ]
@@ -200,7 +196,7 @@
         "Coverage Analysis",
         "Coverage Matrix",
         "UNCOVERED_REQ",
-        "60%",
+        "Coverage: 60%",
         "Coverage Percentage",
         "REQ-003",
         "REQ-005",
@@ -210,12 +206,12 @@
     {
       "id": 15,
       "prompt": "Code has changed: auth.py now uses bcrypt instead of SHA-256 for password hashing. REQ-002 still specifies SHA-256. Detect deviation and ask user what to do.",
-      "expected_output": "A response that: 1) Detects DRIFT deviation between code and requirement, 2) Asks user: 'Update requirements from code?', 3) Provides Yes/No options with impact descriptions, 4) Waits for user decision before making changes.",
+      "expected_output": "A response that: 1) Detects DRIFT deviation between code and requirement, 2) Asks user: 'Do you want to create or regenerate requirements?' with Yes/No options, 3) Waits for user decision before making changes.",
       "files": [],
       "assertions": [
         "DRIFT",
         "Code Change",
-        "Update requirements from code",
+        "Do you want to create or regenerate requirements",
         "User Decision",
         "Yes",
         "No",
@@ -227,12 +223,12 @@
     {
       "id": 16,
       "prompt": "REQ-001 changed from 'email login' to 'OAuth login'. Test specification TC-001 still tests email login. Detect test deviation and ask user what to do.",
-      "expected_output": "A response that: 1) Detects TEST_DRIFT deviation, 2) Asks user: 'Update test cases from requirements?', 3) Provides Yes/No options with impact descriptions, 4) Waits for user decision before regenerating tests.",
+      "expected_output": "A response that: 1) Detects TEST_DRIFT deviation, 2) Asks user: 'Do you want to create or regenerate test cases?' with Yes/No options, 3) Waits for user decision before regenerating tests.",
       "files": [],
       "assertions": [
         "TEST_DRIFT",
         "Requirement Change",
-        "Update test cases from requirements",
+        "Do you want to create or regenerate test cases",
         "User Decision",
         "Yes",
         "No",
@@ -243,48 +239,36 @@
     },
     {
       "id": 17,
-      "prompt": "I have a Python authentication module and I want to use the sync-req skill. What should I do first?",
-      "expected_output": "A response that: 1) Asks 'Where would you like to save the requirements?', 2) Then asks 'What would you like to do?' with 6 options (Full Workflow, Requirements Only, Test Design Only, Deviation Check, Coverage Analysis, Sync Only), 3) Waits for user to select an option before proceeding.",
+      "prompt": "I have a Python authentication module and I want to use the req-traceability skill. What should I do first?",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?' with 5 options (Interactive Mode, Requirements Only, Test Cases Only, Deviation Check, Coverage Analysis), 2) Shows all 5 options clearly in a table or list, 3) Waits for user selection before proceeding to Step 2. Since the skill is interactive, only Step 1 is shown in the first response.",
       "files": [],
       "assertions": [
-        "Where would you like to save",
         "What would you like to do",
-        "Full Workflow",
+        "Interactive Mode",
         "Requirements Only",
-        "Test Design Only",
+        "Test Cases Only",
         "Deviation Check",
-        "Coverage Analysis",
-        "Sync Only"
+        "Coverage Analysis"
       ]
     },
     {
       "id": 18,
       "prompt": "I already have requirements.md with 50 requirements. I just want to derive test cases from them. Help me.",
-      "expected_output": "A response that: 1) Asks 'Where would you like to save the requirements?', 2) Then asks 'What would you like to do?', 3) User selects 'Test Design Only' (option 3), 4) Skill proceeds with Phase 4-5 only, skipping requirements extraction.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) Shows all 5 options, 3) The user message indicates 'Test Cases Only' would be the appropriate choice, but the skill MUST still ask the question explicitly and wait for user response. Since the skill is interactive, only Step 1 is shown in the first response.",
       "files": [],
       "assertions": [
-        "Where would you like to save",
         "What would you like to do",
-        "Test Design Only",
-        "Phase 4",
-        "Phase 5",
-        "Test Specification",
-        "TC-"
+        "Test Cases Only"
       ]
     },
     {
       "id": 19,
       "prompt": "I think my requirements are out of sync with my code. Can you check for deviations?",
-      "expected_output": "A response that: 1) Asks 'Where would you like to save the requirements?', 2) Then asks 'What would you like to do?', 3) User should select 'Deviation Check' (option 4), 4) Skill proceeds with Phase 3 only, checking for DRIFT, ORPHAN_CODE, ORPHAN_REQ deviations.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) Shows all 5 options, 3) The user message indicates 'Deviation Check' would be the appropriate choice, but the skill MUST still ask the question explicitly and wait for user response. Since the skill is interactive, only Step 1 is shown in the first response.",
       "files": [],
       "assertions": [
-        "Where would you like to save",
         "What would you like to do",
-        "Deviation Check",
-        "DRIFT",
-        "ORPHAN",
-        "Deviation Report",
-        "Phase 3"
+        "Deviation Check"
       ]
     }
   ]

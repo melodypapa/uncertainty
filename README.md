@@ -23,7 +23,7 @@ Complete preparation workflow before pushing staged files to a feature branch.
 - GitHub-only pushes (verifies remote is GitHub.com)
 - Security checks: secrets detection, branch name sanitization, phishing domain detection
 
-### sync-req
+### req-traceability
 
 Generate ISO/IEC/IEEE 29148:2018 compliant software requirements with bidirectional traceability between requirements, code, and tests.
 
@@ -51,7 +51,7 @@ npx skills install github:melodypapa/uncertainty
 
 # Or install specific skills
 npx skills install github:melodypapa/uncertainty --skills github-workflow
-npx skills install github:melodypapa/uncertainty --skills sync-req
+npx skills install github:melodypapa/uncertainty --skills req-traceability
 ```
 
 ### Manual Installation
@@ -64,7 +64,7 @@ git clone https://github.com/melodypapa/uncertainty.git
 
 # Copy specific skills to your project
 cp -r uncertainty/skills/github-workflow /path/to/your/project/skills/
-cp -r uncertainty/skills/sync-req /path/to/your/project/skills/
+cp -r uncertainty/skills/req-traceability /path/to/your/project/skills/
 ```
 
 ### Verify Installation
@@ -75,7 +75,7 @@ npx skills list
 
 # Check skill details
 npx skills show github-workflow
-npx skills show sync-req
+npx skills show req-traceability
 ```
 
 ## npx skills Commands
@@ -170,7 +170,7 @@ skills/
 │   ├── SKILL.md           # Main skill definition
 │   └── evals/
 │       └── evals.json     # Test cases and assertions
-└── sync-req/
+└── req-traceability/
     ├── SKILL.md           # Main skill definition
     ├── evals/
     │   └── evals.json     # Test cases and assertions
@@ -194,7 +194,7 @@ Each skill is a self-contained directory with:
 Skills are automatically invoked by Claude Code based on their descriptions:
 
 - **github-workflow**: Triggers when you have staged files ready to push, need pre-push quality checks, or ask about committing/pushing to GitHub
-- **sync-req**: Triggers when you need to:
+- **req-traceability**: Triggers when you need to:
   - Create requirements specifications
   - Derive test cases from requirements
   - Analyze test coverage
@@ -210,11 +210,11 @@ Each skill includes evaluation tests in `evals/evals.json`:
 
 ```bash
 # Validate skill passes all checks
-npx skills-check lint ./skills/sync-req
-npx skills-check budget ./skills/sync-req
+npx skills-check lint ./skills/req-traceability
+npx skills-check budget ./skills/req-traceability
 
 # Run eval verification script (if available)
-python sync-req-workspace/iteration-2/test_workflow_scope.py
+python req-traceability-workspace/iteration-2/test_workflow_scope.py
 ```
 
 ### Evals Structure
