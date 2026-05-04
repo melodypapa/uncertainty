@@ -1,10 +1,10 @@
 ---
 name: sync-req
-description: Use when creating or maintaining ISO/IEC/IEEE 29148 requirements with bidirectional traceability between code and requirements. Handles extraction, generation, sync, deviation detection, and test design derivation using ISO 29119-4 techniques.
+description: "Use when creating requirements, deriving test cases, generating test specifications, analyzing test coverage, detecting test deviations, or maintaining bidirectional traceability between requirements, code, and tests. Triggers for requirements extraction, test design, coverage gaps, UNCOVERED_REQ, STALE_TEST, TEST_DRIFT, ISO 29119-4 techniques."
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
-keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, documentation]
+keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
 version: "1.1.0"
 spec-version: "1.0.0"
 ---
@@ -93,6 +93,31 @@ Environment-specific facts that defy reasonable assumptions:
 
 **Default behavior ONLY if user declines to specify:**
 - Save to `docs/requirement/requirements.md`
+
+### Step 0.1: Confirm Workflow Scope
+
+**CRITICAL: Before starting any work, ask the user what they want to do:**
+
+Ask: **"What would you like to do?"**
+
+**Options:**
+
+| Option | Description | Steps Included |
+|--------|-------------|----------------|
+| **1. Full Workflow** | Extract requirements, derive tests, check deviations | All phases (1-5) |
+| **2. Requirements Only** | Extract/generate requirements from code | Phase 1-3 only |
+| **3. Test Design Only** | Derive test specifications from existing requirements | Phase 4-5 only |
+| **4. Deviation Check** | Check for deviations between requirements, code, and tests | Phase 3 only |
+| **5. Coverage Analysis** | Analyze test coverage and identify gaps | Phase 4 (coverage) only |
+| **6. Sync Only** | Synchronize existing requirements with code changes | Phase 2-3 only |
+
+**Wait for user selection before proceeding.**
+
+**Why this matters:**
+- User may only want specific functionality
+- Prevents unnecessary work on unwanted steps
+- Gives user control over workflow scope
+- Different use cases need different phases
 
 ### Step 0.5: Check for Existing Requirements
 
