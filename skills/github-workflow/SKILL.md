@@ -5,7 +5,7 @@ author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [github, workflow, commit, pr, quality-gates]
-version: "1.0.1"
+version: "1.0.2"
 ---
 
 # GitHub Workflow
@@ -140,7 +140,9 @@ npx skills install . --list || exit 1
 test -f evals.json && echo "evals.json exists" || echo "No evals.json"
 
 # 4. Security checks
-grep -lE '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY)' SKILL.md 2>/dev/null && echo "ERROR: Secrets detected" && exit 1 || true
+# Check for actual secret assignments (KEY='value' or KEY="value" patterns)
+# Skip evals.json (test data) and documentation patterns
+grep -lE "(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY|CONNECTION_STRING)\s*=\s*['\"][^'\"]{8,}['\"]" SKILL.md 2>/dev/null && echo "ERROR: Secrets detected" && exit 1 || true
 ```
 
 | Check | Command | Purpose |
@@ -150,9 +152,25 @@ grep -lE '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY)' SKILL.md 2>/dev/null && e
 | Skills audit | `npx skills audit .` | Compliance check |
 | Skills check | `npx skills-check .` | Quality validation |
 | Evals verification | `test -f evals.json` | Verify evals file |
-| Security - secrets | `grep -lE '(API_KEY|...)' SKILL.md` | No hardcoded secrets |
+| Security - secrets | `grep -lE 'KEY.*=.*['\"][^'\"]{8,}' SKILL.md` | No hardcoded secrets (excludes docs/test data) |
 | Security - shell injection | `grep -lE '\$(.*)|`' + '`.*\${|bash.*-c' SKILL.md` | No command injection |
 | Security - unsafe exec | `grep -lE '(exec|eval|system)' SKILL.md` | No unsafe exec |
+
+**Security Check Pattern Details:**
+
+The secrets check uses context-aware detection to reduce false positives:
+
+| Pattern | Flags | Reason |
+|---------|-------|--------|
+| `API_KEY='sk-12345678'` | ✅ YES | Actual assignment with value |
+| `API_KEY="secret123"` | ✅ YES | Actual assignment with value |
+| `Scan for API_KEY, PASSWORD` | ❌ NO | Documentation (no assignment) |
+| `"assertions": ["API_KEY"]` | ❌ NO | Test assertion (in evals.json) |
+| `API_KEY=<your-key>` | ❌ NO | Placeholder (no actual value) |
+
+**Pattern explanation:**
+- `\s*=\s*` - Requires assignment operator
+- `['\"][^'\"]{8,}['\"]` - Requires quoted value of 8+ chars (real secrets are longer)
 
 **If ANY security check fails:**
 1. **STOP immediately** - Do not proceed
@@ -182,7 +200,9 @@ Skills - Security         ✅/❌
 **CRITICAL: Check for secrets before committing.**
 
 ```bash
-git diff --cached --name-only | xargs grep -l -E '(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY|\.env$)' 2>/dev/null || true
+# Check for actual secret assignments
+# Excludes: evals.json (test data), documentation patterns
+git diff --cached --name-only | grep -v 'evals\.json$' | xargs grep -l -E "(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY|CONNECTION_STRING)\s*=\s*['\"][^'\"]{8,}['\"]" 2>/dev/null || true
 ```
 
 **If secrets found:**
@@ -190,6 +210,8 @@ git diff --cached --name-only | xargs grep -l -E '(API_KEY|SECRET|PASSWORD|TOKEN
 2. Remove secrets from files
 3. Use environment variables or secret management
 4. Add patterns to `.gitignore`
+
+**Note:** `evals.json` is excluded because it contains test data for security detection testing.
 
 **Common secret patterns:**
 - `.env` files
