@@ -5,7 +5,7 @@ author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
-version: "1.2.1"
+version: "1.2.2"
 spec-version: "1.0.0"
 ---
 
@@ -79,6 +79,61 @@ Create and maintain ISO/IEC/IEEE 29148 compliant requirements that serve as a **
 | `Coverage Matrix` | Table mapping requirements to test cases |
 | `Coverage Percentage` | Percentage of requirements with test coverage |
 | `Traces-To` | Field linking test case to requirement |
+
+## Output Structure
+
+**Default output locations:**
+
+| Output Type | Default Path | Description |
+|-------------|--------------|-------------|
+| Requirements | `docs/requirement/requirements.md` | Single file with all requirements |
+| Test Specifications | `docs/test/test-specifications.md` | Single file with all test cases |
+| Multi-feature requirements | `<output_dir>/<feature>.md` | Split by feature area |
+| Index file | `<output_dir>/index.md` | Links to all feature files |
+
+**Custom output paths:**
+
+When user specifies a custom path:
+- File path: Save directly to specified location
+- Directory: Create `requirements.md` inside the directory
+- Absolute path: Use as-is (after security validation)
+
+**Output file format:**
+
+```markdown
+# Software Requirements Specification
+
+**Project:** [Project Name]
+**Standard:** ISO 29148
+**Generated:** [Date]
+**Source:** [Source file or description]
+
+---
+
+## 1. Introduction
+...
+
+## 2. Functional Requirements
+
+### REQ-001: [Requirement Title]
+
+**Description:** [What the system shall do]
+
+**Implementation:** [file.py:line]
+
+**Verification Criteria:**
+- Given [context], when [action], then [result]
+
+**Status:** [Draft|Implemented|...]
+
+---
+
+## Traceability Matrix
+
+| Requirement | Implementation | Verification | Status |
+|-------------|----------------|--------------|--------|
+| REQ-001 | file.py:45 | Unit test | Implemented |
+```
 
 ## Workflow: Create/Regenerate Setup
 
