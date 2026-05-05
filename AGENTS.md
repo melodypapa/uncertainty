@@ -5,9 +5,34 @@ Claude Code plugin `uncertainty-skills` (marketplace: `uncertainty`) with automa
 
 ## Testing
 No automated test runner. All validation uses subagents in gitignored workspaces:
-- `skills/<name>/<name>-workspace/` (iter-/eval- splits)
-- Each eval has `with_skill/` and `without_skill/` dirs
-- Evaluation is manual/subagent-driven
+
+### Workspace Structure
+```
+skills/<skill-name>/<skill-name>-workspace/
+├── iteration-1/
+│   ├── eval-<id>/
+│   │   ├── with_skill/
+│   │   │   ├── outputs/
+│   │   │   ├── timing.json
+│   │   │   └── grading.json
+│   │   └── without_skill/
+│   │       ├── outputs/
+│   │       ├── timing.json
+│   │       └── grading.json
+│   ├── benchmark.json
+│   ├── benchmark.md
+│   └── feedback.json
+├── iteration-2/
+│   └── ...
+└── skill-snapshot/  (for baseline comparison when improving existing skills)
+```
+
+### Workspace Rules
+- **Location**: ALWAYS create workspace at `skills/<skill-name>/<skill-name>-workspace/`
+- **Gitignored**: Add `<skill-name>-workspace/` to `.gitignore` in skill directory
+- **Iteration naming**: Use `iteration-1`, `iteration-2`, etc.
+- **Eval naming**: Use `eval-<id>` with descriptive name (e.g., `eval-1-requirements-extraction`)
+- **Outputs**: Save generated files to `outputs/` subdirectory
 
 ## CI
 - Triggers on pushes/PRs to main modifying `skills/**/SKILL.md`
