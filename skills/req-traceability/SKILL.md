@@ -5,7 +5,7 @@ author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
-version: "1.3.2"
+version: "1.3.3"
 spec-version: "1.0.0"
 ---
 
@@ -220,13 +220,13 @@ Ask: **"What would you like to do?"**
 **CRITICAL: Ask these questions BEFORE any setup questions. This determines which paths to follow.**
 
 **Question 1:** **"Do you want to create or regenerate requirements?"**
-- **Yes** → Ask follow-up about source (code or scratch), then proceed with requirements path
+- **Yes** → Ask follow-up about source, then proceed with requirements path
 - **No** → Skip all requirements work, go to Question 2
 
 **Follow-up if Question 1 = Yes:**
-**"What is the source for requirements?"**
-- **Option A:** From current code (analyze existing implementation)
-- **Option B:** From scratch (based on user input, specs, user stories)
+**"Extract requirements from current code?"**
+- **Yes** → From current code (analyze existing implementation)
+- **No** → From scratch (based on user input, specs, user stories)
 
 **Question 2:** **"Do you want to create or regenerate test cases?"**
 - **Yes** → Proceed with test cases path (Steps 2e, 2f)
@@ -292,12 +292,12 @@ digraph workflow {
 
 **CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
 
-**If user selected "From current code":**
+**If user answered "Yes" to "Extract requirements from current code?":**
 - Load `references/requirements-extraction.md` for extraction details
 - Requirements will be extracted from existing codebase
 - Phase 1 (Code -> Requirements) will be executed
 
-**If user selected "From scratch":**
+**If user answered "No" to "Extract requirements from current code?":**
 - Load `references/requirements-creation.md` for creation details
 - Ask: "What are the requirements based on? (user story, specification, design document, description)"
 - Requirements will be created from user input
