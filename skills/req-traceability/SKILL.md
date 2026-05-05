@@ -5,7 +5,7 @@ author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
-version: "1.3.2"
+version: "1.3.3"
 spec-version: "1.0.0"
 ---
 
@@ -93,7 +93,8 @@ All IDs follow the format: `{PREFIX}_{CATEGORY}_#####`
 | Software Requirements | `SWR` | `SWR_{CATEGORY}_#####` | `SWR_AUTH_00001` |
 | Unit Test Specifications | `UTS` | `UTS_{CATEGORY}_#####` | `UTS_AUTH_00001` |
 | Integration Test Specifications | `ITS` | `ITS_{CATEGORY}_#####` | `ITS_PAYMENT_00001` |
-| System Test Specifications | `SWTS` | `SWTS_{CATEGORY}_#####` | `SWTS_USER_00001` |
+| System Test Specifications | `SYTS` | `SYTS_{CATEGORY}_#####` | `SYTS_USER_00001` |
+| Acceptance Test Specifications | `ATS` | `ATS_{CATEGORY}_#####` | `ATS_AUTH_00001` |
 
 **Category naming rules:**
 - Use uppercase short names (AUTH, USER, PAYMENT, API, etc.)
@@ -127,8 +128,11 @@ docs/
       its_auth_test-specs.md      # Auth integration tests
       its_user_test-specs.md      # User integration tests
     system/
-      swts_auth_test-specs.md     # Auth system tests
-      swts_user_test-specs.md     # User system tests
+      syts_auth_test-specs.md     # Auth system tests
+      syts_user_test-specs.md     # User system tests
+    acceptance/
+      ats_auth_test-specs.md      # Auth acceptance tests
+      ats_user_test-specs.md      # User acceptance tests
 ```
 
 **Test type to folder mapping:**
@@ -137,7 +141,8 @@ docs/
 |-----------|--------|--------|--------------|
 | Unit Tests | `UTS` | `docs/tests/unit/` | `docs/tests/unit/uts_auth_test-specs.md` |
 | Integration Tests | `ITS` | `docs/tests/integration/` | `docs/tests/integration/its_auth_test-specs.md` |
-| System Tests | `SWTS` | `docs/tests/system/` | `docs/tests/system/swts_auth_test-specs.md` |
+| System Tests | `SYTS` | `docs/tests/system/` | `docs/tests/system/syts_auth_test-specs.md` |
+| Acceptance Tests | `ATS` | `docs/tests/acceptance/` | `docs/tests/acceptance/ats_auth_test-specs.md` |
 
 **Default output locations:**
 
@@ -147,6 +152,7 @@ docs/
 | Unit Test Specifications | `docs/tests/unit/` | Unit tests by category |
 | Integration Test Specifications | `docs/tests/integration/` | Integration tests by category |
 | System Test Specifications | `docs/tests/system/` | System tests by category |
+| Acceptance Test Specifications | `docs/tests/acceptance/` | Acceptance tests by category |
 
 **CRITICAL: All outputs MUST be organized by category. Single-file output is not supported.**
 
@@ -220,13 +226,13 @@ Ask: **"What would you like to do?"**
 **CRITICAL: Ask these questions BEFORE any setup questions. This determines which paths to follow.**
 
 **Question 1:** **"Do you want to create or regenerate requirements?"**
-- **Yes** → Ask follow-up about source (code or scratch), then proceed with requirements path
+- **Yes** → Ask follow-up about source, then proceed with requirements path
 - **No** → Skip all requirements work, go to Question 2
 
 **Follow-up if Question 1 = Yes:**
-**"What is the source for requirements?"**
-- **Option A:** From current code (analyze existing implementation)
-- **Option B:** From scratch (based on user input, specs, user stories)
+**"Extract requirements from current code?"**
+- **Yes** → From current code (analyze existing implementation)
+- **No** → From scratch (based on user input, specs, user stories)
 
 **Question 2:** **"Do you want to create or regenerate test cases?"**
 - **Yes** → Proceed with test cases path (Steps 2e, 2f)
@@ -292,12 +298,12 @@ digraph workflow {
 
 **CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
 
-**If user selected "From current code":**
+**If user answered "Yes" to "Extract requirements from current code?":**
 - Load `references/requirements-extraction.md` for extraction details
 - Requirements will be extracted from existing codebase
 - Phase 1 (Code -> Requirements) will be executed
 
-**If user selected "From scratch":**
+**If user answered "No" to "Extract requirements from current code?":**
 - Load `references/requirements-creation.md` for creation details
 - Ask: "What are the requirements based on? (user story, specification, design document, description)"
 - Requirements will be created from user input
@@ -434,7 +440,8 @@ Ask: **"Where would you like to save the test cases?"**
 **Default behavior based on test type prefix:**
 - **UTS** (Unit Tests) → `docs/tests/unit/`
 - **ITS** (Integration Tests) → `docs/tests/integration/`
-- **SWTS** (System Tests) → `docs/tests/system/`
+- **SYTS** (System Tests) → `docs/tests/system/`
+- **ATS** (Acceptance Tests) → `docs/tests/acceptance/`
 - **None/Custom** → `docs/tests/`
 
 **Step 2e-1: Determine Test Type and Category**
@@ -468,13 +475,16 @@ Generated files (for UTS prefix):
 
 ### Test Type Selection
 
-Ask: **"What type of test specifications?"**
+Ask: **"What type of test specifications? (Select all that apply)"**
 
 **Test Type Options (determines folder):**
 - **UTS** (Unit Tests) → `docs/tests/unit/`
 - **ITS** (Integration Tests) → `docs/tests/integration/`
-- **SWTS** (System Tests) → `docs/tests/system/`
+- **SYTS** (System Tests) → `docs/tests/system/`
+- **ATS** (Acceptance Tests) → `docs/tests/acceptance/`
 - **Custom** → User provides prefix
+
+**User can select multiple types.** For each selected type, generate separate test specification files.
 
 ### Category Selection (if not auto-detected)
 
@@ -494,7 +504,8 @@ Ask: **"What type of test specifications?"**
 **Examples:**
 - `docs/tests/unit/uts_auth_test-specs.md` (Auth unit tests)
 - `docs/tests/integration/its_auth_test-specs.md` (Auth integration tests)
-- `docs/tests/system/swts_payment_test-specs.md` (Payment system tests)
+- `docs/tests/system/syts_payment_test-specs.md` (Payment system tests)
+- `docs/tests/acceptance/ats_auth_test-specs.md` (Auth acceptance tests)
 
 **Multiple categories = Multiple files:**
 - Each category gets its own test specification file
@@ -622,7 +633,7 @@ For full procedures, deviation report templates, sync actions, and required outp
 
 **Test cases path (only if Step 2 Q2 = Yes):**
 - [ ] **Asked "Where would you like to save the test cases?"** - Only if creating/regenerating test cases
-- [ ] **Asked about file name prefix (Step 2e-1)** - UTS, ITS, SWTS, custom, or none
+- [ ] **Asked about file name prefix (Step 2e-1)** - UTS, ITS, SYTS, ATS, custom, or none
 - [ ] **Waited for user response**
 - [ ] **Checked if test cases file exists**
 - [ ] **Created backup if needed**

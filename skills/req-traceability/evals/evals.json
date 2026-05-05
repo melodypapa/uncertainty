@@ -276,12 +276,12 @@
     },
     {
       "id": 19,
-      "prompt": "Generate system test specifications for the complete application. Use SWTS prefix.",
-      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects Test Cases Only, asks where to save test cases, 3) Asks about test type with SWTS option, 4) Saves to docs/tests/system/ directory with SWTS prefix.",
+      "prompt": "Generate system test specifications for the complete application. Use SYTS prefix.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects Test Cases Only, asks where to save test cases, 3) Asks about test type with SYTS option, 4) Saves to docs/tests/system/ directory with SYTS prefix.",
       "files": [],
       "assertions": [
         "What would you like to do",
-        "SWTS",
+        "SYTS",
         "prefix",
         "docs/tests/system/",
         "System Test Specifications"
@@ -355,16 +355,16 @@
     },
     {
       "id": 25,
-      "prompt": "Create system test specifications for the complete application covering AUTH, USER, and PAYMENT categories. Use SWTS prefix with IDs like SWTS_AUTH_00001, SWTS_USER_00001, SWTS_PAYMENT_00001. Save each category to separate files in docs/tests/system/ directory.",
-      "expected_output": "A response that: 1) Creates system test specs with SWTS_* IDs, 2) Separates by category, 3) Saves to docs/tests/system/ directory with correct file naming.",
+      "prompt": "Create system test specifications for the complete application covering AUTH, USER, and PAYMENT categories. Use SYTS prefix with IDs like SYTS_AUTH_00001, SYTS_USER_00001, SYTS_PAYMENT_00001. Save each category to separate files in docs/tests/system/ directory.",
+      "expected_output": "A response that: 1) Creates system test specs with SYTS_* IDs, 2) Separates by category, 3) Saves to docs/tests/system/ directory with correct file naming.",
       "files": [],
       "assertions": [
-        "SWTS_AUTH_00001",
-        "SWTS_USER_00001",
-        "SWTS_PAYMENT_00001",
+        "SYTS_AUTH_00001",
+        "SYTS_USER_00001",
+        "SYTS_PAYMENT_00001",
         "docs/tests/system/",
-        "swts_auth_test-specs.md",
-        "swts_payment_test-specs.md"
+        "syts_auth_test-specs.md",
+        "syts_payment_test-specs.md"
       ]
     },
     {
@@ -410,6 +410,35 @@
         "docs/requirements/",
         "Medical Device",
         "Custom"
+      ]
+    },
+    {
+      "id": 29,
+      "prompt": "Create acceptance test specifications for the authentication module. Use ATS prefix and AUTH category with IDs like ATS_AUTH_00001. Save to docs/tests/acceptance/ directory.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects Test Cases Only, asks where to save test cases, 3) Asks about test type with ATS option, 4) Saves to docs/tests/acceptance/ directory with ATS prefix.",
+      "files": [],
+      "assertions": [
+        "What would you like to do",
+        "ATS",
+        "ATS_AUTH_00001",
+        "docs/tests/acceptance/",
+        "ats_auth_test-specs.md",
+        "Acceptance Test"
+      ]
+    },
+    {
+      "id": 30,
+      "prompt": "Create both unit tests and integration tests for the authentication module. Use UTS and ITS prefixes with AUTH category. Save to appropriate directories.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects Test Cases Only, asks where to save test cases, 3) Asks about test type with multi-select option, 4) Creates both UTS_AUTH_* and ITS_AUTH_* IDs, 5) Saves to docs/tests/unit/ and docs/tests/integration/ directories.",
+      "files": [],
+      "assertions": [
+        "What would you like to do",
+        "UTS_AUTH_00001",
+        "ITS_AUTH_00001",
+        "docs/tests/unit/",
+        "docs/tests/integration/",
+        "uts_auth_test-specs.md",
+        "its_auth_test-specs.md"
       ]
     }
   ]
