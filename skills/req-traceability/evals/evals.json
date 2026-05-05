@@ -335,6 +335,72 @@
         "prefix",
         "PROJ_A_requirements.md"
       ]
+    },
+    {
+      "id": 25,
+      "prompt": "Create requirements for an authentication system with category-based IDs. Use SWR prefix and AUTH category. Requirements should have IDs like SWR_AUTH_00001, SWR_AUTH_00002, etc. Save to requirements/ directory with filename SWR_auth_requirements.md.",
+      "expected_output": "A response that: 1) Creates requirements with category-based IDs (SWR_AUTH_00001), 2) Saves to correct filename (SWR_auth_requirements.md), 3) Organizes by category.",
+      "files": [],
+      "assertions": [
+        "SWR_AUTH_00001",
+        "SWR_auth_requirements.md",
+        "requirements/",
+        "category",
+        "AUTH"
+      ]
+    },
+    {
+      "id": 26,
+      "prompt": "Create requirements for a payment processing system. Use SWR prefix and PAYMENT category. Requirements should have IDs like SWR_PAYMENT_00001. Also create unit test specifications with UTS_PAYMENT_00001 format. Save both to appropriate files.",
+      "expected_output": "A response that: 1) Creates requirements with SWR_PAYMENT_* IDs, 2) Creates test specs with UTS_PAYMENT_* IDs, 3) Saves to SWR_payment_requirements.md and UTS_payment_test-specs.md.",
+      "files": [],
+      "assertions": [
+        "SWR_PAYMENT_00001",
+        "UTS_PAYMENT_00001",
+        "SWR_payment_requirements.md",
+        "UTS_payment_test-specs.md",
+        "PAYMENT"
+      ]
+    },
+    {
+      "id": 27,
+      "prompt": "I have requirements for multiple features: authentication (AUTH), user management (USER), and payment (PAYMENT). Create separate requirement files for each category with proper IDs like SWR_AUTH_00001, SWR_USER_00001, SWR_PAYMENT_00001.",
+      "expected_output": "A response that: 1) Creates three separate files, 2) Uses category-based IDs for each, 3) Organizes by feature category.",
+      "files": [],
+      "assertions": [
+        "SWR_AUTH_00001",
+        "SWR_USER_00001",
+        "SWR_PAYMENT_00001",
+        "SWR_auth_requirements.md",
+        "SWR_user_requirements.md",
+        "SWR_payment_requirements.md"
+      ]
+    },
+    {
+      "id": 28,
+      "prompt": "Create integration test specifications for the authentication module. Use ITS prefix and AUTH category with IDs like ITS_AUTH_00001. Save to tests/ directory.",
+      "expected_output": "A response that: 1) Creates integration test specs with ITS_AUTH_* IDs, 2) Saves to correct filename, 3) Uses category-based organization.",
+      "files": [],
+      "assertions": [
+        "ITS_AUTH_00001",
+        "ITS_auth_test-specs.md",
+        "tests/",
+        "AUTH"
+      ]
+    },
+    {
+      "id": 29,
+      "prompt": "Create system test specifications for the complete application covering AUTH, USER, and PAYMENT categories. Use SWTS prefix with IDs like SWTS_AUTH_00001, SWTS_USER_00001, SWTS_PAYMENT_00001. Save each category to separate files.",
+      "expected_output": "A response that: 1) Creates system test specs with SWTS_* IDs, 2) Separates by category, 3) Uses correct file naming.",
+      "files": [],
+      "assertions": [
+        "SWTS_AUTH_00001",
+        "SWTS_USER_00001",
+        "SWTS_PAYMENT_00001",
+        "SWTS_auth_test-specs.md",
+        "SWTS_user_test-specs.md",
+        "SWTS_payment_test-specs.md"
+      ]
     }
   ]
 }

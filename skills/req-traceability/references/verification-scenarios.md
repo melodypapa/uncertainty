@@ -14,7 +14,7 @@
 - ✅ Agent analyzes requirement types
 - ✅ Agent selects appropriate ISO 29119-4 technique
 - ✅ Agent follows three-step process (Conditions → Coverage Items → Test Cases)
-- ✅ Agent generates test specification document with TC-### IDs
+- ✅ Agent generates test specification document with {PREFIX}_{CATEGORY}_##### IDs
 - ✅ Agent links tests to requirements via Traces-To field
 
 **Verification:**
@@ -29,7 +29,7 @@
 
 ### Scenario 2: Requirements Change - Tests Need Update
 
-**Input:** "REQ-001 changed from 'email login' to 'OAuth login', update related artifacts"
+**Input:** "SWR_AUTH_00001 changed from 'email login' to 'OAuth login', update related artifacts"
 
 **Expected Behavior (WITH feature):**
 - ✅ Agent detects TEST_DRIFT deviation

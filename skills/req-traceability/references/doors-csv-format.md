@@ -10,7 +10,7 @@ DOORS (Dynamic Object Oriented Requirements System) requires specific CSV struct
 
 | Column | Data Type | Format | Required | Example |
 |--------|-----------|--------|----------|---------|
-| ID | String | REQ-### format | Yes | REQ-001 |
+| ID | String | SWR_{CATEGORY}_##### format | Yes | SWR_AUTH_00001 |
 | Text | String | Full requirement description | Yes | "System shall authenticate users" |
 | Type | String | Functional/Non-Functional/Interface/Data | Yes | Functional |
 | Priority | String | Critical/High/Medium/Low | Yes | Critical |
@@ -21,7 +21,7 @@ DOORS (Dynamic Object Oriented Requirements System) requires specific CSV struct
 
 | Column | Data Type | Format | Required | Example |
 |--------|-----------|--------|----------|---------|
-| Parent_ID | String | Parent requirement ID | No | REQ-001 |
+| Parent_ID | String | Parent requirement ID | No | SWR_AUTH_00001 |
 | Source | String | Code file path or "manual" | No | src/auth/login.py |
 | Rationale | String | Business justification | No | "Security requirement" |
 
