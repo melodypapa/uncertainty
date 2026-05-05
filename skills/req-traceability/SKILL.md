@@ -292,234 +292,92 @@ digraph workflow {
 }
 ```
 
+### Phase Overview
+
+The skill operates in 5 phases:
+
+| Phase | Name | Description |
+|-------|------|-------------|
+| **Phase 1** | Code → Requirements | Extract requirements from existing code |
+| **Phase 2** | Requirements → Code | Create requirements from user input |
+| **Phase 3** | Verification Loop | Validate requirements against code |
+| **Phase 4** | Requirements → Test Specs | Derive test specifications |
+| **Phase 5** | Traceability Matrix | Build coverage report |
+
+**For detailed phase descriptions and step-by-step instructions, read `references/workflow-details.md`.**
+
 ### Requirements Path (Steps 2a-2d) - ONLY if Question 1 = Yes
 
 **Step 2a: Confirm Requirements Source**
 
-**CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
+**If "Yes" to "Extract requirements from current code?":**
+- Load `references/requirements-extraction.md` → Execute Phase 1
 
-**If user answered "Yes" to "Extract requirements from current code?":**
-- Load `references/requirements-extraction.md` for extraction details
-- Requirements will be extracted from existing codebase
-- Phase 1 (Code -> Requirements) will be executed
-
-**If user answered "No" to "Extract requirements from current code?":**
-- Load `references/requirements-creation.md` for creation details
+**If "No" to "Extract requirements from current code?":**
+- Load `references/requirements-creation.md` → Execute Phase 2
 - Ask: "What are the requirements based on? (user story, specification, design document, description)"
-- Requirements will be created from user input
-- Phase 1 (Code -> Requirements) is SKIPPED - go directly to Phase 2
-
-**Proceed to Step 2b after source is confirmed.**
 
 **Step 2b: Ask Requirements File Location**
 
-**CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
-
 Ask: **"Where would you like to save the requirements?"**
 
-**User may specify:**
-- A specific file path: `docs/requirements/swr_auth_requirements.md`, `docs/requirements/swr_user_requirements.md`
-- A directory: `docs/requirements/`, `custom_docs/`
-- An absolute path: `/path/to/output/swr_auth_requirements.md`
+**Default:** `docs/requirements/`
 
-**Default behavior ONLY if user declines to specify:**
-- Save to `docs/requirements/`
+**Step 2b-1: Prefix and Category**
 
-**Step 2b-1: Ask File Name Prefix and Category (Requirements)**
+**Prefix:** SWR (Software Requirements) or Custom
 
-**CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
+**Category Detection:** Automatic from code structure, or ask user
 
-### Prefix Selection
-
-Ask: **"What prefix for the requirements document?"**
-
-**Prefix Options:**
-- **SWR** (Software Requirements) → `swr_{category}_requirements.md`
-- **Custom** → User provides prefix → `{prefix}_{category}_requirements.md`
-
-### Category Detection (Automatic)
-
-**When extracting requirements from existing code:**
-
-1. **Scan code structure** for functional areas (modules, directories, namespaces)
-2. **Detect categories** from code organization
-3. **Generate separate requirement file for EACH category detected**
-
-**Example:**
-```
-Code structure:
-  src/
-    auth/
-      login.py
-      logout.py
-    user/
-      profile.py
-      settings.py
-    payment/
-      checkout.py
-      refund.py
-
-Detected categories: AUTH, USER, PAYMENT
-
-Generated files:
-  docs/requirements/swr_auth_requirements.md
-  docs/requirements/swr_user_requirements.md
-  docs/requirements/swr_payment_requirements.md
-```
-
-**If no category detected from code structure:**
-- ASK user: "What category should these requirements cover?"
-- Provide category options below
-
-### Category Selection (if not auto-detected)
-
-**Category Options:**
-- **AUTH** (Authentication)
-- **USER** (User Management)
-- **PAYMENT** (Payment Processing)
-- **API** (API/Integration)
-- **Custom** → User provides category name
-
-### File Naming Format
-
-**CRITICAL: File naming MUST include category. Format is mandatory.**
-
-**Format:** `{prefix}_{category}_requirements.md` (all lowercase, underscore separator)
-
-**Examples:**
-- `swr_auth_requirements.md` (Auth requirements with SWR prefix)
-- `swr_user_requirements.md` (User requirements with SWR prefix)
-- `swr_payment_requirements.md` (Payment requirements with SWR prefix)
-
-**Multiple categories = Multiple files:**
-- Each category gets its own requirement file
-- Never combine multiple categories into a single file
+**File Format:** `{prefix}_{category}_requirements.md` (lowercase)
 
 **Step 2c: Check for Existing Requirements**
 
-**CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
+If file exists, ask: Replace, Append, Update, or Create backup
 
-After getting the output path, check if requirements already exist:
+**CRITICAL:** Always create backup before overwriting
 
-1. If the file exists, ask: "Requirements already exist at [path]. What would you like to do?"
-   - **Option A:** Replace completely (create new requirements from scratch)
-   - **Option B:** Append new requirements to existing file
-   - **Option C:** Update existing requirements in place
-   - **Option D:** Create a new version/backup first
+**Step 2d: File Organization**
 
-2. **CRITICAL: Create backup before modifying existing requirements:**
-   - Backup format: `swr_auth_requirements.md.backup_YYYYMMDD_HHMMSS`
-   - Always backup when overwriting or updating
-   - Never delete original file without backup
+Ask: Single file or split by feature?
 
-3. Require explicit user confirmation: "Are you sure you want to overwrite [path]? Type 'yes' to confirm."
-
-**Step 2d: Determine Requirements File Organization**
-
-**CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
-
-Ask the user if they want: Single file, split by feature, or split by type.
-
-**When to split:** >100 requirements, multiple distinct features, or file size >500 KB.
-
-For directory structures, index.md templates, and multi-file best practices, read `references/multi-file-organization.md`.
+**When to split:** >100 requirements or file size >500 KB
 
 ### Test Cases Path (Steps 2e-2f) - ONLY if Question 2 = Yes
 
 **Step 2e: Ask Test Cases File Location**
 
-**CRITICAL: Only ask this question if user answered "Yes" to Question 2.**
-
 Ask: **"Where would you like to save the test cases?"**
 
-**User may specify:**
-- A specific file path: `docs/tests/unit/uts_auth_test-specs.md`, `docs/tests/integration/its_user_test-specs.md`
-- A directory: `docs/tests/`, `docs/tests/unit/`, `docs/tests/integration/`, `docs/tests/system/`
-- An absolute path: `/path/to/output/test-cases.md`
+**Default by test type:**
+- **UTS** → `docs/tests/unit/`
+- **ITS** → `docs/tests/integration/`
+- **SYTS** → `docs/tests/system/`
+- **ATS** → `docs/tests/acceptance/`
 
-**Default behavior based on test type prefix:**
-- **UTS** (Unit Tests) → `docs/tests/unit/`
-- **ITS** (Integration Tests) → `docs/tests/integration/`
-- **SYTS** (System Tests) → `docs/tests/system/`
-- **ATS** (Acceptance Tests) → `docs/tests/acceptance/`
-- **None/Custom** → `docs/tests/`
+**Step 2e-1: Test Type and Category**
 
-**Step 2e-1: Determine Test Type and Category**
+**Category Detection:** Automatic from requirement IDs
 
-**CRITICAL: Only ask this question if user answered "Yes" to Question 2.**
-
-### Category Detection (Automatic)
-
-**When deriving test cases from existing requirements:**
-
-1. **Scan requirement IDs** for category pattern: `{PREFIX}_{CATEGORY}_#####`
-2. **Extract unique categories** from all requirement IDs
-3. **Generate separate test file for EACH category detected**
-
-**Example:**
-```
-Requirements contain:
-  SWR_AUTH_00001, SWR_AUTH_00002, SWR_USER_00001, SWR_PAYMENT_00001
-
-Detected categories: AUTH, USER, PAYMENT
-
-Generated files (for UTS prefix):
-  docs/tests/unit/uts_auth_test-specs.md
-  docs/tests/unit/uts_user_test-specs.md
-  docs/tests/unit/uts_payment_test-specs.md
-```
-
-**If no category detected in requirement IDs:**
-- ASK user: "What category should these test specifications cover?"
-- Provide category options below
-
-### Test Type Selection
+**Test Type Selection:**
 
 Ask: **"What type of test specifications? (Select all that apply)"**
 
-**Test Type Options (determines folder):**
-- **UTS** (Unit Tests) → `docs/tests/unit/`
-- **ITS** (Integration Tests) → `docs/tests/integration/`
-- **SYTS** (System Tests) → `docs/tests/system/`
-- **ATS** (Acceptance Tests) → `docs/tests/acceptance/`
-- **Custom** → User provides prefix
+| Type | Prefix | Folder |
+|------|--------|--------|
+| Unit Tests | UTS | `docs/tests/unit/` |
+| Integration Tests | ITS | `docs/tests/integration/` |
+| System Tests | SYTS | `docs/tests/system/` |
+| Acceptance Tests | ATS | `docs/tests/acceptance/` |
+| Custom | User-defined | User-specified |
 
-**User can select multiple types.** For each selected type, generate separate test specification files.
+**User can select multiple types.** Generate separate files for each.
 
-### Category Selection (if not auto-detected)
-
-**Category Options:**
-- **AUTH** (Authentication)
-- **USER** (User Management)
-- **PAYMENT** (Payment Processing)
-- **API** (API/Integration)
-- **Custom** → User provides category name
-
-### File Naming Format
-
-**CRITICAL: File naming MUST include category. Format is mandatory.**
-
-**Format:** `{test_type_folder}/{prefix}_{category}_test-specs.md` (all lowercase, underscore separator)
-
-**Examples:**
-- `docs/tests/unit/uts_auth_test-specs.md` (Auth unit tests)
-- `docs/tests/integration/its_auth_test-specs.md` (Auth integration tests)
-- `docs/tests/system/syts_payment_test-specs.md` (Payment system tests)
-- `docs/tests/acceptance/ats_auth_test-specs.md` (Auth acceptance tests)
-
-**Multiple categories = Multiple files:**
-- Each category gets its own test specification file
-- Never combine multiple categories into a single file
+**File Format:** `{prefix}_{category}_test-specs.md` (lowercase)
 
 **Step 2f: Check for Existing Test Cases**
 
-**CRITICAL: Only ask this question if user answered "Yes" to Question 2.**
-
-Similar to Step 2c but for test cases:
-- Check if test cases file exists
-- Ask: Replace, Append, Update, or Create backup
-- Create backup with timestamp
-- Require explicit confirmation for overwrite
+Similar to Step 2c: Check if exists, ask action, create backup
 
 ## Security Validation
 
@@ -553,6 +411,9 @@ For full procedures, deviation report templates, sync actions, and required outp
 
 **Only load these files when needed based on user selections:**
 
+**Workflow details:**
+- `references/workflow-details.md` - Detailed phase descriptions and step-by-step instructions
+
 **Requirements work (Step 2 Q1 = Yes):**
 - `references/requirements-extraction.md` - Load ONLY if "From code" selected (Step 2a)
 - `references/requirements-creation.md` - Load ONLY if "From scratch" selected (Step 2a)
@@ -572,11 +433,6 @@ For full procedures, deviation report templates, sync actions, and required outp
 - `references/iso-29148.md` - Load for ISO 29148 standard details
 - `references/doors-csv-format.md` - Load for DOORS CSV export
 - `assets/doors-csv-template.csv` - DOORS CSV template file
-
-**Token savings:**
-- User skips requirements → saves ~200 tokens (no requirement content loaded)
-- User skips test cases → saves ~150 tokens (no test content loaded)
-- User skips both → saves ~350 tokens (only workflow steps loaded)
 
 ## Common Pitfalls
 
