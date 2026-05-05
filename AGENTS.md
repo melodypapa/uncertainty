@@ -18,6 +18,7 @@ No automated test runner. All validation uses subagents in gitignored workspaces
 - Skill frontmatter: `name` only [a-z0-9-]; `description` third person, starts with "Use when...", max 1024 chars (trigger conditions only, no workflow summary)
 - Skill TDD: RED (baseline without skill) → GREEN (minimal fix) → REFACTOR (close loopholes). Details in `skills/README.md`
 - Commit format: `<type>: <description>` with `Closes #<issue>`. No `Co-Authored-By`
+- **NEVER commit directly to main branch** — Always create a feature branch, then PR for review
 - Publishing: Update version in `.claude-plugin/marketplace.json` AND `.claude-plugin/plugin.json` → commit to main
 
 ## References
