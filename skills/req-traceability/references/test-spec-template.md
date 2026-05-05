@@ -41,13 +41,13 @@
 ## Test Specification Entry Template
 
 ```markdown
-### TC-###: [Test Case Title]
+### {PREFIX}_{CATEGORY}_##### : [Test Case Title]
 
 **Type:** [Functional | Non-Functional | Integration | Unit | E2E]
 **Priority:** [Critical | High | Medium | Low]
 **Status:** [Draft | Ready | Passed | Failed | Blocked | Deprecated]
 
-**Traces-To:** [REQ-###, REQ-###] - Requirements this test verifies
+**Traces-To:** [SWR_{CATEGORY}_#####, SWR_{CATEGORY}_#####] - Requirements this test verifies
 **Test Implementation:** [file_path.py:test_function (line:column)] - Actual test code
 **Last Validated:** [YYYY-MM-DD]
 **Last Changed:** [YYYY-MM-DD]
@@ -88,7 +88,7 @@
 [Why this test case exists - what defect it's designed to find]
 
 **Dependencies:**
-[TC-###, TC-###] - Tests that must run before this one
+[{PREFIX}_{CATEGORY}_#####, {PREFIX}_{CATEGORY}_#####] - Tests that must run before this one
 
 **Change Log:**
 - [YYYY-MM-DD]: [Description of change, why, impact]
@@ -124,12 +124,12 @@
 ### TEST_DRIFT (Tests not updated after requirement change)
 | Test Case | Requirement | Change Date | Recommended Action |
 |-----------|-------------|-------------|-------------------|
-| TC-007 | REQ-002 | YYYY-MM-DD | Update test to match new requirement |
+| UTS_AUTH_00007 | SWR_AUTH_00002 | YYYY-MM-DD | Update test to match new requirement |
 
 ### ORPHAN_TEST (Test code without specification)
 | Test File | Test Function | Recommended Action |
 |-----------|---------------|-------------------|
-| test_auth.py | test_oauth_login | Create test specification TC-### |
+| test_auth.py | test_oauth_login | Create test specification UTS_AUTH_##### |
 ```
 
 ---
@@ -172,13 +172,13 @@
 
 | Test Case | Deleted Requirement | Last Run | Recommended Action |
 |-----------|---------------------|----------|-------------------|
-| TC-006 | REQ-005 | YYYY-MM-DD | Remove test case |
+| UTS_AUTH_00006 | SWR_AUTH_00005 | YYYY-MM-DD | Remove test case |
 
 ### ORPHAN_TEST (Test Code Without Specification)
 
 | Test File | Test Function | Lines | Recommended Action |
 |-----------|---------------|-------|-------------------|
-| test_auth.py | test_oauth_login | 45-67 | Create TC-### specification |
+| test_auth.py | test_oauth_login | 45-67 | Create UTS_AUTH_##### specification |
 
 ## Synchronization Actions
 
@@ -192,7 +192,7 @@ The following deviations require user approval before synchronization:
 
 | Requirement | Code Location | Code Change | User Decision |
 |-------------|---------------|-------------|---------------|
-| REQ-002 | auth.py:45 | Changed hash algorithm | [ ] Yes, update REQ to match code |
+| SWR_AUTH_00002 | auth.py:45 | Changed hash algorithm | [ ] Yes, update REQ to match code |
 | | | | [ ] No, keep REQ unchanged |
 
 **Impact if Yes:** Requirements will reflect current implementation
@@ -285,7 +285,7 @@ For multi-file test specifications:
 
 ## Usage Notes
 
-1. **TC-### ID Format:** Use sequential numbering (TC-001, TC-002, etc.) aligned with REQ-### format
+1. **{PREFIX}_{CATEGORY}_##### ID Format:** Use sequential numbering aligned with category (e.g., UTS_AUTH_00001, UTS_AUTH_00002)
 2. **Traces-To Field:** Always link back to requirements for bidirectional traceability
 3. **Test Implementation Field:** Link to actual test code file and function
 4. **Status Values:**

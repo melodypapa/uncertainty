@@ -5,7 +5,7 @@ author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
-version: "1.2.3"
+version: "1.3.0"
 spec-version: "1.0.0"
 ---
 
@@ -35,8 +35,9 @@ Create and maintain ISO/IEC/IEEE 29148 compliant requirements that serve as a **
 
 ## Gotchas
 
-- **Requirement ID format**: Must use `REQ-###` format (REQ-001, REQ-002, etc.)
-- **Test Case ID format**: Must use `TC-###` format (TC-001, TC-002, etc.)
+- **Requirement ID format**: Use `{PREFIX}_{CATEGORY}_#####` format (e.g., `SWR_AUTH_00001`, `SWR_USER_00002`)
+- **Test Case ID format**: Use `{PREFIX}_{CATEGORY}_#####` format (e.g., `UTS_AUTH_00001`, `ITS_PAYMENT_00001`)
+- **Category naming**: Use uppercase short names (AUTH, USER, PAYMENT, etc.)
 - **Implementation reference syntax**: Use `file.py:function` (single colon), not `file.py::function`
 - **User approval required**: Never modify requirements without explicit user approval
 - **Orphan code detection**: Requires reading actual implementation code
@@ -82,35 +83,59 @@ Create and maintain ISO/IEC/IEEE 29148 compliant requirements that serve as a **
 
 ## Output Structure
 
-**File naming prefixes:**
+**ID Format with Categories:**
 
-Identify document types with standardized prefixes:
+All IDs follow the format: `{PREFIX}_{CATEGORY}_#####`
 
-| Document Type | Prefix | Example Filename |
-|---------------|--------|------------------|
-| Software Requirements | `SWR` | `SWR_requirements.md` |
-| Unit Test Specifications | `UTS` | `UTS_test-specifications.md` |
-| Integration Test Specifications | `ITS` | `ITS_test-specifications.md` |
-| System Test Specifications | `SWTS` | `SWTS_test-specifications.md` |
+| Document Type | Prefix | ID Format | Example ID |
+|---------------|--------|-----------|------------|
+| Software Requirements | `SWR` | `SWR_{CATEGORY}_#####` | `SWR_AUTH_00001` |
+| Unit Test Specifications | `UTS` | `UTS_{CATEGORY}_#####` | `UTS_AUTH_00001` |
+| Integration Test Specifications | `ITS` | `ITS_{CATEGORY}_#####` | `ITS_PAYMENT_00001` |
+| System Test Specifications | `SWTS` | `SWTS_{CATEGORY}_#####` | `SWTS_USER_00001` |
 
-**Format:** `{PREFIX}_{base_filename}.md` (underscore separator)
+**Category naming rules:**
+- Use uppercase short names (AUTH, USER, PAYMENT, API, etc.)
+- Maximum 10 characters
+- No spaces or special characters
+- Should represent functional area
+
+**File naming with categories:**
+
+| Document Type | Filename Format | Example |
+|---------------|-----------------|---------|
+| Requirements | `{PREFIX}_{category}_requirements.md` | `SWR_auth_requirements.md` |
+| Test Specifications | `{PREFIX}_{category}_test-specs.md` | `UTS_auth_test-specs.md` |
+
+**File organization by category:**
+
+```
+requirements/
+  SWR_auth_requirements.md      # Authentication requirements
+  SWR_user_requirements.md      # User management requirements
+  SWR_payment_requirements.md   # Payment requirements
+
+tests/
+  UTS_auth_test-specs.md        # Auth unit tests
+  ITS_auth_test-specs.md        # Auth integration tests
+  SWTS_auth_test-specs.md       # Auth system tests
+```
 
 **Default output locations:**
 
 | Output Type | Default Path | Description |
 |-------------|--------------|-------------|
-| Requirements | `docs/requirement/requirements.md` | Single file with all requirements |
-| Test Specifications | `docs/test/test-specifications.md` | Single file with all test cases |
-| Multi-feature requirements | `<output_dir>/<feature>.md` | Split by feature area |
-| Index file | `<output_dir>/index.md` | Links to all feature files |
+| Requirements | `requirements/` | Directory with category files |
+| Test Specifications | `tests/` | Directory with category files |
+| Single file (legacy) | `docs/requirement/requirements.md` | All in one file |
 
 **Custom output paths:**
 
 When user specifies a custom path:
 - File path: Save directly to specified location
-- Directory: Create `requirements.md` inside the directory
+- Directory: Create category files inside the directory
 - Absolute path: Use as-is (after security validation)
-- With prefix: Prepend prefix to filename (e.g., `SWR_requirements.md`)
+- With category: Filename includes category (e.g., `SWR_auth_requirements.md`)
 
 **Output file format:**
 
@@ -273,18 +298,30 @@ Ask: **"Where would you like to save the requirements?"**
 **Default behavior ONLY if user declines to specify:**
 - Save to `docs/requirement/requirements.md`
 
-**Step 2b-1: Ask File Name Prefix (Requirements)**
+**Step 2b-1: Ask File Name Prefix and Category (Requirements)**
 
 **CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
 
-Ask: **"Add a prefix to identify the document type?"**
+Ask: **"Add a prefix and category to identify the document type and functional area?"**
 
-**Options:**
+**Prefix Options:**
 - **None** (default) → `requirements.md`
-- **SWR** (Software Requirements) → `SWR_requirements.md`
-- **Custom** → User provides prefix → `{PREFIX}_requirements.md`
+- **SWR** (Software Requirements) → `SWR_{category}_requirements.md`
+- **Custom** → User provides prefix → `{PREFIX}_{category}_requirements.md`
 
-**Format:** `{PREFIX}_{filename}.md` (underscore separator)
+**Category Options:**
+- **AUTH** (Authentication)
+- **USER** (User Management)
+- **PAYMENT** (Payment Processing)
+- **API** (API/Integration)
+- **Custom** → User provides category name
+
+**Format:** `{PREFIX}_{category}_requirements.md` (underscore separator, lowercase category in filename)
+
+**Examples:**
+- `SWR_auth_requirements.md` (Auth requirements with SWR prefix)
+- `SWR_user_requirements.md` (User requirements with SWR prefix)
+- `SWR_payment_requirements.md` (Payment requirements with SWR prefix)
 
 **Step 2c: Check for Existing Requirements**
 
@@ -331,20 +368,32 @@ Ask: **"Where would you like to save the test cases?"**
 **Default behavior ONLY if user declines to specify:**
 - Save to `tests/test-specifications.md`
 
-**Step 2e-1: Ask File Name Prefix (Test Cases)**
+**Step 2e-1: Ask File Name Prefix and Category (Test Cases)**
 
 **CRITICAL: Only ask this question if user answered "Yes" to Question 2.**
 
-Ask: **"Add a prefix to identify the document type?"**
+Ask: **"Add a prefix and category to identify the document type and functional area?"**
 
-**Options:**
+**Prefix Options:**
 - **None** (default) → `test-specifications.md`
-- **UTS** (Unit Test Specifications) → `UTS_test-specifications.md`
-- **ITS** (Integration Test Specifications) → `ITS_test-specifications.md`
-- **SWTS** (System Test Specifications) → `SWTS_test-specifications.md`
-- **Custom** → User provides prefix → `{PREFIX}_test-specifications.md`
+- **UTS** (Unit Test Specifications) → `UTS_{category}_test-specs.md`
+- **ITS** (Integration Test Specifications) → `ITS_{category}_test-specs.md`
+- **SWTS** (System Test Specifications) → `SWTS_{category}_test-specs.md`
+- **Custom** → User provides prefix → `{PREFIX}_{category}_test-specs.md`
 
-**Format:** `{PREFIX}_{filename}.md` (underscore separator)
+**Category Options:**
+- **AUTH** (Authentication)
+- **USER** (User Management)
+- **PAYMENT** (Payment Processing)
+- **API** (API/Integration)
+- **Custom** → User provides category name
+
+**Format:** `{PREFIX}_{category}_test-specs.md` (underscore separator, lowercase category in filename)
+
+**Examples:**
+- `UTS_auth_test-specs.md` (Auth unit tests)
+- `ITS_auth_test-specs.md` (Auth integration tests)
+- `SWTS_payment_test-specs.md` (Payment system tests)
 
 **Step 2f: Check for Existing Test Cases**
 
