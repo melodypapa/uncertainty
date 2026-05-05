@@ -84,122 +84,29 @@ Create and maintain ISO/IEC/IEEE 29148 compliant requirements that serve as a **
 
 ## Output Structure
 
-**ID Format with Categories:**
+**ID Format:** `{PREFIX}_{CATEGORY}_#####` (e.g., `SWR_AUTH_00001`, `UTS_AUTH_00001`)
 
-All IDs follow the format: `{PREFIX}_{CATEGORY}_#####`
+**Prefixes:**
+- **SWR** - Software Requirements
+- **UTS** - Unit Test Specifications
+- **ITS** - Integration Test Specifications
+- **SYTS** - System Test Specifications
+- **ATS** - Acceptance Test Specifications
 
-| Document Type | Prefix | ID Format | Example ID |
-|---------------|--------|-----------|------------|
-| Software Requirements | `SWR` | `SWR_{CATEGORY}_#####` | `SWR_AUTH_00001` |
-| Unit Test Specifications | `UTS` | `UTS_{CATEGORY}_#####` | `UTS_AUTH_00001` |
-| Integration Test Specifications | `ITS` | `ITS_{CATEGORY}_#####` | `ITS_PAYMENT_00001` |
-| System Test Specifications | `SYTS` | `SYTS_{CATEGORY}_#####` | `SYTS_USER_00001` |
-| Acceptance Test Specifications | `ATS` | `ATS_{CATEGORY}_#####` | `ATS_AUTH_00001` |
+**Category Naming:** Uppercase short names (AUTH, USER, PAYMENT, API), max 10 chars
 
-**Category naming rules:**
-- Use uppercase short names (AUTH, USER, PAYMENT, API, etc.)
-- Maximum 10 characters
-- No spaces or special characters
-- Should represent functional area
+**File Naming:** `{prefix}_{category}_{type}.md` (lowercase, e.g., `swr_auth_requirements.md`)
 
-**File naming with categories:**
+**Default Paths:**
+- Requirements → `docs/requirements/`
+- Unit Tests → `docs/tests/unit/`
+- Integration Tests → `docs/tests/integration/`
+- System Tests → `docs/tests/system/`
+- Acceptance Tests → `docs/tests/acceptance/`
 
-| Document Type | Filename Format | Example |
-|---------------|-----------------|---------|
-| Requirements | `{prefix}_{category}_requirements.md` | `swr_auth_requirements.md` |
-| Test Specifications | `{prefix}_{category}_test-specs.md` | `uts_auth_test-specs.md` |
+**CRITICAL:** All outputs organized by category. Single-file output not supported.
 
-**Note:** Filenames are always lowercase (e.g., `swr_auth_requirements.md`), while requirement IDs use uppercase prefix and category (e.g., `SWR_AUTH_00001`).
-
-**File organization by category:**
-
-```
-docs/
-  requirements/
-    swr_auth_requirements.md      # Authentication requirements
-    swr_user_requirements.md      # User management requirements
-    swr_payment_requirements.md   # Payment requirements
-
-  tests/
-    unit/
-      uts_auth_test-specs.md      # Auth unit tests
-      uts_user_test-specs.md      # User unit tests
-    integration/
-      its_auth_test-specs.md      # Auth integration tests
-      its_user_test-specs.md      # User integration tests
-    system/
-      syts_auth_test-specs.md     # Auth system tests
-      syts_user_test-specs.md     # User system tests
-    acceptance/
-      ats_auth_test-specs.md      # Auth acceptance tests
-      ats_user_test-specs.md      # User acceptance tests
-```
-
-**Test type to folder mapping:**
-
-| Test Type | Prefix | Folder | Example Path |
-|-----------|--------|--------|--------------|
-| Unit Tests | `UTS` | `docs/tests/unit/` | `docs/tests/unit/uts_auth_test-specs.md` |
-| Integration Tests | `ITS` | `docs/tests/integration/` | `docs/tests/integration/its_auth_test-specs.md` |
-| System Tests | `SYTS` | `docs/tests/system/` | `docs/tests/system/syts_auth_test-specs.md` |
-| Acceptance Tests | `ATS` | `docs/tests/acceptance/` | `docs/tests/acceptance/ats_auth_test-specs.md` |
-
-**Default output locations:**
-
-| Output Type | Default Path | Description |
-|-------------|--------------|-------------|
-| Requirements | `docs/requirements/` | Directory with category files |
-| Unit Test Specifications | `docs/tests/unit/` | Unit tests by category |
-| Integration Test Specifications | `docs/tests/integration/` | Integration tests by category |
-| System Test Specifications | `docs/tests/system/` | System tests by category |
-| Acceptance Test Specifications | `docs/tests/acceptance/` | Acceptance tests by category |
-
-**CRITICAL: All outputs MUST be organized by category. Single-file output is not supported.**
-
-**Custom output paths:**
-
-When user specifies a custom path:
-- File path: Save directly to specified location
-- Directory: Create category files inside the directory
-- Absolute path: Use as-is (after security validation)
-- With category: Filename includes category (e.g., `swr_auth_requirements.md`)
-
-**Output file format:**
-
-```markdown
-# Software Requirements Specification
-
-**Project:** [Project Name]
-**Standard:** ISO 29148
-**Generated:** [Date]
-**Source:** [Source file or description]
-
----
-
-## 1. Introduction
-...
-
-## 2. Functional Requirements
-
-### REQ-001: [Requirement Title]
-
-**Description:** [What the system shall do]
-
-**Implementation:** [file.py:line]
-
-**Verification Criteria:**
-- Given [context], when [action], then [result]
-
-**Status:** [Draft|Implemented|...]
-
----
-
-## Traceability Matrix
-
-| Requirement | Implementation | Verification | Status |
-|-------------|----------------|--------------|--------|
-| REQ-001 | file.py:45 | Unit test | Implemented |
-```
+**For detailed output format examples, file organization structure, and DOORS CSV format, read `references/output-structure.md`.**
 
 ## Workflow: Create/Regenerate Setup
 
@@ -413,6 +320,10 @@ For full procedures, deviation report templates, sync actions, and required outp
 
 **Workflow details:**
 - `references/workflow-details.md` - Detailed phase descriptions and step-by-step instructions
+- `references/quality-checklist.md` - Detailed checklist for workflow compliance
+
+**Output formats:**
+- `references/output-structure.md` - Detailed output format examples and file organization
 
 **Requirements work (Step 2 Q1 = Yes):**
 - `references/requirements-extraction.md` - Load ONLY if "From code" selected (Step 2a)
@@ -436,64 +347,27 @@ For full procedures, deviation report templates, sync actions, and required outp
 
 ## Common Pitfalls
 
-### Don't Do This
+### Critical Rules
 
-**CRITICAL: These are deal-breakers. If you do these, you've failed.**
+**Workflow:**
+- NEVER ask file location before confirming user wants the work
+- NEVER proceed with requirements if user said "No" to Q1
+- NEVER proceed with test cases if user said "No" to Q2
+- NEVER skip Step 1 or assume user's intent
 
-- **NEVER ask file location questions before confirming user wants to do the work** - Confirmations first (Step 2), then setup (Steps 2a-2f)
-- **NEVER proceed with requirements work if user said "No" to Question 1** - Skip all requirements steps
-- **NEVER proceed with test case work if user said "No" to Question 2** - Skip all test case steps
-- **NEVER assume requirements always come from code** - Confirm source (code or scratch) before proceeding
-- **NEVER skip the Output Path field** - Document header MUST include `**Output Path:**`
-- **NEVER overwrite existing requirements without asking** - Always check if file exists and ask what action to take
-- **NEVER create a single file with 100+ requirements** - Split into multiple files when requirements get large
-- **NEVER skip creating index.md when splitting files** - Always provide navigation
-- **NEVER automatically update requirements or tests without user approval**
-- **NEVER skip Step 1 or make assumptions about user's intent** - MUST ask "What would you like to do?" FIRST, no exceptions
-- **NEVER skip test derivation for functional requirements** - All functional requirements need test coverage
-- Use "Source:" instead of "Implementation:" - MUST use `Implementation:` field
-- Omit "Last Validated:" and "Last Changed:" dates - Every requirement needs these
+**Output:**
+- NEVER overwrite without asking and creating backup
+- NEVER create single file with 100+ requirements
+- ALWAYS use `Implementation:` field (not `Source:`)
+- ALWAYS include `Last Validated:` and `Last Changed:` dates
 
-### Security Pitfalls
+**Security:**
+- NEVER accept paths with directory traversal (`../`, `..\\`)
+- NEVER allow access to system directories (`/etc`, `.ssh`, `.aws`)
+- NEVER save with hardcoded secrets
+- NEVER include injection vulnerabilities
 
-- **NEVER accept paths with directory traversal** - Reject `../`, `..\\`, `%2e%2e%2f`
-- **NEVER allow access to system directories** - Block `/etc`, `/var`, `.ssh`, `.aws`
-- **NEVER save requirements with hardcoded secrets** - Detect and replace
-- **NEVER overwrite files without backup** - Always create timestamped backup
-- **NEVER include injection vulnerabilities in verification** - Flag SQL/shell/eval patterns
-
-### Do This
-
-- **ALWAYS ask "What would you like to do?" FIRST** - Before ANY other question, before ANY inference, before proceeding
-- **Wait for user response** - Do not make assumptions from their initial message
-- **Follow the workflow in order** - Step 1 → Step 2 → (Step 2a-2f only if confirmed)
-- **Ask confirmations BEFORE setup questions** - Step 2 questions come before file location questions
-
-## Quality Checklist
-
-**BEFORE YOU DO ANYTHING ELSE:**
-- [ ] **Completed Step 1** - Confirmed workflow scope
-- [ ] **Completed Step 2** - Got explicit Yes/No for requirements and test cases
-
-**Requirements path (only if Step 2 Q1 = Yes):**
-- [ ] **Confirmed requirements source** - From code or from scratch
-- [ ] **If from code: Loaded `references/requirements-extraction.md` and will execute Phase 1**
-- [ ] **If from scratch: Loaded `references/requirements-creation.md`, Phase 1 skipped, Phase 2 starts with user input**
-- [ ] **Asked "Where would you like to save the requirements?"** - Only if creating/regenerating requirements
-- [ ] **Asked about file name prefix (Step 2b-1)** - SWR, custom, or none
-- [ ] **Waited for user response**
-- [ ] **Checked if requirements file exists**
-- [ ] **Created backup if needed**
-- [ ] **Got explicit confirmation for overwrite**
-- [ ] **Determined file organization**
-
-**Test cases path (only if Step 2 Q2 = Yes):**
-- [ ] **Asked "Where would you like to save the test cases?"** - Only if creating/regenerating test cases
-- [ ] **Asked about file name prefix (Step 2e-1)** - UTS, ITS, SYTS, ATS, custom, or none
-- [ ] **Waited for user response**
-- [ ] **Checked if test cases file exists**
-- [ ] **Created backup if needed**
-- [ ] **Got explicit confirmation for overwrite**
+**For detailed checklist, read `references/quality-checklist.md`.**
 
 ## Related Skills
 
