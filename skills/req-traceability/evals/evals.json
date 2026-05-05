@@ -45,8 +45,8 @@
     },
     {
       "id": 4,
-      "prompt": "Extract living requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/req-traceability/tools/extract_requirements.py and save them to a custom output directory named 'custom_docs'. Each requirement must include Implementation field with file:line:column, verification criteria, and status tracking.",
-      "expected_output": "Requirements extracted and saved to 'custom_docs' directory with a requirements.md file containing ISO 29148 compliant living requirements with traceability. The skill asks workflow questions interactively (one at a time), waiting for user response before showing the next question. The assertions test for final output content, not the workflow sequence.",
+      "prompt": "Extract living requirements from the Python file at /Users/ray/Workspace/uncertainty/skills/req-traceability/tools/extract_requirements.py and save them to a custom output directory named 'custom_docs'. Each requirement must include Implementation field with file:line:column, verification criteria, and status tracking. Use SWR prefix and REQ category.",
+      "expected_output": "Requirements extracted and saved to 'custom_docs' directory with swr_req_requirements.md file containing ISO 29148 compliant living requirements with traceability. The skill asks workflow questions interactively (one at a time), waiting for user response before showing the next question. The assertions test for final output content, not the workflow sequence.",
       "files": [],
       "assertions": [
         "Software Requirements Specification",
@@ -54,7 +54,8 @@
         "file:line",
         "Verification criteria",
         "Status tracking",
-        "Traceability Matrix"
+        "Traceability Matrix",
+        "swr_req_requirements.md"
       ]
     },
     {
@@ -234,14 +235,16 @@
     },
     {
       "id": 16,
-      "prompt": "Create requirements for a user authentication system from scratch. Save to docs/ folder with SWR prefix to identify it as Software Requirements document.",
-      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects, asks about requirements source, 3) Asks where to save requirements, 4) Asks about file name prefix with SWR option, 5) Creates SWR_requirements.md in docs/ folder.",
+      "prompt": "Create requirements for a user authentication system from scratch. Save to docs/ folder with SWR prefix and AUTH category to identify it as Software Requirements document.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects, asks about requirements source, 3) Asks where to save requirements, 4) Asks about file name prefix with SWR option, 5) Asks about category with AUTH option, 6) Creates swr_auth_requirements.md in docs/ folder.",
       "files": [],
       "assertions": [
         "What would you like to do",
         "SWR",
+        "AUTH",
         "prefix",
-        "SWR_requirements.md",
+        "category",
+        "swr_auth_requirements.md",
         "Software Requirements"
       ]
     },
@@ -286,24 +289,26 @@
     },
     {
       "id": 20,
-      "prompt": "Extract requirements from the codebase and save with custom prefix 'PROJ_A' to identify as Project A requirements.",
-      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects, asks about requirements source, 3) Asks where to save requirements, 4) Asks about file name prefix with Custom option, 5) Creates PROJ_A_requirements.md.",
+      "prompt": "Extract requirements from the codebase and save with custom prefix 'PROJ_A' and AUTH category to identify as Project A requirements.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects, asks about requirements source, 3) Asks where to save requirements, 4) Asks about file name prefix with Custom option, 5) Asks about category with AUTH option, 6) Creates proj_a_auth_requirements.md.",
       "files": [],
       "assertions": [
         "What would you like to do",
         "Custom",
+        "AUTH",
         "prefix",
-        "PROJ_A_requirements.md"
+        "category",
+        "proj_a_auth_requirements.md"
       ]
     },
     {
       "id": 21,
-      "prompt": "Create requirements for an authentication system with category-based IDs. Use SWR prefix and AUTH category. Requirements should have IDs like SWR_AUTH_00001, SWR_AUTH_00002, etc. Save to docs/requirements/ directory with filename SWR_auth_requirements.md.",
-      "expected_output": "A response that: 1) Creates requirements with category-based IDs (SWR_AUTH_00001), 2) Saves to correct filename (SWR_auth_requirements.md), 3) Organizes by category.",
+      "prompt": "Create requirements for an authentication system with category-based IDs. Use SWR prefix and AUTH category. Requirements should have IDs like SWR_AUTH_00001, SWR_AUTH_00002, etc. Save to docs/requirements/ directory with filename swr_auth_requirements.md.",
+      "expected_output": "A response that: 1) Creates requirements with category-based IDs (SWR_AUTH_00001), 2) Saves to correct filename (swr_auth_requirements.md), 3) Organizes by category.",
       "files": [],
       "assertions": [
         "SWR_AUTH_00001",
-        "SWR_auth_requirements.md",
+        "swr_auth_requirements.md",
         "docs/requirements/",
         "category",
         "AUTH"
@@ -317,7 +322,7 @@
       "assertions": [
         "SWR_PAYMENT_00001",
         "UTS_PAYMENT_00001",
-        "SWR_payment_requirements.md",
+        "swr_payment_requirements.md",
         "docs/tests/unit/",
         "PAYMENT"
       ]
@@ -331,9 +336,9 @@
         "SWR_AUTH_00001",
         "SWR_USER_00001",
         "SWR_PAYMENT_00001",
-        "SWR_auth_requirements.md",
-        "SWR_user_requirements.md",
-        "SWR_payment_requirements.md"
+        "swr_auth_requirements.md",
+        "swr_user_requirements.md",
+        "swr_payment_requirements.md"
       ]
     },
     {
@@ -343,7 +348,7 @@
       "files": [],
       "assertions": [
         "ITS_AUTH_00001",
-        "ITS_auth_test-specs.md",
+        "its_auth_test-specs.md",
         "docs/tests/integration/",
         "AUTH"
       ]
@@ -358,21 +363,53 @@
         "SWTS_USER_00001",
         "SWTS_PAYMENT_00001",
         "docs/tests/system/",
-        "SWTS_auth_test-specs.md",
-        "SWTS_payment_test-specs.md"
+        "swts_auth_test-specs.md",
+        "swts_payment_test-specs.md"
       ]
     },
     {
       "id": 26,
-      "prompt": "Create unit test specifications for authentication module. Save to docs/tests/unit/ directory with UTS prefix and AUTH category. File should be docs/tests/unit/UTS_auth_test-specs.md.",
+      "prompt": "Create unit test specifications for authentication module. Save to docs/tests/unit/ directory with UTS prefix and AUTH category. File should be docs/tests/unit/uts_auth_test-specs.md.",
       "expected_output": "A response that: 1) Creates unit test specs with UTS_AUTH_* IDs, 2) Saves to docs/tests/unit/ directory, 3) Uses correct file naming with folder structure by test type.",
       "files": [],
       "assertions": [
         "UTS_AUTH_00001",
         "docs/tests/unit/",
-        "UTS_auth_test-specs.md",
+        "uts_auth_test-specs.md",
         "unit",
         "AUTH"
+      ]
+    },
+    {
+      "id": 27,
+      "prompt": "Generate DOORS-compatible CSV requirements export for a user authentication system. Include columns for ID, Description, Status, Implementation, and Verification. Use SWR prefix and AUTH category with IDs like SWR_AUTH_00001.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) Creates CSV file with DOORS-compatible format, 3) Includes required columns (ID, Description, Status, Implementation, Verification), 4) Uses correct ID format (SWR_AUTH_00001), 5) Follows DOORS CSV structure.",
+      "files": [],
+      "assertions": [
+        "What would you like to do",
+        "DOORS",
+        "CSV",
+        "ID",
+        "Description",
+        "Status",
+        "Implementation",
+        "Verification",
+        "SWR_AUTH_00001"
+      ]
+    },
+    {
+      "id": 28,
+      "prompt": "Create requirements for a medical device monitoring system. Use SWR prefix and custom category 'MEDDEV' (Medical Device). Requirements should have IDs like SWR_MEDDEV_00001. Save to docs/requirements/ directory.",
+      "expected_output": "A response that: 1) FIRST asks 'What would you like to do?', 2) After user selects, asks about requirements source, 3) Accepts custom category 'MEDDEV', 4) Creates requirements with SWR_MEDDEV_* IDs, 5) Saves to docs/requirements/ directory with correct file naming.",
+      "files": [],
+      "assertions": [
+        "What would you like to do",
+        "SWR_MEDDEV_00001",
+        "MEDDEV",
+        "swr_meddev_requirements.md",
+        "docs/requirements/",
+        "Medical Device",
+        "Custom"
       ]
     }
   ]

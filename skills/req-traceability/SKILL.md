@@ -1,11 +1,11 @@
 ---
 name: req-traceability
-description: "Use when creating requirements, deriving test cases, generating test specifications, analyzing test coverage, detecting test deviations, or maintaining bidirectional traceability between requirements, code, and tests. Triggers for requirements extraction, test design, coverage gaps, UNCOVERED_REQ, STALE_TEST, TEST_DRIFT, ISO 29119-4 techniques."
+description: "Use when requirements need extraction from code, test cases need derivation from requirements, coverage gaps need analysis, or traceability between requirements, code, and tests is required. Triggers for UNCOVERED_REQ, STALE_TEST, TEST_DRIFT, requirements-code deviations, ISO 29148/29119-4 compliance, or user mentions 'requirements out of sync' or 'test coverage'."
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
-version: "1.3.1"
+version: "1.3.2"
 spec-version: "1.0.0"
 ---
 
@@ -105,37 +105,39 @@ All IDs follow the format: `{PREFIX}_{CATEGORY}_#####`
 
 | Document Type | Filename Format | Example |
 |---------------|-----------------|---------|
-| Requirements | `{PREFIX}_{category}_requirements.md` | `SWR_auth_requirements.md` |
-| Test Specifications | `{PREFIX}_{category}_test-specs.md` | `UTS_auth_test-specs.md` |
+| Requirements | `{prefix}_{category}_requirements.md` | `swr_auth_requirements.md` |
+| Test Specifications | `{prefix}_{category}_test-specs.md` | `uts_auth_test-specs.md` |
+
+**Note:** Filenames are always lowercase (e.g., `swr_auth_requirements.md`), while requirement IDs use uppercase prefix and category (e.g., `SWR_AUTH_00001`).
 
 **File organization by category:**
 
 ```
 docs/
   requirements/
-    SWR_auth_requirements.md      # Authentication requirements
-    SWR_user_requirements.md      # User management requirements
-    SWR_payment_requirements.md   # Payment requirements
+    swr_auth_requirements.md      # Authentication requirements
+    swr_user_requirements.md      # User management requirements
+    swr_payment_requirements.md   # Payment requirements
 
   tests/
     unit/
-      UTS_auth_test-specs.md      # Auth unit tests
-      UTS_user_test-specs.md      # User unit tests
+      uts_auth_test-specs.md      # Auth unit tests
+      uts_user_test-specs.md      # User unit tests
     integration/
-      ITS_auth_test-specs.md      # Auth integration tests
-      ITS_user_test-specs.md      # User integration tests
+      its_auth_test-specs.md      # Auth integration tests
+      its_user_test-specs.md      # User integration tests
     system/
-      SWTS_auth_test-specs.md     # Auth system tests
-      SWTS_user_test-specs.md     # User system tests
+      swts_auth_test-specs.md     # Auth system tests
+      swts_user_test-specs.md     # User system tests
 ```
 
 **Test type to folder mapping:**
 
 | Test Type | Prefix | Folder | Example Path |
 |-----------|--------|--------|--------------|
-| Unit Tests | `UTS` | `docs/tests/unit/` | `docs/tests/unit/UTS_auth_test-specs.md` |
-| Integration Tests | `ITS` | `docs/tests/integration/` | `docs/tests/integration/ITS_auth_test-specs.md` |
-| System Tests | `SWTS` | `docs/tests/system/` | `docs/tests/system/SWTS_auth_test-specs.md` |
+| Unit Tests | `UTS` | `docs/tests/unit/` | `docs/tests/unit/uts_auth_test-specs.md` |
+| Integration Tests | `ITS` | `docs/tests/integration/` | `docs/tests/integration/its_auth_test-specs.md` |
+| System Tests | `SWTS` | `docs/tests/system/` | `docs/tests/system/swts_auth_test-specs.md` |
 
 **Default output locations:**
 
@@ -145,7 +147,8 @@ docs/
 | Unit Test Specifications | `docs/tests/unit/` | Unit tests by category |
 | Integration Test Specifications | `docs/tests/integration/` | Integration tests by category |
 | System Test Specifications | `docs/tests/system/` | System tests by category |
-| Single file (legacy) | `docs/requirements.md` | All in one file |
+
+**CRITICAL: All outputs MUST be organized by category. Single-file output is not supported.**
 
 **Custom output paths:**
 
@@ -153,7 +156,7 @@ When user specifies a custom path:
 - File path: Save directly to specified location
 - Directory: Create category files inside the directory
 - Absolute path: Use as-is (after security validation)
-- With category: Filename includes category (e.g., `SWR_auth_requirements.md`)
+- With category: Filename includes category (e.g., `swr_auth_requirements.md`)
 
 **Output file format:**
 
@@ -309,9 +312,9 @@ digraph workflow {
 Ask: **"Where would you like to save the requirements?"**
 
 **User may specify:**
-- A specific file path: `docs/requirements/SWR_auth_requirements.md`, `docs/requirements.md`
+- A specific file path: `docs/requirements/swr_auth_requirements.md`, `docs/requirements/swr_user_requirements.md`
 - A directory: `docs/requirements/`, `custom_docs/`
-- An absolute path: `/path/to/output/requirements.md`
+- An absolute path: `/path/to/output/swr_auth_requirements.md`
 
 **Default behavior ONLY if user declines to specify:**
 - Save to `docs/requirements/`
@@ -320,12 +323,49 @@ Ask: **"Where would you like to save the requirements?"**
 
 **CRITICAL: Only ask this question if user answered "Yes" to Question 1.**
 
-Ask: **"Add a prefix and category to identify the document type and functional area?"**
+### Prefix Selection
+
+Ask: **"What prefix for the requirements document?"**
 
 **Prefix Options:**
-- **None** (default) → `requirements.md`
-- **SWR** (Software Requirements) → `SWR_{category}_requirements.md`
-- **Custom** → User provides prefix → `{PREFIX}_{category}_requirements.md`
+- **SWR** (Software Requirements) → `swr_{category}_requirements.md`
+- **Custom** → User provides prefix → `{prefix}_{category}_requirements.md`
+
+### Category Detection (Automatic)
+
+**When extracting requirements from existing code:**
+
+1. **Scan code structure** for functional areas (modules, directories, namespaces)
+2. **Detect categories** from code organization
+3. **Generate separate requirement file for EACH category detected**
+
+**Example:**
+```
+Code structure:
+  src/
+    auth/
+      login.py
+      logout.py
+    user/
+      profile.py
+      settings.py
+    payment/
+      checkout.py
+      refund.py
+
+Detected categories: AUTH, USER, PAYMENT
+
+Generated files:
+  docs/requirements/swr_auth_requirements.md
+  docs/requirements/swr_user_requirements.md
+  docs/requirements/swr_payment_requirements.md
+```
+
+**If no category detected from code structure:**
+- ASK user: "What category should these requirements cover?"
+- Provide category options below
+
+### Category Selection (if not auto-detected)
 
 **Category Options:**
 - **AUTH** (Authentication)
@@ -334,12 +374,20 @@ Ask: **"Add a prefix and category to identify the document type and functional a
 - **API** (API/Integration)
 - **Custom** → User provides category name
 
-**Format:** `{PREFIX}_{category}_requirements.md` (underscore separator, lowercase category in filename)
+### File Naming Format
+
+**CRITICAL: File naming MUST include category. Format is mandatory.**
+
+**Format:** `{prefix}_{category}_requirements.md` (all lowercase, underscore separator)
 
 **Examples:**
-- `SWR_auth_requirements.md` (Auth requirements with SWR prefix)
-- `SWR_user_requirements.md` (User requirements with SWR prefix)
-- `SWR_payment_requirements.md` (Payment requirements with SWR prefix)
+- `swr_auth_requirements.md` (Auth requirements with SWR prefix)
+- `swr_user_requirements.md` (User requirements with SWR prefix)
+- `swr_payment_requirements.md` (Payment requirements with SWR prefix)
+
+**Multiple categories = Multiple files:**
+- Each category gets its own requirement file
+- Never combine multiple categories into a single file
 
 **Step 2c: Check for Existing Requirements**
 
@@ -354,7 +402,7 @@ After getting the output path, check if requirements already exist:
    - **Option D:** Create a new version/backup first
 
 2. **CRITICAL: Create backup before modifying existing requirements:**
-   - Backup format: `requirements.md.backup_YYYYMMDD_HHMMSS`
+   - Backup format: `swr_auth_requirements.md.backup_YYYYMMDD_HHMMSS`
    - Always backup when overwriting or updating
    - Never delete original file without backup
 
@@ -379,7 +427,7 @@ For directory structures, index.md templates, and multi-file best practices, rea
 Ask: **"Where would you like to save the test cases?"**
 
 **User may specify:**
-- A specific file path: `docs/tests/unit/UTS_auth_test-specs.md`, `docs/tests/integration/ITS_user_test-specs.md`
+- A specific file path: `docs/tests/unit/uts_auth_test-specs.md`, `docs/tests/integration/its_user_test-specs.md`
 - A directory: `docs/tests/`, `docs/tests/unit/`, `docs/tests/integration/`, `docs/tests/system/`
 - An absolute path: `/path/to/output/test-cases.md`
 
@@ -389,18 +437,46 @@ Ask: **"Where would you like to save the test cases?"**
 - **SWTS** (System Tests) → `docs/tests/system/`
 - **None/Custom** → `docs/tests/`
 
-**Step 2e-1: Ask Test Type, Prefix and Category**
+**Step 2e-1: Determine Test Type and Category**
 
 **CRITICAL: Only ask this question if user answered "Yes" to Question 2.**
 
-Ask: **"What type of test specifications and functional area?"**
+### Category Detection (Automatic)
+
+**When deriving test cases from existing requirements:**
+
+1. **Scan requirement IDs** for category pattern: `{PREFIX}_{CATEGORY}_#####`
+2. **Extract unique categories** from all requirement IDs
+3. **Generate separate test file for EACH category detected**
+
+**Example:**
+```
+Requirements contain:
+  SWR_AUTH_00001, SWR_AUTH_00002, SWR_USER_00001, SWR_PAYMENT_00001
+
+Detected categories: AUTH, USER, PAYMENT
+
+Generated files (for UTS prefix):
+  docs/tests/unit/uts_auth_test-specs.md
+  docs/tests/unit/uts_user_test-specs.md
+  docs/tests/unit/uts_payment_test-specs.md
+```
+
+**If no category detected in requirement IDs:**
+- ASK user: "What category should these test specifications cover?"
+- Provide category options below
+
+### Test Type Selection
+
+Ask: **"What type of test specifications?"**
 
 **Test Type Options (determines folder):**
-- **UTS** (Unit Tests) → `docs/tests/unit/{category}_test-specs.md`
-- **ITS** (Integration Tests) → `docs/tests/integration/{category}_test-specs.md`
-- **SWTS** (System Tests) → `docs/tests/system/{category}_test-specs.md`
-- **None** (default) → `docs/tests/{category}_test-specs.md`
-- **Custom** → User provides prefix → `docs/tests/{prefix}/{category}_test-specs.md`
+- **UTS** (Unit Tests) → `docs/tests/unit/`
+- **ITS** (Integration Tests) → `docs/tests/integration/`
+- **SWTS** (System Tests) → `docs/tests/system/`
+- **Custom** → User provides prefix
+
+### Category Selection (if not auto-detected)
 
 **Category Options:**
 - **AUTH** (Authentication)
@@ -409,12 +485,20 @@ Ask: **"What type of test specifications and functional area?"**
 - **API** (API/Integration)
 - **Custom** → User provides category name
 
-**Format:** `{test_type_folder}/{PREFIX}_{category}_test-specs.md`
+### File Naming Format
+
+**CRITICAL: File naming MUST include category. Format is mandatory.**
+
+**Format:** `{test_type_folder}/{prefix}_{category}_test-specs.md` (all lowercase, underscore separator)
 
 **Examples:**
-- `docs/tests/unit/UTS_auth_test-specs.md` (Auth unit tests)
-- `docs/tests/integration/ITS_auth_test-specs.md` (Auth integration tests)
-- `docs/tests/system/SWTS_payment_test-specs.md` (Payment system tests)
+- `docs/tests/unit/uts_auth_test-specs.md` (Auth unit tests)
+- `docs/tests/integration/its_auth_test-specs.md` (Auth integration tests)
+- `docs/tests/system/swts_payment_test-specs.md` (Payment system tests)
+
+**Multiple categories = Multiple files:**
+- Each category gets its own test specification file
+- Never combine multiple categories into a single file
 
 **Step 2f: Check for Existing Test Cases**
 
