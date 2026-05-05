@@ -5,7 +5,7 @@ author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
-version: "1.3.0"
+version: "1.3.1"
 spec-version: "1.0.0"
 ---
 
@@ -37,6 +37,7 @@ Create and maintain ISO/IEC/IEEE 29148 compliant requirements that serve as a **
 
 - **Requirement ID format**: Use `{PREFIX}_{CATEGORY}_#####` format (e.g., `SWR_AUTH_00001`, `SWR_USER_00002`)
 - **Test Case ID format**: Use `{PREFIX}_{CATEGORY}_#####` format (e.g., `UTS_AUTH_00001`, `ITS_PAYMENT_00001`)
+- **Test type folders**: Unit tests → `docs/tests/unit/`, Integration tests → `docs/tests/integration/`, System tests → `docs/tests/system/`
 - **Category naming**: Use uppercase short names (AUTH, USER, PAYMENT, etc.)
 - **Implementation reference syntax**: Use `file.py:function` (single colon), not `file.py::function`
 - **User approval required**: Never modify requirements without explicit user approval
@@ -110,24 +111,41 @@ All IDs follow the format: `{PREFIX}_{CATEGORY}_#####`
 **File organization by category:**
 
 ```
-requirements/
-  SWR_auth_requirements.md      # Authentication requirements
-  SWR_user_requirements.md      # User management requirements
-  SWR_payment_requirements.md   # Payment requirements
+docs/
+  requirements/
+    SWR_auth_requirements.md      # Authentication requirements
+    SWR_user_requirements.md      # User management requirements
+    SWR_payment_requirements.md   # Payment requirements
 
-tests/
-  UTS_auth_test-specs.md        # Auth unit tests
-  ITS_auth_test-specs.md        # Auth integration tests
-  SWTS_auth_test-specs.md       # Auth system tests
+  tests/
+    unit/
+      UTS_auth_test-specs.md      # Auth unit tests
+      UTS_user_test-specs.md      # User unit tests
+    integration/
+      ITS_auth_test-specs.md      # Auth integration tests
+      ITS_user_test-specs.md      # User integration tests
+    system/
+      SWTS_auth_test-specs.md     # Auth system tests
+      SWTS_user_test-specs.md     # User system tests
 ```
+
+**Test type to folder mapping:**
+
+| Test Type | Prefix | Folder | Example Path |
+|-----------|--------|--------|--------------|
+| Unit Tests | `UTS` | `docs/tests/unit/` | `docs/tests/unit/UTS_auth_test-specs.md` |
+| Integration Tests | `ITS` | `docs/tests/integration/` | `docs/tests/integration/ITS_auth_test-specs.md` |
+| System Tests | `SWTS` | `docs/tests/system/` | `docs/tests/system/SWTS_auth_test-specs.md` |
 
 **Default output locations:**
 
 | Output Type | Default Path | Description |
 |-------------|--------------|-------------|
-| Requirements | `requirements/` | Directory with category files |
-| Test Specifications | `tests/` | Directory with category files |
-| Single file (legacy) | `docs/requirement/requirements.md` | All in one file |
+| Requirements | `docs/requirements/` | Directory with category files |
+| Unit Test Specifications | `docs/tests/unit/` | Unit tests by category |
+| Integration Test Specifications | `docs/tests/integration/` | Integration tests by category |
+| System Test Specifications | `docs/tests/system/` | System tests by category |
+| Single file (legacy) | `docs/requirements.md` | All in one file |
 
 **Custom output paths:**
 
@@ -291,12 +309,12 @@ digraph workflow {
 Ask: **"Where would you like to save the requirements?"**
 
 **User may specify:**
-- A specific file path: `requirements.md`, `docs/requirements.md`
-- A directory: `custom_docs/`, `requirements/`
+- A specific file path: `docs/requirements/SWR_auth_requirements.md`, `docs/requirements.md`
+- A directory: `docs/requirements/`, `custom_docs/`
 - An absolute path: `/path/to/output/requirements.md`
 
 **Default behavior ONLY if user declines to specify:**
-- Save to `docs/requirement/requirements.md`
+- Save to `docs/requirements/`
 
 **Step 2b-1: Ask File Name Prefix and Category (Requirements)**
 
@@ -361,25 +379,28 @@ For directory structures, index.md templates, and multi-file best practices, rea
 Ask: **"Where would you like to save the test cases?"**
 
 **User may specify:**
-- A specific file path: `tests/test-specifications.md`, `docs/tests.md`
-- A directory: `tests/`, `test-specs/`
+- A specific file path: `docs/tests/unit/UTS_auth_test-specs.md`, `docs/tests/integration/ITS_user_test-specs.md`
+- A directory: `docs/tests/`, `docs/tests/unit/`, `docs/tests/integration/`, `docs/tests/system/`
 - An absolute path: `/path/to/output/test-cases.md`
 
-**Default behavior ONLY if user declines to specify:**
-- Save to `tests/test-specifications.md`
+**Default behavior based on test type prefix:**
+- **UTS** (Unit Tests) → `docs/tests/unit/`
+- **ITS** (Integration Tests) → `docs/tests/integration/`
+- **SWTS** (System Tests) → `docs/tests/system/`
+- **None/Custom** → `docs/tests/`
 
-**Step 2e-1: Ask File Name Prefix and Category (Test Cases)**
+**Step 2e-1: Ask Test Type, Prefix and Category**
 
 **CRITICAL: Only ask this question if user answered "Yes" to Question 2.**
 
-Ask: **"Add a prefix and category to identify the document type and functional area?"**
+Ask: **"What type of test specifications and functional area?"**
 
-**Prefix Options:**
-- **None** (default) → `test-specifications.md`
-- **UTS** (Unit Test Specifications) → `UTS_{category}_test-specs.md`
-- **ITS** (Integration Test Specifications) → `ITS_{category}_test-specs.md`
-- **SWTS** (System Test Specifications) → `SWTS_{category}_test-specs.md`
-- **Custom** → User provides prefix → `{PREFIX}_{category}_test-specs.md`
+**Test Type Options (determines folder):**
+- **UTS** (Unit Tests) → `docs/tests/unit/{category}_test-specs.md`
+- **ITS** (Integration Tests) → `docs/tests/integration/{category}_test-specs.md`
+- **SWTS** (System Tests) → `docs/tests/system/{category}_test-specs.md`
+- **None** (default) → `docs/tests/{category}_test-specs.md`
+- **Custom** → User provides prefix → `docs/tests/{prefix}/{category}_test-specs.md`
 
 **Category Options:**
 - **AUTH** (Authentication)
@@ -388,12 +409,12 @@ Ask: **"Add a prefix and category to identify the document type and functional a
 - **API** (API/Integration)
 - **Custom** → User provides category name
 
-**Format:** `{PREFIX}_{category}_test-specs.md` (underscore separator, lowercase category in filename)
+**Format:** `{test_type_folder}/{PREFIX}_{category}_test-specs.md`
 
 **Examples:**
-- `UTS_auth_test-specs.md` (Auth unit tests)
-- `ITS_auth_test-specs.md` (Auth integration tests)
-- `SWTS_payment_test-specs.md` (Payment system tests)
+- `docs/tests/unit/UTS_auth_test-specs.md` (Auth unit tests)
+- `docs/tests/integration/ITS_auth_test-specs.md` (Auth integration tests)
+- `docs/tests/system/SWTS_payment_test-specs.md` (Payment system tests)
 
 **Step 2f: Check for Existing Test Cases**
 
