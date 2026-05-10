@@ -5,7 +5,7 @@ author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [github, workflow, commit, pr, quality-gates]
-version: "1.0.2"
+version: "1.0.3"
 ---
 
 # GitHub Workflow
@@ -28,12 +28,10 @@ version: "1.0.2"
 
 Environment-specific facts that defy reasonable assumptions:
 
-- **Phishing domains**: GitHub phishing uses subdomain tricks like `github.com.malicious.com` - always verify the actual domain is `github.com`
 - **Branch naming**: Some projects use `main`, others use `master` - check `git branch -r` before assuming default branch name
 - **Force push danger**: `git push --force` on shared branches can lose others' work - always confirm with user first
 - **Pre-commit hooks**: May block commits; only use `--no-verify` if user explicitly requests skipping
 - **Quality gate failures**: Should stop the workflow - never auto-retry with `--no-verify` after failure
-- **Draft PRs**: Creating as draft allows work-in-progress; check if user wants this vs. ready-for-review
 
 ## Quick Reference
 
@@ -42,7 +40,6 @@ Environment-specific facts that defy reasonable assumptions:
 | 0 | `git diff --cached --name-only` | Early exit if no staged files |
 | 1 | `git remote -v \| grep -E 'github\.com[/:]'` | Verify GitHub remote |
 | 2 | Quality gates | Run lint, test, build |
-| 2.5 | Secrets detection | Check for API keys, tokens |
 | 3 | `git diff --cached` | Review changes |
 | 4 | `gh issue create` | Create tracking issue |
 | 5 | `git checkout -b feature/...` | Create feature branch |
@@ -58,9 +55,7 @@ Environment-specific facts that defy reasonable assumptions:
 - Missing issue reference in commit
 - Adding Co-Authored-By or AI attribution
 - Pushing without tests passing
-- **Secrets detected in staged files**
 - **Branch name contains special characters**
-- **Suspicious or phishing remote domain detected**
 
 **If any red flag triggered: Stop and fix before proceeding.**
 
@@ -82,30 +77,6 @@ which gh || echo "Install GitHub CLI: brew install gh"
 **Validate remote URL format:**
 - ✅ `git@github.com:owner/repo.git`
 - ✅ `https://github.com/owner/repo.git`
-- ❌ `git@github.com.malicious.com:owner/repo.git` (phishing domain)
-
-**Check for suspicious patterns:**
-```bash
-# Extract domain and check for phishing indicators
-REMOTE_DOMAIN=$(git remote -v | grep -oP '(?<=@|//)[^:/]+' | head -1)
-if echo "$REMOTE_DOMAIN" | grep -qE '\.(com|org|io|net|co|app)\.'; then
-    echo "WARNING: Possible phishing domain detected: $REMOTE_DOMAIN"
-    # DO NOT proceed - ASK USER below
-fi
-```
-
-**If suspicious domain detected:**
-1. **STOP immediately**
-2. Show warning with the detected domain
-3. **ASK USER:** "Suspicious remote domain detected: `<domain>`. This looks like a phishing domain. Do you want to proceed anyway?"
-4. Only proceed if user explicitly confirms
-
-**Example:**
-> "WARNING: Your git remote is set to `github.com.malicious.com` which appears to be a phishing domain (impersonating github.com).
-> 
-> Do you want to proceed anyway? (y/N)"
-
-**Do NOT proceed without explicit user confirmation.**
 
 **Multiple remotes?** Ask user which remote to use.
 
@@ -138,11 +109,6 @@ npx skills install . --list || exit 1
 
 # 3. Evals verification
 test -f evals.json && echo "evals.json exists" || echo "No evals.json"
-
-# 4. Security checks
-# Check for actual secret assignments (KEY='value' or KEY="value" patterns)
-# Skip evals.json (test data) and documentation patterns
-grep -lE "(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY|CONNECTION_STRING)\s*=\s*['\"][^'\"]{8,}['\"]" SKILL.md 2>/dev/null && echo "ERROR: Secrets detected" && exit 1 || true
 ```
 
 | Check | Command | Purpose |
@@ -152,31 +118,6 @@ grep -lE "(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY|CONNECTION_STRING)\s*=\s*['
 | Skills audit | `npx skills audit .` | Compliance check |
 | Skills check | `npx skills-check .` | Quality validation |
 | Evals verification | `test -f evals.json` | Verify evals file |
-| Security - secrets | `grep -lE 'KEY.*=.*['\"][^'\"]{8,}' SKILL.md` | No hardcoded secrets (excludes docs/test data) |
-| Security - shell injection | `grep -lE '\$(.*)|`' + '`.*\${|bash.*-c' SKILL.md` | No command injection |
-| Security - unsafe exec | `grep -lE '(exec|eval|system)' SKILL.md` | No unsafe exec |
-
-**Security Check Pattern Details:**
-
-The secrets check uses context-aware detection to reduce false positives:
-
-| Pattern | Flags | Reason |
-|---------|-------|--------|
-| `API_KEY='sk-12345678'` | ✅ YES | Actual assignment with value |
-| `API_KEY="secret123"` | ✅ YES | Actual assignment with value |
-| `Scan for API_KEY, PASSWORD` | ❌ NO | Documentation (no assignment) |
-| `"assertions": ["API_KEY"]` | ❌ NO | Test assertion (in evals.json) |
-| `API_KEY=<your-key>` | ❌ NO | Placeholder (no actual value) |
-
-**Pattern explanation:**
-- `\s*=\s*` - Requires assignment operator
-- `['\"][^'\"]{8,}['\"]` - Requires quoted value of 8+ chars (real secrets are longer)
-
-**If ANY security check fails:**
-1. **STOP immediately** - Do not proceed
-2. Fix the security issue (use env vars, input validation, safe APIs)
-3. Re-run all checks
-4. Only proceed when all security checks pass
 
 **Report:**
 ```
@@ -190,34 +131,7 @@ Skills - Discoverable     ✅/❌
 Skills - Audit            ✅/❌
 Skills - Check            ✅/❌
 Skills - Evals file       ✅/❌/N/A
-Skills - Security         ✅/❌
 ```
-
-**Security check failures are blocking.** Fix before committing.
-
-## Step 2.5: Secrets Detection
-
-**CRITICAL: Check for secrets before committing.**
-
-```bash
-# Check for actual secret assignments
-# Excludes: evals.json (test data), documentation patterns
-git diff --cached --name-only | grep -v 'evals\.json$' | xargs grep -l -E "(API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY|CONNECTION_STRING)\s*=\s*['\"][^'\"]{8,}['\"]" 2>/dev/null || true
-```
-
-**If secrets found:**
-1. **STOP immediately**
-2. Remove secrets from files
-3. Use environment variables or secret management
-4. Add patterns to `.gitignore`
-
-**Note:** `evals.json` is excluded because it contains test data for security detection testing.
-
-**Common secret patterns:**
-- `.env` files
-- `API_KEY=`, `SECRET=`, `TOKEN=`
-- Private keys (`-----BEGIN PRIVATE KEY-----`)
-- AWS credentials (`AKIA...`)
 
 ## Step 3: Review Changes
 
@@ -332,17 +246,8 @@ git pull --rebase origin $(git branch --show-current)
 
 ## Step 8: Create Pull Request
 
-**Ask user about draft PR:**
-> "Create as regular PR or draft PR?"
-
-**Wait for user response before proceeding.**
-
 ```bash
-# Regular PR
 gh pr create --title "<type>: <description>" --body "Closes #<issue>"
-
-# Draft PR (if user chose draft)
-gh pr create --draft --title "<type>: <description>" --body "Closes #<issue>"
 ```
 
 ## Step 9: Verify PR
@@ -366,7 +271,4 @@ Confirm:
 | Adding Co-Authored-By | Never add AI attribution |
 | Pushing without tests | Quality gates must pass |
 | Ignoring merge conflicts | Resolve before push |
-| Committing secrets | Run Step 2.5, use .gitignore |
-| Skill security issues | Fix secrets/injection/unsafe-exec before commit |
 | Unsafe branch names | Sanitize with `tr -cd` |
-| Suspicious remote domain | Verify URL, reject phishing domains |
