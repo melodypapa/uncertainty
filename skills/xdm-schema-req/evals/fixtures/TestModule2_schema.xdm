@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xdm:root xmlns:xdm="http://www.tresos.de/_projects/DataModel2/06/data.xsd"
+          xmlns:v="http://www.tresos.de/_projects/DataModel2/06/schema.xsd"
+          xmlns:a="http://www.tresos.de/_projects/DataModel2/08/attribute.xsd">
+  <xdm:chc name="TestModule2">
+    <v:ctr>
+      <v:lst name="TaskConfig" type="MAP">
+        <v:ctr name="TaskConfig">
+          <v:var name="TaskDeadline" type="INTEGER">
+            <a:a name="DESC" value="Task deadline in ticks"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+            <a:da name="ENABLE" value="false"/>
+          </v:var>
+          <v:var name="TaskComment" type="MULTILINE-STRING">
+            <a:a name="DESC" value="Comment string for task description"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+          </v:var>
+          <v:var name="StackSize" type="INTEGER">
+            <a:a name="DESC" value="Stack size in bytes"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+            <a:da name="RANGE" value="64-65536"/>
+          </v:var>
+          <v:var name="TaskPeriod" type="FLOAT">
+            <a:a name="DESC" value="Task period in seconds"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+            <a:da name="ENABLE" type="XPath" value="../TaskType = 'PERIODIC'"/>
+          </v:var>
+          <v:var name="TaskSchedule" type="ENUMERATION">
+            <a:a name="DESC" value="Task scheduling type"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+            <a:da name="RANGE">
+              <a:v>NON</a:v>
+              <a:v>FULL</a:v>
+            </a:da>
+            <a:da name="DEFAULT" value="NON"/>
+          </v:var>
+          <v:var name="TaskEntry" type="FUNCTION-NAME">
+            <a:a name="DESC" value="Entry function for task"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+          </v:var>
+          <v:lst type="MAP">
+            <v:ctr name="ResourceConfig">
+              <v:var name="ResourceCeiling" type="INTEGER">
+                <a:a name="DESC" value="Resource ceiling priority"/>
+                <a:a name="ORIGIN" value="EB"/>
+                <a:da name="ENABLE" value="false"/>
+              </v:var>
+              <v:var name="ResourceProperty" type="INTEGER">
+                <a:a name="DESC" value="Resource property value"/>
+                <a:a name="ORIGIN" value="AUTOSAR"/>
+                <a:da name="INVALID" type="Range">
+                  <a:tst expr="&gt;= 0"/>
+                  <a:tst expr="&lt;= 10"/>
+                </a:da>
+              </v:var>
+            </v:ctr>
+          </v:lst>
+        </v:ctr>
+      </v:lst>
+    </v:ctr>
+  </xdm:chc>
+</xdm:root>

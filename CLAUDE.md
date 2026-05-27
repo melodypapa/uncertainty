@@ -4,63 +4,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Claude Code plugin **uncertainty** (`uncertainty-skills` v1.1.0) — reusable skills for automation workflows. Published to Claude Code marketplace. Two skills: GitHub workflow management, ISO 29148 requirements engineering.
+Claude Code plugin **uncertainty** (`uncertainty-skills` v1.1.0) — reusable skills for automation workflows. Published to Claude Code marketplace. Three skills: GitHub workflow management, ISO 29148 requirements engineering, XDM schema requirements generation.
 
-## Skill Structure
+## Skills
 
 ```
 skills/<skill-name>/
 ├── SKILL.md                 # Main skill definition (required)
 ├── evals/evals.json         # Test cases with prompts + assertions
-├── references/              # On-demand reference docs (req-traceability only)
-├── tools/                   # Utility scripts (req-traceability only, empty)
+├── references/              # On-demand reference docs
+├── tools/ or scripts/       # Utility scripts
+├── templates/               # Output templates (xdm-schema-req)
 └── <skill-name>-workspace/  # Test workspace (gitignored via *-workspace/)
 ```
 
-Two skills:
 - **github-workflow** (`skills/github-workflow/`) — Pre-push quality gates, branch setup, commit/push/PR workflow
-- **req-traceability** (`skills/req-traceability/`) — ISO 29148 requirements engineering, traceability, test derivation
+- **req-traceability** (`skills/req-traceability/`) — ISO 29148 requirements engineering, traceability, test derivation. 17 reference docs, Python tools
+- **xdm-schema-req** (`skills/xdm-schema-req/`) — AUTOSAR/EB Tresos XDM schema to requirements markdown. JSON evals + trigger-based evals
 
 ## Commands
 
 ### Skill Validation
 
 ```bash
-# Validate skill metadata, security, and token budget
-npx skills-check audit,lint,budget ./skills/<skill-name>
-
 # CI-equivalent check (used in .github/workflows/skill-quality.yml)
 npx skills-check check,audit,lint,budget --audit-fail-on high --budget-max-tokens 50000
-```
 
-### Eval Runner
-
-```bash
-# Setup eval directory structure
-python skills/eval_runner.py <skill-name> <iteration> --setup
-
-# Grade existing eval outputs against assertions
-python skills/eval_runner.py <skill-name> <iteration> --grade
-
-# Aggregate results into benchmark.json
-python skills/eval_runner.py <skill-name> <iteration> --aggregate
-
-# Show completion status
-python skills/eval_runner.py <skill-name> <iteration> --status
-```
-
-Examples:
-```bash
-python skills/eval_runner.py req-traceability 2 --setup
-python skills/eval_runner.py req-traceability 2 --grade --aggregate
-python skills/eval_runner.py req-traceability 2 --status
+# Single skill check
+npx skills-check audit,lint,budget ./skills/<skill-name>
 ```
 
 ### Plugin Publishing
 
 1. Update version in `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`
-2. Commit to main
-3. Marketplace auto-discovers via plugin.json
+2. Commit to main (marketplace auto-discovers via plugin.json)
+
+### Workspace Setup
+
+Workspace rules in `AGENTS.md` — see that file for eval directory structure, iteration naming, output conventions. Key rule: always create workspace at `skills/<skill-name>/<skill-name>-workspace/`.
+
+### Plans
+
+Stored in `docs/plans/` — save implementation plans there before multi-step work.
 
 ## CI Pipeline
 
@@ -70,9 +55,15 @@ python skills/eval_runner.py req-traceability 2 --status
 - Manual trigger via `workflow_dispatch`
 
 Jobs:
-1. **skills-check** — Runs `audit,lint,budget` via `voodootikigod/skills-check@v1` (fail on high-severity audit issues, >50k tokens)
-2. **secrets-scan** — Greps SKILL.md files for hardcoded secrets, shell injection patterns (`$()`, backtick `${}`), unsafe exec (`exec`, `eval`, `os.system`, `subprocess.shell/call`)
+1. **skills-check** — `audit,lint,budget` via `voodootikigod/skills-check@v1` (fail on high-severity audit, >50k tokens)
+2. **secrets-scan** — Greps SKILL.md for hardcoded secrets, shell injection (`$()`, backtick `${}`), unsafe exec (`exec`, `eval`, `os.system`, `subprocess.shell/call`)
 3. **summary** — Aggregates results into step summary
+
+## Marketplace Config
+
+- `.claude-plugin/plugin.json` — Plugin identity (name, version, author). Version bump required before publishing
+- `.claude-plugin/marketplace.json` — CLI marketplace listing. Contains display metadata
+- `.claude/settings.local.json` — Local permission allowlist for Bash commands (gh, git, npx, python, etc.)
 
 ## Skill Development (TDD)
 
@@ -82,22 +73,21 @@ Jobs:
 
 Details in `skills/README.md`. Use `/superpowers:writing-skills` for new skills.
 
-## Eval Workspace Convention
+## Eval Testing
 
-```
-skills/<skill-name>/<skill-name>-workspace/
-├── iteration-1/
-│   ├── eval-<id>/
-│   │   ├── with_skill/outputs/   # Skill-aided agent output
-│   │   ├── without_skill/outputs/# Baseline agent output
-│   │   ├── timing.json
-│   │   └── grading.json
-│   ├── benchmark.json
-│   └── benchmark.md
-└── iteration-2/
+No automated test runner. All validation uses subagents in gitignored workspaces.
+
+Eval format (`evals/evals.json`):
+```json
+{
+  "id": 17,
+  "prompt": "...",
+  "expected_output": "...",
+  "assertions": ["string that must appear", "another required string"]
+}
 ```
 
-All `*-workspace/` dirs gitignored at root level. Workspace MUST go inside skill dir at `skills/<skill>/<skill>-workspace/`.
+xdm-schema-req also has `trigger_evals.json` for trigger-condition testing.
 
 ## Critical Rules
 
@@ -115,4 +105,7 @@ All `*-workspace/` dirs gitignored at root level. Workspace MUST go inside skill
 | New skill | `mkdir skills/<name>` + `/superpowers:writing-skills` |
 | Test skill | Subagents in workspace dirs per TDD phases |
 | Review skill | Read the SKILL.md file |
-| Full agent instructions | `AGENTS.md` (workspace rules, CI details, commit format) |
+| Full workspace rules | `AGENTS.md` (eval structure, iteration naming) |
+| Validate skill | `npx skills-check audit,lint,budget ./skills/<name>` |
+| Plugin version bump | `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` |
+| Save plan | `docs/plans/<plan-name>.md` |
