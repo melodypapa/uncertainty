@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xdm:root xmlns:xdm="http://www.tresos.de/_projects/DataModel2/06/data.xsd"
+          xmlns:v="http://www.tresos.de/_projects/DataModel2/06/schema.xsd"
+          xmlns:a="http://www.tresos.de/_projects/DataModel2/08/attribute.xsd">
+  <xdm:chc name="TestModule">
+    <v:ctr>
+      <v:lst name="TestContainer" type="MAP">
+        <v:ctr name="TestContainer">
+          <v:var name="TestPriority" type="INTEGER">
+            <a:a name="DESC" value="Priority of the test container"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+            <a:da name="INVALID" type="Range">
+              <a:tst expr="&gt;= 0"/>
+              <a:tst expr="&lt;= 100"/>
+            </a:da>
+          </v:var>
+          <v:var name="TestMode" type="ENUMERATION">
+            <a:a name="DESC" value="Operating mode for the test container"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+            <a:da name="RANGE">
+              <a:v>LOW</a:v>
+              <a:v>MEDIUM</a:v>
+              <a:v>HIGH</a:v>
+            </a:da>
+            <a:da name="DEFAULT" value="LOW"/>
+          </v:var>
+          <v:var name="TestEnabled" type="BOOLEAN">
+            <a:a name="DESC" value="Enable flag for test execution"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+            <a:da name="DEFAULT" value="true"/>
+          </v:var>
+          <v:var name="TestTimeout" type="FLOAT">
+            <a:a name="DESC" value="Timeout value in seconds"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+            <a:da name="INVALID" type="Range">
+              <a:tst expr="&gt;= 0.1"/>
+              <a:tst expr="&lt;= 30.0"/>
+            </a:da>
+          </v:var>
+          <v:ref name="TestCounterRef">
+            <a:a name="DESC" value="Reference to counter object"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+          </v:ref>
+          <v:lst type="MAP">
+            <v:ctr name="TestSubContainer">
+              <v:var name="SubValue" type="INTEGER">
+                <a:a name="DESC" value="Sub value"/>
+                <a:a name="ORIGIN" value="AUTOSAR"/>
+                <a:da name="INVALID" type="Range">
+                  <a:tst expr="&gt;= 0"/>
+                  <a:tst expr="&lt;= 50"/>
+                </a:da>
+              </v:var>
+            </v:ctr>
+          </v:lst>
+          <v:lst name="TestActionChoice" type="CHOICE">
+            <v:chc name="TestActionChoice">
+              <v:ctr name="TestActionStart">
+                <v:var name="StartDelay" type="INTEGER">
+                  <a:a name="DESC" value="Delay before action starts"/>
+                  <a:a name="ORIGIN" value="AUTOSAR"/>
+                  <a:da name="INVALID" type="Range">
+                    <a:tst expr="&gt;= 0"/>
+                    <a:tst expr="&lt;= 5000"/>
+                  </a:da>
+                </v:var>
+              </v:ctr>
+              <v:ctr name="TestActionStop">
+                <v:var name="StopImmediate" type="BOOLEAN">
+                  <a:a name="DESC" value="Stop immediately flag"/>
+                  <a:a name="ORIGIN" value="AUTOSAR"/>
+                  <a:da name="DEFAULT" value="false"/>
+                </v:var>
+              </v:ctr>
+            </v:chc>
+          </v:lst>
+        </v:ctr>
+      </v:lst>
+    </v:ctr>
+  </xdm:chc>
+</xdm:root>
