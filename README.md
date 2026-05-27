@@ -39,6 +39,19 @@ Generate ISO/IEC/IEEE 29148:2018 compliant software requirements with bidirectio
 - **Workflow scope selection**: 6 options for different use cases
 - **Security validation**: Path traversal protection, secrets detection, injection prevention
 
+### xdm-schema-req
+
+Generate structured software requirements markdown from EB Tresos XDM schema files for AUTOSAR model-layer documentation.
+
+**Features:**
+- XDM schema extraction to compact JSON (~10x smaller than raw XML)
+- Type mapping: schema types → Python class types
+- Numbered requirements (`SWR_<MODULE_ABBR>_MODELS_<NNNNN>`) per model class
+- MAP containers, choice containers, sub-containers, root module class
+- Traceability table linking requirements to implementation and test cases
+- Handles ENABLE conditions, RANGE constraints, ENUM defaults, ORIGIN tracking
+- Skip disabled fields, include conditional fields without annotation
+
 ## Installation
 
 ### Using npx skills (Recommended)
@@ -52,6 +65,7 @@ npx skills install github:melodypapa/uncertainty
 # Or install specific skills
 npx skills install github:melodypapa/uncertainty --skills github-workflow
 npx skills install github:melodypapa/uncertainty --skills req-traceability
+npx skills install github:melodypapa/uncertainty --skills xdm-schema-req
 ```
 
 ### Manual Installation
@@ -65,6 +79,7 @@ git clone https://github.com/melodypapa/uncertainty.git
 # Copy specific skills to your project
 cp -r uncertainty/skills/github-workflow /path/to/your/project/skills/
 cp -r uncertainty/skills/req-traceability /path/to/your/project/skills/
+cp -r uncertainty/skills/xdm-schema-req /path/to/your/project/skills/
 ```
 
 ### Verify Installation
@@ -76,6 +91,7 @@ npx skills list
 # Check skill details
 npx skills show github-workflow
 npx skills show req-traceability
+npx skills show xdm-schema-req
 ```
 
 ## npx skills Commands
@@ -170,24 +186,33 @@ skills/
 │   ├── SKILL.md           # Main skill definition
 │   └── evals/
 │       └── evals.json     # Test cases and assertions
-└── req-traceability/
+├── req-traceability/
+│   ├── SKILL.md           # Main skill definition
+│   ├── evals/
+│   │   └── evals.json     # Test cases and assertions
+│   ├── references/        # Reference documentation
+│   │   ├── iso-29148.md
+│   │   ├── test-design-techniques.md
+│   │   ├── test-spec-template.md
+│   │   └── security-checks.md
+│   └── tools/             # Utility scripts
+│       └── extract_requirements.py
+└── xdm-schema-req/
     ├── SKILL.md           # Main skill definition
     ├── evals/
-    │   └── evals.json     # Test cases and assertions
-    ├── references/        # Reference documentation
-    │   ├── iso-29148.md
-    │   ├── test-design-techniques.md
-    │   ├── test-spec-template.md
-    │   └── security-checks.md
-    └── tools/             # Utility scripts
-        └── extract_requirements.py
+    │   ├── evals.json     # Test cases and assertions
+    │   └── trigger_evals.json  # Trigger condition tests
+    ├── references/        # Type mapping and anti-patterns
+    ├── scripts/           # XDM schema extractor
+    └── templates/         # Requirements output templates
 ```
 
 Each skill is a self-contained directory with:
 - `SKILL.md` - Main reference document with frontmatter (required)
 - `evals/evals.json` - Test cases for verification
 - `references/` - Supporting documentation (loaded as needed)
-- `tools/` - Utility scripts for the skill
+- `scripts/` - Utility/automation scripts (optional)
+- `templates/` - Output templates (optional)
 
 ## Usage
 
@@ -201,21 +226,25 @@ Skills are automatically invoked by Claude Code based on their descriptions:
   - Detect deviations between requirements, code, and tests
   - Generate DOORS import files
   - Maintain bidirectional traceability
+- **xdm-schema-req**: Triggers when you need to:
+  - Generate requirements documents from XDM schema files
+  - Create or update SWR_*_MODELS.md documentation
+  - Extract AUTOSAR configuration parameter specifications
+  - Analyze EB Tresos schema definitions for structured output
 
 ## Development
 
 ### Testing Skills
 
-Each skill includes evaluation tests in `evals/evals.json`:
+Each skill includes evaluation tests in `evals/evals.json` (and optionally `trigger_evals.json` for trigger-condition testing):
 
 ```bash
 # Validate skill passes all checks
-npx skills-check lint ./skills/req-traceability
-npx skills-check budget ./skills/req-traceability
-
-# Run eval verification script (if available)
-python req-traceability-workspace/iteration-2/test_workflow_scope.py
+npx skills-check lint ./skills/<skill-name>
+npx skills-check budget ./skills/<skill-name>
 ```
+
+Validation uses subagents in gitignored workspaces at `skills/<skill-name>/<skill-name>-workspace/`.
 
 ### Evals Structure
 
@@ -223,20 +252,30 @@ Each eval in `evals.json` contains:
 - `id`: Unique identifier
 - `prompt`: Test prompt to evaluate
 - `expected_output`: Description of expected behavior
-- `assertions`: List of strings that must appear in output
+- `assertions`: List of assertion objects with `id` and `text`
 
 ```json
 {
-  "id": 17,
-  "prompt": "I have a Python authentication module...",
-  "expected_output": "A response that asks 'Where would you like to save'...",
-  "assertions": ["Where would you like to save", "What would you like to do"]
+  "skill_name": "example-skill",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "User's task prompt...",
+      "expected_output": "Description of expected result",
+      "files": [],
+      "assertions": [
+        {"id": "output-exists", "text": "Output file is generated"}
+      ]
+    }
+  ]
 }
 ```
 
+Skills may also include `trigger_evals.json` for testing when the skill should or should not trigger, using `should_trigger: true/false` queries.
+
 ### Creating New Skills
 
-See [writing-skills](https://github.com/melodypapa/uncertainty/tree/main/skills/writing-skills) for the complete guide on creating skills following TDD methodology.
+See `skills/README.md` for the TDD methodology (RED → GREEN → REFACTOR) and frontmatter requirements.
 
 ## License
 
