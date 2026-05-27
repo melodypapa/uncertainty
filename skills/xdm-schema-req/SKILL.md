@@ -1,10 +1,10 @@
 ---
 name: xdm-schema-req
 description: "Use when asked to generate requirements documents from XDM schema files; create or update SWR_*_MODELS.md documentation; extract AUTOSAR configuration parameter specifications from .xdm schema files; analyze EB Tresos schema definitions to produce structured requirements output. Designed for the py-eb-model project."
+author: melodypapa
+repository: https://github.com/melodypapa/py-eb-model
 license: MIT
 metadata:
-  author: melodypapa
-  repository: https://github.com/melodypapa/py-eb-model
   version: "1.0.0"
   keywords:
     - AUTOSAR
