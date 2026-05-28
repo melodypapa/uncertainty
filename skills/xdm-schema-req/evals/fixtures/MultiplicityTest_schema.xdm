@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xdm:root xmlns:xdm="http://www.tresos.de/_projects/DataModel2/06/data.xsd"
+          xmlns:v="http://www.tresos.de/_projects/DataModel2/06/schema.xsd"
+          xmlns:a="http://www.tresos.de/_projects/DataModel2/08/attribute.xsd">
+  <xdm:chc name="MultiplicityTest">
+    <v:ctr>
+      <v:lst name="MandatoryEntity" type="MAP">
+        <v:ctr name="MandatoryEntity">
+          <a:a name="LOWER-MULTIPLICITY" value="1"/>
+          <a:a name="UPPER-MULTIPLICITY" value="1"/>
+          <v:var name="MandatoryField" type="INTEGER">
+            <a:a name="DESC" value="Mandatory single field"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+            <a:da name="INVALID" type="Range">
+              <a:tst expr="&gt;= 0"/>
+              <a:tst expr="&lt;= 100"/>
+            </a:da>
+          </v:var>
+        </v:ctr>
+      </v:lst>
+      <v:lst name="OptionalEntity" type="MAP">
+        <v:ctr name="OptionalEntity">
+          <a:a name="OPTIONAL" value="true"/>
+          <v:var name="OptionalField" type="STRING">
+            <a:a name="DESC" value="Optional single field"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+          </v:var>
+        </v:ctr>
+      </v:lst>
+      <v:lst name="ListEntity" type="MAP">
+        <v:ctr name="ListEntity">
+          <v:var name="ListField" type="INTEGER">
+            <a:a name="DESC" value="List field"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+          </v:var>
+          <v:lst name="ReferenceList">
+            <v:ref name="ReferenceItem" type="REFERENCE">
+              <a:a name="DESC" value="List of references"/>
+              <a:a name="ORIGIN" value="AUTOSAR"/>
+            </v:ref>
+          </v:lst>
+        </v:ctr>
+      </v:lst>
+      <v:lst name="ContainerWithOptionalSub" type="MAP">
+        <v:ctr name="ContainerWithOptionalSub">
+          <v:ctr name="OptionalContainer">
+            <a:a name="OPTIONAL" value="true"/>
+            <v:var name="OptionalContainerField" type="BOOLEAN">
+              <a:a name="DESC" value="Field in optional container"/>
+              <a:a name="ORIGIN" value="AUTOSAR"/>
+              <a:da name="DEFAULT" value="false"/>
+            </v:var>
+          </v:ctr>
+        </v:ctr>
+      </v:lst>
+      <v:lst name="EntityWithRefList" type="MAP">
+        <v:ctr name="EntityWithRefList">
+          <v:var name="EntityField" type="STRING">
+            <a:a name="DESC" value="Entity field"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+          </v:var>
+          <v:lst name="MandatoryRefList">
+            <v:ref name="MandatoryRef" type="REFERENCE">
+              <a:a name="DESC" value="Mandatory reference"/>
+              <a:a name="ORIGIN" value="AUTOSAR"/>
+            </v:ref>
+          </v:lst>
+        </v:ctr>
+      </v:lst>
+    </v:ctr>
+  </xdm:chc>
+</xdm:root>

@@ -42,7 +42,13 @@ The system shall provide an `<EntityName>` model class for <brief description>.
 
 | Field | Type | Description | Origin |
 |-------|------|-------------|--------|
-| fieldName | type | Description with range | AUTOSAR/EB |
+| fieldName [min..max] | type | Description with range | AUTOSAR/EB |
+
+**Note:** Multiplicity notation `[min..max]` indicates:
+- `[1..1]` — mandatory single instance (may be omitted for brevity)
+- `[0..1]` — optional single instance
+- `[1..*]` — mandatory list
+- `[0..*]` — optional list
 
 **Implementation:** `<module_lower>_xdm.py:<EntityName>`
 **Status:** Implemented
@@ -81,7 +87,7 @@ The system shall provide a `<ClassName1>` model class for <brief description>.
 
 | Field | Type | Description | Origin |
 |-------|------|-------------|--------|
-| FieldName | type | Description | AUTOSAR/EB |
+| FieldName [min..max] | type | Description | AUTOSAR/EB |
 
 **Implementation:** `<module_lower>_xdm.py:<ClassName1>`
 **Status:** Implemented

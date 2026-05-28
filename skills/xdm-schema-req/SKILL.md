@@ -91,6 +91,11 @@ The tool outputs JSON with all containers, fields, types, ranges, and enable con
 - `enum_values` / `enum_default` → already extracted
 - `bool_default` → already extracted
 - `output_path` → the file to write (do not compute it yourself)
+- `multiplicity` → `{"min": N, "max": M}` or `{"min": N, "max": "*"}` for fields and containers
+  - `min: 0` → optional (may be omitted)
+  - `min: 1` → mandatory (must be present)
+  - `max: 1` → single instance
+  - `max: "*"` → multiple instances (list)
 
 ### 2. Type Mapping (pre-resolved in JSON)
 
@@ -133,6 +138,11 @@ Follow the exact markdown templates in `templates/requirements_template.md`:
 - For booleans with default: `"Description (default true/false)"`
 - For refs: `"Description (reference to target type)"`
 - For ref lists: `"Description (list of target type)"`
+- For multiplicity: append `[min..max]` to field/container name in the table
+  - `[1..1]` → mandatory single instance (default, may omit)
+  - `[0..1]` → optional single instance
+  - `[1..*]` → mandatory list
+  - `[0..*]` → optional list
 
 **Type column rules — use `req_type` from JSON directly:**
 - JSON `req_type` is already the correct Python class name — use it
