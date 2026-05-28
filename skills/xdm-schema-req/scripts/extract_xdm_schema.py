@@ -271,6 +271,32 @@ def _extract_enable(element, ns=_NS):
     return True, None
 
 
+def _extract_multiplicity(element, ns=_NS):
+    """
+    Extract multiplicity from LOWER-MULTIPLICITY and UPPER-MULTIPLICITY attributes.
+    Returns dict like {"min": 1, "max": 1} or {"min": 1, "max": "*"}.
+    """
+    lower = _attr(element, "LOWER-MULTIPLICITY", ns)
+    upper = _attr(element, "UPPER-MULTIPLICITY", ns)
+    
+    if lower is None and upper is None:
+        return None
+    
+    min_val = int(lower) if lower is not None else 1
+    max_val = int(upper) if upper is not None else "*"
+    
+    return {"min": min_val, "max": max_val}
+
+
+def _extract_optional(element, ns=_NS):
+    """
+    Extract OPTIONAL attribute from element.
+    Returns True if OPTIONAL="true", False otherwise.
+    """
+    optional = _attr(element, "OPTIONAL", ns)
+    return optional is not None and optional.lower() == "true"
+
+
 def _req_type(schema_type, container_name, field_name):
     """Map schema type to requirements type string.
 
@@ -337,7 +363,7 @@ def _extract_ref(ref_el, container_name, is_list=False, ns=_NS):
     enabled, xpath = _extract_enable(ref_el, ns)
 
     req_t = "List[EcucRefType]" if is_list else "EcucRefType"
-    return {
+    result = {
         "name": name,
         "field_type": "ref",
         "schema_type": schema_type,
@@ -347,6 +373,13 @@ def _extract_ref(ref_el, container_name, is_list=False, ns=_NS):
         "enabled": enabled,
         **({"enable_xpath": xpath} if xpath else {}),
     }
+    
+    if is_list:
+        result["multiplicity"] = {"min": 1, "max": "*"}
+    else:
+        result["multiplicity"] = {"min": 1, "max": 1}
+    
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -361,6 +394,7 @@ def _extract_container(ctr_el, parent_name=None, ns=_NS):
     name = ctr_el.get("name", "")
     fields = []
     sub_containers = []
+    is_optional = _extract_optional(ctr_el, ns)
 
     for child in ctr_el:
         local = child.tag.split("}")[-1] if "}" in child.tag else child.tag
@@ -382,19 +416,34 @@ def _extract_container(ctr_el, parent_name=None, ns=_NS):
             elif lst_type == "MAP":
                 sub_ctr = child.find("v:ctr", ns)
                 if sub_ctr is not None:
-                    sub_containers.append(_extract_container(sub_ctr, name, ns))
+                    sub_container = _extract_container(sub_ctr, name, ns)
+                    sub_container["multiplicity"] = {"min": 1, "max": "*"}
+                    sub_containers.append(sub_container)
             # Nested choice (v:chc inside lst)
             chc_el = child.find("v:chc", ns)
             if chc_el is not None:
                 sub_containers.append(_extract_choice(chc_el, name, ns))
 
         elif local == "ctr":
-            sub_containers.append(_extract_container(child, name, ns))
+            sub_container = _extract_container(child, name, ns)
+            sub_is_optional = _extract_optional(child, ns)
+            if sub_is_optional:
+                sub_container["multiplicity"] = {"min": 0, "max": 1}
+            else:
+                sub_container["multiplicity"] = {"min": 1, "max": 1}
+            sub_containers.append(sub_container)
 
         elif local == "chc":
             sub_containers.append(_extract_choice(child, name, ns))
 
     result = {"name": name, "fields": fields}
+    
+    multiplicity = _extract_multiplicity(ctr_el, ns)
+    if multiplicity:
+        result["multiplicity"] = multiplicity
+    elif is_optional:
+        result["multiplicity"] = {"min": 0, "max": 1}
+    
     if sub_containers:
         result["sub_containers"] = sub_containers
     return result

@@ -76,6 +76,38 @@
           "text": "TaskEntry field maps to str type (FUNCTION-NAME -> str)"
         }
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "Generate model layer requirements from the XDM schema at evals/fixtures/MultiplicityTest_schema.xdm. Write the output to the workspace at xdm-schema-req-workspace/eval-outputs/swr_multiplicitytest_models.md.",
+      "expected_output": "A requirements markdown file documenting entities with various multiplicity scenarios: mandatory [1..1], optional [0..1], and list [1..*] multiplicity",
+      "files": ["evals/fixtures/MultiplicityTest_schema.xdm"],
+      "assertions": [
+        {
+          "id": "output-file-exists",
+          "text": "Output markdown file exists with requirements document content"
+        },
+        {
+          "id": "mandatory-multiplicity",
+          "text": "MandatoryEntity displays multiplicity [1..1] or omits it (default)"
+        },
+        {
+          "id": "optional-multiplicity",
+          "text": "OptionalEntity displays multiplicity [0..1] indicating it's optional"
+        },
+        {
+          "id": "list-multiplicity",
+          "text": "ReferenceItem and MandatoryRef display multiplicity [1..*] indicating list"
+        },
+        {
+          "id": "optional-container",
+          "text": "OptionalContainer (sub-container) displays multiplicity [0..1] indicating it's optional"
+        },
+        {
+          "id": "multiplicity-notation",
+          "text": "Multiplicity uses [min..max] notation in field names"
+        }
+      ]
     }
   ]
 }
