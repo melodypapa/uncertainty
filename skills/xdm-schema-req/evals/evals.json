@@ -108,6 +108,105 @@
           "text": "Multiplicity uses [min..max] notation in field names"
         }
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Update the existing requirements document at evals/fixtures/swr_idmgmttest_models_existing.md with new entities from evals/fixtures/IDManagementTest_schema.xdm. Write the output to the workspace at xdm-schema-req-workspace/eval-outputs/swr_idmgmttest_models_updated.md. Preserve existing requirement IDs and create new IDs for new entities.",
+      "expected_output": "Updated requirements document with preserved IDs for existing entities (ExistingEntity: SWR_IDMGMTTEST_MODELS_00001) and new sequential IDs for new entities (NewEntity: SWR_IDMGMTTEST_MODELS_00003)",
+      "files": [
+        "evals/fixtures/IDManagementTest_schema.xdm",
+        "evals/fixtures/swr_idmgmttest_models_existing.md"
+      ],
+      "assertions": [
+        {
+          "id": "existing-id-preserved",
+          "text": "ExistingEntity keeps its original ID SWR_IDMGMTTEST_MODELS_00001"
+        },
+        {
+          "id": "new-id-sequential",
+          "text": "NewEntity gets new sequential ID SWR_IDMGMTTEST_MODELS_00003 (after root module at 00002)"
+        },
+        {
+          "id": "id-monotonic",
+          "text": "ID sequence is monotonic increasing (no gaps, no reuse)"
+        },
+        {
+          "id": "root-id-updated",
+          "text": "Root module ID updated to SWR_IDMGMTTEST_MODELS_00004 to account for new entity"
+        },
+        {
+          "id": "traceability-updated",
+          "text": "Traceability matrix includes both existing and new entities"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Generate model layer requirements from the XDM schema at evals/fixtures/EmptySchema.xdm. Write the output to the workspace at xdm-schema-req-workspace/eval-outputs/swr_empty_models.md.",
+      "expected_output": "A message indicating that no entity containers were detected in the schema",
+      "files": ["evals/fixtures/EmptySchema.xdm"],
+      "assertions": [
+        {
+          "id": "no-entities-detected",
+          "text": "Output indicates no entity containers were detected"
+        },
+        {
+          "id": "no-requirements-generated",
+          "text": "No requirement sections are generated"
+        },
+        {
+          "id": "informative-message",
+          "text": "User receives clear message about empty schema"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Generate model layer requirements from the XDM schema at evals/fixtures/NoOriginSchema.xdm. Write the output to the workspace at xdm-schema-req-workspace/eval-outputs/swr_noorigin_models.md.",
+      "expected_output": "A requirements markdown file where fields without ORIGIN attribute default to EB origin",
+      "files": ["evals/fixtures/NoOriginSchema.xdm"],
+      "assertions": [
+        {
+          "id": "output-file-exists",
+          "text": "Output markdown file exists with requirements document content"
+        },
+        {
+          "id": "default-origin-eb",
+          "text": "FieldWithoutOrigin shows EB as origin (default when ORIGIN attribute missing)"
+        },
+        {
+          "id": "explicit-origin-autosar",
+          "text": "FieldWithOrigin shows AUTOSAR as origin (explicit ORIGIN attribute)"
+        },
+        {
+          "id": "document-valid",
+          "text": "Document generates successfully despite missing ORIGIN attributes"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Generate model layer requirements from the XDM schema at evals/fixtures/UnknownTypeSchema.xdm. Write the output to the workspace at xdm-schema-req-workspace/eval-outputs/swr_unknowntype_models.md.",
+      "expected_output": "A requirements markdown file where unknown/custom types are used as-is in the type column",
+      "files": ["evals/fixtures/UnknownTypeSchema.xdm"],
+      "assertions": [
+        {
+          "id": "output-file-exists",
+          "text": "Output markdown file exists with requirements document content"
+        },
+        {
+          "id": "normal-type-mapped",
+          "text": "NormalField shows int type (standard type mapping)"
+        },
+        {
+          "id": "unknown-type-preserved",
+          "text": "CustomTypeField shows CUSTOM-TYPE-XYZ as type (unknown type used as-is)"
+        },
+        {
+          "id": "document-valid",
+          "text": "Document generates successfully despite unknown types"
+        }
+      ]
     }
   ]
 }

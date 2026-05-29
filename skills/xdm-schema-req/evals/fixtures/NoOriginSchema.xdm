@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xdm:root xmlns:xdm="http://www.tresos.de/_projects/DataModel2/06/data.xsd"
+          xmlns:v="http://www.tresos.de/_projects/DataModel2/06/schema.xsd"
+          xmlns:a="http://www.tresos.de/_projects/DataModel2/08/attribute.xsd">
+  <xdm:chc name="NoOriginModule">
+    <v:ctr>
+      <v:lst name="TestEntity" type="MAP">
+        <v:ctr name="TestEntity">
+          <v:var name="FieldWithoutOrigin" type="INTEGER">
+            <a:a name="DESC" value="Field without origin attribute"/>
+            <a:da name="INVALID" type="Range">
+              <a:tst expr="&gt;= 0"/>
+              <a:tst expr="&lt;= 100"/>
+            </a:da>
+          </v:var>
+          <v:var name="FieldWithOrigin" type="STRING">
+            <a:a name="DESC" value="Field with origin attribute"/>
+            <a:a name="ORIGIN" value="AUTOSAR"/>
+          </v:var>
+        </v:ctr>
+      </v:lst>
+    </v:ctr>
+  </xdm:chc>
+</xdm:root>
