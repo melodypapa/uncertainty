@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xdm:root xmlns:xdm="http://www.tresos.de/_projects/DataModel2/06/data.xsd"
+          xmlns:v="http://www.tresos.de/_projects/DataModel2/06/schema.xsd"
+          xmlns:a="http://www.tresos.de/_projects/DataModel2/08/attribute.xsd">
+  <xdm:chc name="EmptyModule">
+    <v:ctr>
+    </v:ctr>
+  </xdm:chc>
+</xdm:root>
