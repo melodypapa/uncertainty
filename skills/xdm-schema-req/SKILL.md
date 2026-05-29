@@ -20,6 +20,33 @@ metadata:
 
 Generates structured software requirements markdown from EB Tresos XDM schema files, following the conventions in `docs/requirements/`.
 
+## Design Principle
+
+**Separation of Concerns:**
+
+This skill follows a two-phase approach with clear separation:
+
+1. **Script Phase (Automated)**: Extract structured data from XDM → JSON
+   - Handles XML parsing complexity
+   - Resolves type mappings, ranges, enable conditions
+   - Outputs clean, minimal JSON
+
+2. **Manual Phase (Human Judgment)**: Generate requirements document from JSON + templates
+   - Requires judgment on description synthesis (3-8 words)
+   - Needs human decision on formatting and organization
+   - Allows flexible adaptation to specific project requirements
+
+**Why manual generation?**
+- Description writing requires understanding context and purpose
+- Document structure may vary based on project conventions
+- Formatting decisions benefit from human oversight
+- Ensures quality through human review
+
+**Workflow:**
+```
+XDM file → Script (extract) → JSON data → Manual (generate) → Requirements document
+```
+
 ## Workflow
 
 ### 1. Extract Schema Data (token-efficient)
@@ -166,6 +193,82 @@ See `templates/requirements_template.md`. Test case IDs follow the pattern `UTS_
 ### 9. Write the Output
 
 Write the generated markdown to the determined output path. Create the directory if it doesn't exist. Display a summary at the end: number of requirements generated, output path, and any notable findings (skipped fields, unusual types, etc.).
+
+## Requirement ID Management
+
+**CRITICAL: Requirement IDs must remain stable across updates.**
+
+### ID Format
+
+Requirement IDs follow the pattern: `SWR_<MODULE_ABBR>_MODELS_<NNNNN>`
+
+- `SWR` — Software Requirement
+- `<MODULE_ABBR>` — Module abbreviation (e.g., `OS`, `COM`, `DEM`)
+- `MODELS` — Model layer
+- `<NNNNN>` — 5-digit sequential number (e.g., `00001`, `00002`)
+
+### ID Stability Rules
+
+**When updating existing requirements documents:**
+
+1. **Preserve existing IDs**: If a requirement already exists for an entity, keep its ID unchanged
+   - Entity name matches → Same ID, update content only
+   - Field changes → Same ID, update field table
+   - Description changes → Same ID, update description
+
+2. **Create new IDs for new entities**: If a new entity is added
+   - Find the highest existing ID number
+   - Increment by 1 for the new requirement
+   - Example: If highest is `00005`, new requirement gets `00006`
+
+3. **Never reuse deleted IDs**: If an entity is removed
+   - Do NOT reuse its ID for new requirements
+   - Mark as deprecated or remove entirely
+   - Keep ID sequence monotonic increasing
+
+### Update Workflow
+
+**Step 1: Check for existing document**
+```bash
+# Check if output file exists
+test -f docs/requirements/core/models/swr_os_models.md && echo "EXISTS" || echo "NEW"
+```
+
+**Step 2: If document exists, extract existing IDs**
+- Parse existing requirements sections
+- Build mapping: Entity Name → Requirement ID
+- Track highest ID number used
+
+**Step 3: Match entities to IDs**
+- For each entity in JSON:
+  - If entity name exists in mapping → Use existing ID
+  - If entity name is new → Assign next available ID
+
+**Step 4: Update traceability table**
+- Preserve existing test case IDs
+- Add new entries for new requirements
+- Remove entries for deleted requirements
+
+### Example
+
+**Existing document has:**
+```
+SWR_OS_MODELS_00001 - OsTask Model
+SWR_OS_MODELS_00002 - OsCounter Model
+SWR_OS_MODELS_00003 - OsAlarm Model
+```
+
+**JSON contains new entities:**
+- OsTask (exists) → Keep `SWR_OS_MODELS_00001`
+- OsCounter (exists) → Keep `SWR_OS_MODELS_00002`
+- OsAlarm (exists) → Keep `SWR_OS_MODELS_00003`
+- OsEvent (new) → Assign `SWR_OS_MODELS_00004`
+- OsResource (new) → Assign `SWR_OS_MODELS_00005`
+
+**Result:**
+- Existing requirements updated in place (ID unchanged)
+- New requirements appended with new IDs
+- ID sequence preserved and monotonic
 
 ## Edge Cases
 
