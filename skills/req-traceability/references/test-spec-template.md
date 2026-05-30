@@ -286,16 +286,33 @@ For multi-file test specifications:
 ## Usage Notes
 
 1. **{PREFIX}_{CATEGORY}_##### ID Format:** Use sequential numbering aligned with category (e.g., UTS_AUTH_00001, UTS_AUTH_00002)
-2. **Traces-To Field:** Always link back to requirements for bidirectional traceability
-3. **Test Implementation Field:** Link to actual test code file and function
-4. **Status Values:**
+
+2. **CRITICAL: ID Preservation:**
+   - **NEVER reuse existing test case IDs** - Each ID is a permanent traceability identifier
+   - **ALWAYS preserve existing IDs when updating test specifications** - Content updates do NOT change IDs
+   - **ONLY assign new IDs to new test cases** - Increment from highest existing ID
+   - **ID changes break traceability** - Changing a test case ID breaks requirement traces and coverage matrices
+
+3. **Updating Test Specifications:**
+   - Read all existing test case IDs first
+   - Match new test content to existing cases by title/description
+   - Preserve existing IDs for matched cases - update content in place
+   - Assign new IDs only to unmatched new test cases
+   - Update Traces-To links to reflect any requirement changes
+
+4. **Traces-To Field:** Always link back to requirements for bidirectional traceability
+
+5. **Test Implementation Field:** Link to actual test code file and function
+
+6. **Status Values:**
    - Draft: Test case written but not yet implemented
    - Ready: Test implemented and ready to run
    - Passed: Test executed successfully
    - Failed: Test execution failed
    - Blocked: Cannot execute due to dependency
    - Deprecated: Test no longer relevant
-5. **User Decisions:** Always ask user before:
+
+7. **User Decisions:** Always ask user before:
    - Updating requirements from code changes
    - Updating test specifications from requirement changes
    - Removing stale tests
