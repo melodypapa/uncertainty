@@ -37,6 +37,7 @@ Create and maintain ISO/IEC/IEEE 29148 compliant requirements that serve as a **
 
 - **Requirement ID format**: Use `{PREFIX}_{CATEGORY}_#####` format (e.g., `SWR_AUTH_00001`, `SWR_USER_00002`)
 - **Test Case ID format**: Use `{PREFIX}_{CATEGORY}_#####` format (e.g., `UTS_AUTH_00001`, `ITS_PAYMENT_00001`)
+- **ID Preservation**: **NEVER reuse existing requirement or test case IDs.** IDs are permanent traceability identifiers. When updating content, preserve all existing IDs. Only new requirements/test cases get new IDs (increment from highest existing ID).
 - **Test type folders**: Unit tests → `docs/tests/unit/`, Integration tests → `docs/tests/integration/`, System tests → `docs/tests/system/`
 - **Category naming**: Use uppercase short names (AUTH, USER, PAYMENT, etc.)
 - **Implementation reference syntax**: Use `file.py:function` (single colon), not `file.py::function`
@@ -360,6 +361,12 @@ For full procedures, deviation report templates, sync actions, and required outp
 - NEVER create single file with 100+ requirements
 - ALWAYS use `Implementation:` field (not `Source:`)
 - ALWAYS include `Last Validated:` and `Last Changed:` dates
+
+**ID Management:**
+- NEVER reuse existing requirement or test case IDs
+- ALWAYS preserve existing IDs when updating content
+- ONLY assign new IDs to new requirements/test cases (increment from highest existing ID)
+- ID changes break traceability chains
 
 **Security:**
 - NEVER accept paths with directory traversal (`../`, `..\\`)

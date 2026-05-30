@@ -48,6 +48,8 @@
 
 **Requirements output:**
 - [ ] Each requirement has unique ID in `{PREFIX}_{CATEGORY}_#####` format
+- [ ] **Existing requirement IDs preserved** - No ID reuse during updates
+- [ ] **New IDs only for new requirements** - Incremented from highest existing ID
 - [ ] Each requirement has Description field
 - [ ] Each requirement has Implementation field (file:line format)
 - [ ] Each requirement has Verification Criteria
@@ -59,6 +61,8 @@
 
 **Test specifications output:**
 - [ ] Each test spec has unique ID in `{PREFIX}_{CATEGORY}_#####` format
+- [ ] **Existing test case IDs preserved** - No ID reuse during updates
+- [ ] **New IDs only for new test cases** - Incremented from highest existing ID
 - [ ] Each test spec has Traces-To field linking to requirement
 - [ ] Each test spec has Test Design Technique
 - [ ] Each test spec has Test Conditions

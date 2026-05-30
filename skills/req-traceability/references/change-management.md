@@ -2,6 +2,22 @@
 
 This reference covers handling existing requirements files and managing changes when code or requirements evolve.
 
+## CRITICAL: ID Preservation Rule
+
+**Requirement IDs and Test Case IDs are permanent traceability identifiers.**
+
+- **NEVER reuse existing IDs** - Each ID represents a unique traceability chain
+- **ALWAYS preserve existing IDs when updating** - Content updates do NOT change IDs
+- **ONLY assign new IDs to new items** - Increment from highest existing ID
+- **ID changes break traceability** - Changing an ID breaks all references (code links, test traces, coverage matrices)
+
+When updating requirements or test specifications:
+1. Read all existing IDs first
+2. Match new content to existing items by title/description
+3. Preserve existing IDs for matched items
+4. Assign new IDs only to unmatched new items
+5. Update content in place, do NOT recreate with new IDs
+
 ## Handling Existing Requirements Files
 
 **When requirements file already exists:**
@@ -28,19 +44,22 @@ This reference covers handling existing requirements files and managing changes 
    - Update traceability matrix with new requirements
 
    **Update:**
-   - Read existing requirements
-   - Match new requirements to existing ones by title/content
-   - Update matching requirements with new information
-   - Add unmatched new requirements with new IDs
-   - Mark requirements without matching code as "Deprecated"
-   - Update all Last Validated dates
+   - **CRITICAL: ID Preservation** - Read all existing requirement IDs first
+   - Match new requirements to existing ones by title/description/content
+   - **Preserve existing IDs** for matched requirements - update content in place
+   - **Assign new IDs only** to unmatched new requirements (increment from highest existing ID)
+   - Mark requirements without matching code as "Deprecated" (keep original ID)
+   - Update all `Last Validated:` dates
+   - Update traceability matrix with preserved IDs
 
    **Merge:**
+   - **CRITICAL: ID Preservation** - Read all existing requirement IDs first
    - Combine existing and new requirements intelligently
-   - Keep existing descriptions when they match
-   - Add new Implementation/Verification fields if missing
-   - Remove duplicates
+   - Keep existing IDs and descriptions when they match - update in place
+   - Add new Implementation/Verification fields if missing (preserve ID)
+   - Remove duplicates (keep the ID, remove the duplicate entry)
    - Update Status and Last Validated dates
+   - Assign new IDs only to truly new requirements
 
 ## When Code Changes
 
