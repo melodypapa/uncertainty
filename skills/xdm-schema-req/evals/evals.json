@@ -207,6 +207,70 @@
           "text": "Document generates successfully despite unknown types"
         }
       ]
+    },
+    {
+      "id": 8,
+      "prompt": "Generate parser layer requirements from the XDM schema at evals/fixtures/TestModule_schema.xdm. Write the output to the workspace at xdm-schema-req-workspace/eval-outputs/swr_testmodule_parser.md.",
+      "expected_output": "A requirements markdown file for Parser Layer with method annotations in bullet points",
+      "files": ["evals/fixtures/TestModule_schema.xdm"],
+      "assertions": [
+        {
+          "id": "output-file-exists",
+          "text": "Output markdown file exists with parser requirements document content"
+        },
+        {
+          "id": "method-annotations-present",
+          "text": "Bullet points include method annotations like '— via `read_value()`' or '— via `read_ref_value()`'"
+        },
+        {
+          "id": "parser-document-header",
+          "text": "Document has Parser Layer header (SWR_TESTMODULE_PARSER_00001)"
+        },
+        {
+          "id": "module-validation-first",
+          "text": "Module validation requirement appears first (SWR_TESTMODULE_PARSER_00001)"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Generate model layer requirements from the XDM schema at evals/fixtures/TestModule_schema.xdm. Write the output to the workspace at xdm-schema-req-workspace/eval-outputs/swr_testmodule_models_impl_notes.md.",
+      "expected_output": "A requirements markdown file for Model Layer with Implementation Notes table (no Test Cases column)",
+      "files": ["evals/fixtures/TestModule_schema.xdm"],
+      "assertions": [
+        {
+          "id": "output-file-exists",
+          "text": "Output markdown file exists with model requirements document content"
+        },
+        {
+          "id": "implementation-notes-table",
+          "text": "Document has '## Implementation Notes' section with 2-column table (Requirement ID | Implementation)"
+        },
+        {
+          "id": "no-test-cases-column",
+          "text": "Traceability/Implementation table does NOT have 'Test Cases' column"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Generate parser layer requirements from the XDM schema at evals/fixtures/TestModule_schema.xdm. Write the output to the workspace at xdm-schema-req-workspace/eval-outputs/swr_testmodule_parser_impl_notes.md.",
+      "expected_output": "A requirements markdown file for Parser Layer with Implementation Notes table (no Test Cases column)",
+      "files": ["evals/fixtures/TestModule_schema.xdm"],
+      "assertions": [
+        {
+          "id": "output-file-exists",
+          "text": "Output markdown file exists with parser requirements document content"
+        },
+        {
+          "id": "implementation-notes-table",
+          "text": "Document has '## Implementation Notes' section with 2-column table (Requirement ID | Implementation)"
+        },
+        {
+          "id": "no-test-cases-column",
+          "text": "Implementation table does NOT have 'Test Cases' column"
+        }
+      ]
     }
   ]
 }
