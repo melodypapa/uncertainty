@@ -291,6 +291,22 @@
           "text": "Agent followed the workflow: XDM → Script (extract) → JSON data → Manual (generate) → Requirements document"
         }
       ]
+    },
+    {
+      "id": 12,
+      "prompt": "Generate model layer requirements from the XDM schema at evals/fixtures/TestModule_schema.xdm. Write the output to the workspace at xdm-schema-req-workspace/eval-outputs/swr_testmodule_models.md. If you redirect script output to a temporary file, clean it up after use.",
+      "expected_output": "Agent either uses stdout directly or cleans up temporary files after generating requirements",
+      "files": ["evals/fixtures/TestModule_schema.xdm"],
+      "assertions": [
+        {
+          "id": "no-temp-files-or-cleaned",
+          "text": "Agent either uses stdout directly (no temporary files) or cleans up temporary files after use"
+        },
+        {
+          "id": "temp-file-guidance-followed",
+          "text": "Agent follows temporary file cleanup guidance from SKILL.md"
+        }
+      ]
     }
   ]
 }

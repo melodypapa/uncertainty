@@ -420,6 +420,22 @@ See `references/mistakes.md` for the full anti-pattern catalogue.
 
 **Correct workflow:** `XDM file → Script (extract) → JSON data → Manual (generate) → Requirements document`
 
+## Temporary File Cleanup
+
+**Note:** The script outputs to stdout by default. If you redirect to a file, clean it up after use.
+
+**If you redirected script output to a temporary file:**
+
+```bash
+# Clean up temporary JSON files after use
+rm -f /tmp/*_schema.json
+```
+
+**Best practice:**
+- Use the script output directly (stdout) when possible
+- If you need to save JSON for reference, use a meaningful filename (not /tmp)
+- Clean up temporary files after generating requirements
+
 ## Reference Files
 
 - `scripts/extract_xdm_schema.py` — The XDM schema extractor. **Always run this first** to get JSON input.
