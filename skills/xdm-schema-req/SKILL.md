@@ -22,6 +22,16 @@ Generates structured software requirements markdown from EB Tresos XDM schema fi
 
 ## Design Principle
 
+**CRITICAL: Script extracts data ONLY. Requirements generation is MANUAL.**
+
+This skill enforces strict separation between automated extraction and human judgment:
+
+**Violation:** Generating requirements directly from XDM (bypassing JSON) or automating requirements generation end-to-end.
+
+**Correct workflow:**
+1. Run `extract_xdm_schema.py` → Get JSON
+2. Human reads JSON + templates → Writes requirements manually
+
 **Separation of Concerns:**
 
 This skill follows a two-phase approach with clear separation:
@@ -397,6 +407,18 @@ SWR_OS_MODELS_00003 - OsAlarm Model
 ## Common Mistakes
 
 See `references/mistakes.md` for the full anti-pattern catalogue.
+
+## Red Flags - STOP
+
+**All of these mean: You are violating the design principle. Stop and fix.**
+
+- Parsing XDM directly to generate requirements (bypass JSON extraction)
+- Automating end-to-end requirements generation without human judgment
+- Writing description synthesis scripts (3-8 words requires human context)
+- Generating requirements from raw XML instead of JSON output
+- Skipping `extract_xdm_schema.py` and parsing XDM manually
+
+**Correct workflow:** `XDM file → Script (extract) → JSON data → Manual (generate) → Requirements document`
 
 ## Reference Files
 

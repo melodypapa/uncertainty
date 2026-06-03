@@ -271,6 +271,26 @@
           "text": "Implementation table does NOT have 'Test Cases' column"
         }
       ]
+    },
+    {
+      "id": 11,
+      "prompt": "Generate model layer requirements from the XDM schema at evals/fixtures/TestModule_schema.xdm. Write the output to the workspace at xdm-schema-req-workspace/eval-outputs/swr_testmodule_models.md. Follow the two-phase workflow: script extraction first, then manual generation.",
+      "expected_output": "Agent runs extract_xdm_schema.py script first, then generates requirements from JSON output",
+      "files": ["evals/fixtures/TestModule_schema.xdm"],
+      "assertions": [
+        {
+          "id": "script-ran-first",
+          "text": "Agent ran python .claude/skills/xdm-schema-req/scripts/extract_xdm_schema.py before generating requirements"
+        },
+        {
+          "id": "json-output-used",
+          "text": "Agent used the JSON output from the script as input for requirements generation (not direct XDM parsing)"
+        },
+        {
+          "id": "two-phase-workflow",
+          "text": "Agent followed the workflow: XDM → Script (extract) → JSON data → Manual (generate) → Requirements document"
+        }
+      ]
     }
   ]
 }
