@@ -1,11 +1,11 @@
 ---
 name: xdm-schema-req
-description: "Use when asked to generate requirements documents from XDM schema files; create or update SWR_*_MODELS.md documentation; extract AUTOSAR configuration parameter specifications from .xdm schema files; analyze EB Tresos schema definitions to produce structured requirements output. Designed for the py-eb-model project."
+description: "Use when asked to generate requirements documents from XDM schema files; create or update SWR_*_MODELS.md or SWR_*_PARSER.md documentation; extract AUTOSAR configuration parameter specifications from .xdm schema files; analyze EB Tresos schema definitions to produce structured requirements output (Model Layer or Parser Layer). Designed for the py-eb-model project."
 author: melodypapa
 repository: https://github.com/melodypapa/py-eb-model
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.2.0"
   keywords:
     - AUTOSAR
     - EB-Tresos
@@ -48,6 +48,26 @@ XDM file → Script (extract) → JSON data → Manual (generate) → Requiremen
 ```
 
 ## Workflow
+
+### 0. DETERMINE LAYER TYPE (Mandatory First Step)
+
+**Before doing anything else, determine which layer to generate:**
+
+**IF** user prompt contains ANY of these keywords:
+- "parser layer"
+- "PARSER"
+- "parser requirements" 
+- "parsing"
+- "swr_*_parser"
+- Filename ends with `_parser.md`
+
+**THEN** generate **Parser Layer Requirements** (skip to step 5P below)
+
+**OTHERWISE** generate **Model Layer Requirements** (continue to step 1 below)
+
+This decision is MANDATORY and must be made before reading any schema data.
+
+---
 
 ### 1. Extract Schema Data (token-efficient)
 
@@ -151,46 +171,142 @@ Use the `output_path` field from the JSON directly. It is already computed.
 
 ### 5. Generate the Requirements Document
 
-Follow the exact markdown templates in `templates/requirements_template.md`:
-- **Document header** — title, document information table, overview
-- **Entity requirement** — one per container (4-column field table: Field, Type, Description, Origin)
-- **Choice container** — grouped summary (Step 6a) + per-variant requirements (Step 6b)
-- **Root module requirement** — last requirement, with `**Methods:**` section only here
-- **Traceability table** — final section linking requirement IDs to implementation and test cases
+**Follow the exact markdown templates in `templates/requirements_template.md`.**
 
-**Description formatting rules:**
+---
+
+**MODEL LAYER WORKFLOW** (if generating Model Layer):
+
+**Document Structure:**
+1. Document header — title, document information table, overview
+2. Entity requirement — one per container (5-column field table: Field, Multiplicity, Type, Description, Origin)
+3. Choice container — grouped summary + per-variant requirements
+4. Root module requirement — last requirement, with `**Methods:**` section only here
+5. Implementation notes — 2-column table (Requirement ID | Implementation)
+
+**Model Layer table format — CRITICAL:**
+```markdown
+| Field | Multiplicity | Type | Description | Origin |
+|-------|--------------|------|-------------|--------|
+| TestPriority | [1..1] | int | Test priority (0-100) | AUTOSAR |
+| TestMode | [1..1] | TestContainerTestMode | Operating mode (LOW/MEDIUM/HIGH, default LOW) | AUTOSAR |
+| TestCounterRef | [1..1] | EcucRefType | Counter reference | AUTOSAR |
+| TestSubContainer | [0..1] | TestSubContainer | Sub container | AUTOSAR |
+| TestItemList | [1..*] | TestItem | Item list | EB |
+```
+
+---
+
+**PARSER LAYER WORKFLOW** (if generating Parser Layer):
+
+**Document Structure:**
+1. Document header — "Software Requirements: <Module> - Parser Layer"
+2. Module validation requirement — FIRST requirement (SWR_<MODULE_ABBR>_PARSER_00001)
+3. Entity parsing requirements — one per container with bullet points
+4. Choice parsing requirement — separate requirement with variants listed
+5. Sub-container parsing requirements — referenced from parent requirements
+6. Implementation notes — 2-column table (Requirement ID | Implementation)
+
+**Parser Layer bullet format — CRITICAL:**
+```markdown
+### SWR_<MODULE_ABBR>_PARSER_<NNNNN> - <Entity Name> Parsing
+
+The parser shall parse <EntityName> elements from XDM.
+
+- Extract FieldName1 [1..1] (INTEGER, min-max) — via `read_value()`
+- Extract FieldName2 [1..1] (ENUMERATION: VAL1/VAL2, default VAL1) — via `read_choice_value()`
+- Extract FieldName3 [1..1] (BOOLEAN, default true/false) — via `read_value()`
+- Extract FieldName4 [1..1] (FLOAT, min-max) — via `read_value()`
+- Extract FieldName5 [1..1] (STRING) — via `read_value()`
+- Extract FieldName6 [1..1] (REFERENCE) — via `read_ref_value()`
+- Parse FieldName7 [1..*] (REFERENCE list) — via `read_ref_value_list()`
+- Parse FieldName8 [0..1] sub-container (see SWR_<MODULE_ABBR>_PARSER_XXXXX) — via `find_ctr_tag()`
+- Parse FieldName9 [1..*] sub-containers (see SWR_<MODULE_ABBR>_PARSER_XXXXX) — via `find_ctr_tag_list()`
+- Raise `ValueError` if required field is missing
+
+**Implementation:** `<module_lower>_xdm_parser.py:read_<entity_name_lower>`
+**Status:** Implemented
+**Last Validated:** YYYY-MM-DD
+```
+
+**Parser method selection (based on multiplicity):**
+- `[1..1]` mandatory → `read_value()`, `read_ref_value()`, `read_choice_value()`
+- `[0..1]` optional → `read_optional_value()`, `read_optional_ref_value()`, `find_ctr_tag()`
+- `[1..*]` / `[0..*]` list → `read_ref_value_list()`, `find_ctr_tag_list()`
+
+See `templates/requirements_template.md` for the complete Method Selection Guide table.
+
+---
+
+**Model Layer Description formatting rules:**
 - For integers with range: `"Field description (min-max)"`, e.g., `"Task priority (0-2147483647)"`
 - For floats with range: `"Description (min-max)"`
 - For enums: `"Description (VAL1/VAL2/VAL3)"` with default noted if present: `"Description (VAL1/VAL2, default VAL1)"`
 - For booleans with default: `"Description (default true/false)"`
 - For refs: `"Description (reference to target type)"`
 - For ref lists: `"Description (list of target type)"`
-- For multiplicity: append `[min..max]` to field/container name in the table
-  - `[1..1]` → mandatory single instance (default, may omit)
-  - `[0..1]` → optional single instance
-  - `[1..*]` → mandatory list
-  - `[0..*]` → optional list
 
-**Type column rules — use `req_type` from JSON directly:**
+**Model Layer table format — CRITICAL:**
+```markdown
+| Field | Multiplicity | Type | Description | Origin |
+|-------|--------------|------|-------------|--------|
+| TestPriority | [1..1] | int | Test priority (0-100) | AUTOSAR |
+| TestMode | [1..1] | TestContainerTestMode | Operating mode (LOW/MEDIUM/HIGH, default LOW) | AUTOSAR |
+| TestCounterRef | [1..1] | EcucRefType | Counter reference | AUTOSAR |
+| TestSubContainer | [0..1] | TestSubContainer | Sub container | AUTOSAR |
+| TestItemList | [1..*] | TestItem | Item list | EB |
+```
+**Rules:**
+- Multiplicity is a SEPARATE column — never put `[min..max]` in the Field name
+- `[1..1]` → mandatory — may show as `[1..1]` or leave blank (both OK)
+- `[0..1]` → optional — show `[0..1]`
+- `[1..*]` → mandatory list — show `[1..*]`
+- `[0..*]` → optional list — show `[0..*]`
+
+**Model Layer Type column rules — use `req_type` from JSON directly:**
 - JSON `req_type` is already the correct Python class name — use it
 - Sub-container → `<SubContainerName>` (its `name` from JSON)
 - MAP sub-container in parent table → `List[<ContainerName>]`
 
 **Skip fields** where JSON `enabled: false` (no `enable_xpath`). Fields with `enable_xpath` are conditionally enabled — include them silently (no annotation about the condition).
 
-### 6. Handle Choice Containers (is_choice: true in JSON)
+### 7. Handle Choice Containers (is_choice: true in JSON)
 
-When a sub-container in JSON has `"is_choice": true` with a `variants` array, generate **one grouped summary requirement** listing all variant classes (Step 6a), followed by **individual requirements** for each variant that has fields (Step 6b). See `templates/requirements_template.md` for the exact template.
+When a sub-container in JSON has `"is_choice": true` with a `variants` array, generate **one grouped summary requirement** listing all variant classes (Step 7a), followed by **individual requirements** for each variant that has fields (Step 7b). See `templates/requirements_template.md` for the exact template.
 
-### 7. Add the Root Module Requirement
+### 8. Add the Root Module Requirement (Model Layer only)
 
 The last numbered requirement should be the root module container (e.g., `Os`) with methods for accessing all entity lists. See `templates/requirements_template.md`. The root methods follow the pattern `get<EntityName>List()` for each top-level entity.
 
-### 8. Generate Traceability Table
+### 9. Generate Implementation Notes Table
 
-See `templates/requirements_template.md`. Test case IDs follow the pattern `UTS_<MODULE_ABBR>_MODEL_<NNNNN>`.
+**CRITICAL: Use "## Implementation Notes" with 2 columns — NOT "Traceability" with 3 columns.**
 
-### 9. Write the Output
+See `templates/requirements_template.md` for the exact format.
+
+**Model Layer format:**
+```markdown
+## Implementation Notes
+
+| Requirement ID | Implementation |
+|----------------|----------------|
+| SWR_XXXXX_MODELS_00001 | <module_lower>_xdm.py:Entity1 |
+| SWR_XXXXX_MODELS_00002 | <module_lower>_xdm.py:Entity2 |
+```
+
+**Parser Layer format:**
+```markdown
+## Implementation Notes
+
+| Requirement ID | Implementation |
+|----------------|----------------|
+| SWR_XXXXX_PARSER_00001 | <module_lower>_xdm_parser.py:parse |
+| SWR_XXXXX_PARSER_00002 | <module_lower>_xdm_parser.py:read_<entity_lower> |
+```
+
+Do NOT include a "Test Cases" column. Use exactly 2 columns: Requirement ID | Implementation.
+
+### 10. Write the Output
 
 Write the generated markdown to the determined output path. Create the directory if it doesn't exist. Display a summary at the end: number of requirements generated, output path, and any notable findings (skipped fields, unusual types, etc.).
 
@@ -200,11 +316,11 @@ Write the generated markdown to the determined output path. Create the directory
 
 ### ID Format
 
-Requirement IDs follow the pattern: `SWR_<MODULE_ABBR>_MODELS_<NNNNN>`
+Requirement IDs follow the pattern: `SWR_<MODULE_ABBR>_<LAYER>_<NNNNN>`
 
 - `SWR` — Software Requirement
 - `<MODULE_ABBR>` — Module abbreviation (e.g., `OS`, `COM`, `DEM`)
-- `MODELS` — Model layer
+- `<LAYER>` — Layer type: `MODELS` or `PARSER`
 - `<NNNNN>` — 5-digit sequential number (e.g., `00001`, `00002`)
 
 ### ID Stability Rules
