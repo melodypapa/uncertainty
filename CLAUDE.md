@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Claude Code plugin **uncertainty** (`uncertainty-skills` v1.1.0) — reusable skills for automation workflows. Published to Claude Code marketplace. Three skills: GitHub workflow management, ISO 29148 requirements engineering, XDM schema requirements generation.
+Claude Code plugin **uncertainty** (`uncertainty-skills` v1.2.0) — reusable skills for automation workflows. Published to Claude Code marketplace. Four skills: GitHub workflow management, ISO 29148 requirements engineering, XDM schema requirements generation, markdown translation (en/chn with docling image safety).
 
 ## Skills
 
