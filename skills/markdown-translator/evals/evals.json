@@ -1,0 +1,41 @@
+{
+  "skill_name": "markdown-translator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Translate all the markdown files under docs/en into Simplified Chinese and save them under docs/chn, keeping the same folder structure.",
+      "expected_output": "docs/chn mirrors docs/en exactly (including nested subfolders like api/). Prose, headings, tables, and link text are translated to natural Simplified Chinese. Frontmatter, code blocks, inline code, URLs, and technical terms (ARXML, AUTOSAR, pip commands) are preserved verbatim.",
+      "files": ["docs/en/getting-started.md", "docs/en/api/reference.md"]
+    },
+    {
+      "id": 2,
+      "prompt": "帮我把这个目录下 en 文件夹里的所有 markdown 文档翻译成简体中文，放到 chn 文件夹里",
+      "expected_output": "Same behavior via a casual Chinese-language prompt: all *.md files under en/ translated into Simplified Chinese and written to chn/ with mirrored structure, preserving code/frontmatter/URLs.",
+      "files": ["en/overview.md", "en/usage/quickstart.md"]
+    },
+    {
+      "id": 3,
+      "prompt": "Translate the markdown files in en/ into Simplified Chinese under chn/.",
+      "expected_output": "chn/guide.md already exists (stale translation). The agent must NOT silently overwrite it — either asks how to proceed, or (headless) skips it, translates the missing file, and reports the conflict in the summary.",
+      "files": ["en/guide.md", "en/other.md", "chn/guide.md"]
+    },
+    {
+      "id": 4,
+      "prompt": "Please translate the markdown files under content/en into Japanese, saving them to content/ja.",
+      "expected_output": "Tests parameter override: output lands in content/ja (not chn) and is in natural Japanese, structure mirrored, same preservation rules for code/frontmatter/URLs.",
+      "files": ["content/en/intro.md"]
+    },
+    {
+      "id": 5,
+      "prompt": "Translate everything in docs/en into Simplified Chinese under docs/chn. These chapters came out of docling (PDF to markdown), so they contain inline base64 images.",
+      "expected_output": "Files with data:image URIs go through the extract→translate→restore pipeline: the final chn file contains every original data-URI string byte-for-byte at the correct position, no IMG_PLACEHOLDER tokens remain, prose/headings are natural Simplified Chinese, and docling marker headings like ## NOTE stay untranslated while their body is translated.",
+      "files": ["docs/en/Chapter_01_About_This_Manual.md"]
+    },
+    {
+      "id": 6,
+      "prompt": "Translate docs/en/Chapter_02_Introduction.md into Simplified Chinese under docs/chn, keeping the docling table pagination structure.",
+      "expected_output": "Structural completeness: heading count/numbering identical to source; every table block present with the same row count (incl. continued-table blocks split at the same page-break points); every list item present; every figure/table caption number present; all inline images byte-identical (md_images.py verify + verify_structure.py both PASS).",
+      "files": ["docs/en/Chapter_02_Introduction.md"]
+    }
+  ]
+}

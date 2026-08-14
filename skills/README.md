@@ -32,6 +32,21 @@ Generate ISO/IEC/IEEE 29148:2018 compliant software requirements from code imple
 **Usage:**
 When you need to create requirements specifications, document what code implements, or generate DOORS import files, Claude will automatically invoke this skill.
 
+### markdown-translator
+
+Bulk-translate markdown documentation between parallel language folders (default `en/` → `chn/`, Simplified Chinese), mirroring the folder structure.
+
+**Features:**
+- Any folder pair and target language overridable (e.g. `en/` → `ja/` in Japanese)
+- Docling/PDF-to-markdown support: inline base64 images never pass through the model — extracted to placeholder tokens, re-inserted byte-for-byte, then verified
+- Local image assets copied to mirrored paths so translated docs still render
+- Content-completeness verification: every heading, table row, list item, and caption mechanically checked against the source — silent omissions cannot ship
+- Incremental: MISSING/STALE plan report, existing-translation conflict handling
+- Terminology consistency with existing translations; code blocks, frontmatter, URLs, and identifiers preserved verbatim
+
+**Usage:**
+When you ask to translate markdown files, convert an `en` docs folder to Simplified Chinese (or any language), or localize docling-converted manuals chapter-by-chapter, Claude will automatically invoke this skill.
+
 ## Installation
 
 ### Using npx skills (Recommended)
@@ -43,6 +58,7 @@ npx skills install github:melodypapa/uncertainty
 # Or install specific skills
 npx skills install github:melodypapa/uncertainty --skills github-workflow
 npx skills install github:melodypapa/uncertainty --skills req-traceability
+npx skills install github:melodypapa/uncertainty --skills markdown-translator
 ```
 
 ### Verify Installation
