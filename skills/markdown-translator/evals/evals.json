@@ -36,6 +36,12 @@
       "prompt": "Translate docs/en/Chapter_02_Introduction.md into Simplified Chinese under docs/chn, keeping the docling table pagination structure.",
       "expected_output": "Structural completeness: heading count/numbering identical to source; every table block present with the same row count (incl. continued-table blocks split at the same page-break points); every list item present; every figure/table caption number present; all inline images byte-identical (md_images.py verify + verify_structure.py both PASS).",
       "files": ["docs/en/Chapter_02_Introduction.md"]
+    },
+    {
+      "id": 7,
+      "prompt": "Translate docs/en into Simplified Chinese under docs/chn, as fast as you can — the manual has a large reference chapter. Use parallelism.",
+      "expected_output": "All files translated and mirrored; image verify + structure verify PASS on every file (incl. the large Chapter_03_Reference.md). The run does NOT translate segment after segment in one conversation: the large chapter is split at heading boundaries (md_split.py split) with segments translated by parallel subagents then joined, and small files are distributed across parallel workers with a shared terminology glossary. Timing recorded in timing.json shows the wall-clock time; the with-skill run must be substantially faster than the without-skill sequential baseline.",
+      "files": ["docs/en/manual/Chapter_03_Reference.md", "docs/en/api/models.md", "docs/en/guide/configuration.md", "docs/en/index.md"]
     }
   ]
 }

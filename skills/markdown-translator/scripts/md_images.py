@@ -7,6 +7,9 @@ Subcommands:
   restore <in.md> <map.json> <out.md>  Re-insert original images at their placeholders.
   verify <src.md> <dst.md>            Prove the translated file still contains every source image byte-for-byte.
   plan <src_dir> <dst_dir>            List which target translations are MISSING or STALE.
+  scan <src_dir> <dst_dir>            JSON: per-file status (missing/stale/ok) plus text_bytes
+                                      (with inline images excluded) and a todo_text_bytes summary,
+                                      for planning parallel translation work.
 """
 
 import json
@@ -109,6 +112,55 @@ def cmd_verify(args):
         sys.exit(1)
 
 
+def cmd_scan(args):
+    """JSON work-plan for translation: status + text size per file, excluding inline images.
+
+    OK files are not even read (they need no work). text_bytes excludes base64 so
+    the size that drives translation cost is reported, not the raw file size.
+    """
+    src_dir, dst_dir = args
+    files = []
+    missing = stale = ok = 0
+    todo_bytes = 0
+    for root, _, names in os.walk(src_dir):
+        for name in sorted(names):
+            if not name.lower().endswith((".md", ".markdown")):
+                continue
+            s = os.path.join(root, name)
+            rel = os.path.relpath(s, src_dir)
+            d = os.path.join(dst_dir, rel)
+            if os.path.exists(d) and os.path.getmtime(s) <= os.path.getmtime(d):
+                files.append({"rel": rel, "status": "ok"})
+                ok += 1
+                continue
+            status = "stale" if os.path.exists(d) else "missing"
+            if status == "stale":
+                stale += 1
+            else:
+                missing += 1
+            text = read_text(s)
+            matches = list(DATA_URI_RE.finditer(text))
+            img_bytes = sum(len(m.group(0)) for m in matches)
+            text_bytes = len(text) - img_bytes
+            todo_bytes += text_bytes
+            files.append({
+                "rel": rel,
+                "status": status,
+                "inline_images": len(matches),
+                "image_bytes": img_bytes,
+                "text_bytes": text_bytes,
+            })
+    print(json.dumps({
+        "files": files,
+        "summary": {
+            "missing": missing,
+            "stale": stale,
+            "ok": ok,
+            "todo_text_bytes": todo_bytes,
+        },
+    }, indent=1))
+
+
 def cmd_plan(args):
     src_dir, dst_dir = args
     missing, stale, ok = [], [], []
@@ -136,7 +188,7 @@ def main():
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)
-    commands = {"status": cmd_status, "extract": cmd_extract, "restore": cmd_restore, "verify": cmd_verify, "plan": cmd_plan}
+    commands = {"status": cmd_status, "extract": cmd_extract, "restore": cmd_restore, "verify": cmd_verify, "plan": cmd_plan, "scan": cmd_scan}
     cmd = sys.argv[1]
     if cmd not in commands:
         print("unknown subcommand: {}\n".format(cmd) + __doc__)
