@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - 'skills/**/SKILL.md'
+      - '.github/workflows/skill-quality.yml'
   pull_request:
     branches: [main]
     paths:
       - 'skills/**/SKILL.md'
+      - '.github/workflows/skill-quality.yml'
   schedule:
     - cron: '0 9 * * 1'
   workflow_dispatch:
@@ -21,13 +23,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run skills-check
-        uses: voodootikigod/skills-check@v1
-        with:
-          commands: 'audit,lint,budget'
-          audit-fail-on: 'high'
-          budget-max-tokens: 50000
-          lint-fail-on: 'error'
+      # voodootikigod/skills-check@v1 internally pins skills-check@1.3.0, which
+      # npm has unpublished (latest published: 1.2.1) and which enables the
+      # auth-gated skills.sh registry audits by default - failing weekly with
+      # an opaque HIGH finding since 2026-06-08. Run the published CLI
+      # directly so results are reproducible locally. See #92.
+      - name: Audit skill security
+        run: npx --yes skills-check@1.2.1 audit . --fail-on high
+
+      - name: Lint skill metadata
+        run: npx --yes skills-check@1.2.1 lint . --fail-on error
+
+      - name: Analyze token budget
+        run: npx --yes skills-check@1.2.1 budget . --max-tokens 50000
 
       - name: Generate Report
         if: always()

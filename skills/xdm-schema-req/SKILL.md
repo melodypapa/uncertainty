@@ -4,8 +4,9 @@ description: "Use when asked to generate requirements documents from XDM schema 
 author: melodypapa
 repository: https://github.com/melodypapa/py-eb-model
 license: MIT
+version: "1.2.0"
+product-version: "1.2.0"
 metadata:
-  version: "1.2.0"
   keywords:
     - AUTOSAR
     - EB-Tresos
