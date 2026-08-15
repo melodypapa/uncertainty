@@ -58,6 +58,7 @@ Getting this wrong breaks builds and links, which is far worse than an awkward s
 - **HTML tags** — keep the tags; translate the visible text between them
 - **Identifiers of any kind** — file paths, commands, class/function/variable names, config keys, XML/ARXML element and attribute names
 - **Markdown structure** — heading levels, list markers, table pipes, blockquotes, bold/italic markers, emoji
+- **Blank lines** — keep block separation exactly as in the source. In particular every heading must stay separated from whatever precedes it (a table, caption, or paragraph) by a blank line. Dropping the blank line makes renderers such as MkDocs/Python-Markdown swallow the heading INTO the preceding table as a row (`<td>## 31.1.2 MDAC 配置</td>`); the heading vanishes from the TOC and the table gains a garbage row. Docling manuals always have a blank line before every heading — preserve that.
 
 ## Embedded images (docling-style markdown)
 
@@ -75,7 +76,7 @@ Docling and similar PDF→markdown converters embed images INLINE as base64 data
    Re-inserts each original image byte-for-byte. The script exits with an error naming any placeholder the translation lost, so corruption surfaces immediately instead of shipping broken images.
 4. **Verify** — run both checks on every file that used the pipeline:
    - `python <skill-dir>/scripts/md_images.py verify <src.md> <dst.md>` — proves every inline image survived byte-for-byte and no placeholder tokens remain.
-   - `python <skill-dir>/scripts/verify_structure.py <src-stripped.md> <translated.md> "<file label>"` — proves nothing was dropped: every heading (by number and order), every table block and row, every figure/table caption, every list item. A translation that silently drops rows of a register table or entries of a glossary looks fine to a reader but is wrong; this makes it impossible to ship.
+   - `python <skill-dir>/scripts/verify_structure.py <src-stripped.md> <translated.md> "<file label>"` — proves nothing was dropped: every heading (by number and order), every table block and row, every figure/table caption, every list item. It also reports: headings whose blank-line separation was lost (they render inside the preceding table), docling `Table continued` markers moved relative to their sections, and table cells left as English prose. A translation that silently drops rows of a register table or entries of a glossary looks fine to a reader but is wrong; this makes it impossible to ship.
 
    If either check fails, the output must not be delivered.
 
@@ -89,7 +90,7 @@ Keep work files in a scratch folder (e.g. `<target_dir>/.work/` or `/tmp`) and d
 - **Alt text**: docling's generic `Image` alt carries no meaning; it comes back byte-for-byte with the reinserted image anyway. Never invent descriptive alt text that isn't in the source.
 - **Callout marker headings**: docling maps PDF callout boxes to marker headings like `## NOTE`, `## CAUTION`, `## WARNING`, `## IMPORTANT`. Keep the marker word untranslated — doc pipelines and site styles often key on it — and translate the paragraph below it.
 
-The most dangerous failure mode of bulk translation is silent omission: a dropped table row, a skipped glossary entry, a missing section. Readers rarely notice, so verification must be mechanical, not visual. That is why the pipeline ends in two independent checks (image bytes + structure). A related trap specific to docling output: converters split long tables across page breaks into separate blocks with `Table continues...` / `Table continued...` markers between them. Keep the source's block boundaries exactly — do not merge continued tables into one or re-split them at different points, or the translated document will no longer line up with the source's pagination structure.
+The most dangerous failure mode of bulk translation is silent omission: a dropped table row, a skipped glossary entry, a missing section. Readers rarely notice, so verification must be mechanical, not visual. That is why the pipeline ends in two independent checks (image bytes + structure). A related trap specific to docling output: converters split long tables across page breaks into separate blocks with `Table continues...` / `Table continued...` markers between them. Keep the source's block boundaries exactly — do not merge continued tables into one or re-split them at different points, or the translated document will no longer line up with the source's pagination structure. The continuation markers themselves are often `##` headings; keep their exact count, order, and position relative to the surrounding section headings. Do not "re-flow", merge, delete, or re-create them — `verify_structure.py` reports any drift (e.g. two extra `## Table continued...` headings inserted before a register section).
 
 ## Performance: parallel translation
 
@@ -142,7 +143,8 @@ Keep segments in the scratch folder (`<target_dir>/.work/segments/`) and delete 
 ## What to translate
 
 - Headings, paragraphs, list items, blockquotes
-- Table cells containing prose (keep the table structure and alignment)
+- Table cells containing prose (keep the table structure and alignment) — this includes column headers and repeated cells such as `Reset value`, `Width (In bits)`, `From initiator`, `Submodule instance`, `Not applicable`, and full sentences in register-field and glossary tables. Identifiers (register names, hex offsets, bit patterns like `0000_001Fh`, module names like `MDAC_A0`, acronyms) stay as-is; prose gets translated.
+- Docling merged-table cells: when a converter merges page-split tables (Table 117/118/119 collapse into one block), the embedded caption text like `Table 118. MDAC configuration in CPE` becomes a CELL. Translate it as prose (`表 118. CPE 中的 MDAC 配置`) — it is still visible text.
 - Link text and image alt text
 - HTML comment text outside code blocks, and visible text inside inline HTML
 
@@ -152,6 +154,7 @@ Keep segments in the scratch folder (`<target_dir>/.work/segments/`) and delete 
 - Translate common technical nouns when a standard term exists in the target language (e.g., Simplified Chinese: component → 组件, interface → 接口, configuration → 配置, parser → 解析器). When no standard term exists, keep the English word — an untranslated term reads fine, a mistranslated one misleads.
 - If the target folder (or the project) already contains translations, skim one first and match its terminology and tone. Consistency with existing docs beats individual preference.
 - Pick terminology in the first file and stick with it across the whole batch. In a parallel run, decide the glossary BEFORE any worker starts — see *Fix terminology before any worker starts* under *Performance*; workers start simultaneously, so there is no "first file" to learn from.
+- **Repeated sections must read identically.** Reference manuals document the same register family once per instance (e.g. sections 31.8.3.x, 31.8.4.x ... one per XRDC instance, or one chapter per CPU core). The Chinese heading for `Control (CR)` must be the same in every instance: 控制（CR） everywhere, not 控制（CR） in four sections and 控制寄存器（CR） in the fifth. Same for 内存映射/存储器映射, 主域分配/主设备域分配. Different parallel workers translating sibling sections is the usual cause — after join, scan repeated headings for inconsistencies and unify them.
 
 ## Simplified Chinese conventions
 
