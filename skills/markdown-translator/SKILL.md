@@ -6,6 +6,7 @@ license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [markdown, translation, localization, docling, simplified-chinese]
 version: "1.0.0"
+product-version: "1.0.0"
 ---
 
 # Markdown Translator

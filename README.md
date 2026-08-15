@@ -168,12 +168,12 @@ npx skills-check check,audit,lint,budget \
 
 ### GitHub Action
 
+Run the published CLI directly in CI (the `voodootikigod/skills-check` action pins an npm-unpublished version — see [#92](https://github.com/melodypapa/uncertainty/issues/92)):
+
 ```yaml
-- uses: voodootikigod/skills-check@v1
-  with:
-    commands: 'audit,lint,budget'
-    audit-fail-on: 'high'
-    budget-max-tokens: 50000
+- run: npx --yes skills-check@1.2.1 audit . --fail-on high
+- run: npx --yes skills-check@1.2.1 lint . --fail-on error
+- run: npx --yes skills-check@1.2.1 budget . --max-tokens 50000
 ```
 
 [Full documentation →](https://www.skillscheck.ai/)
