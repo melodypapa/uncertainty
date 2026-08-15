@@ -6,6 +6,7 @@ license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [github, workflow, commit, pr, quality-gates]
 version: "1.0.3"
+product-version: "1.0.3"
 ---
 
 # GitHub Workflow
@@ -76,7 +77,7 @@ which gh || echo "Install GitHub CLI: brew install gh"
 
 **Validate remote URL format:**
 - ✅ `git@github.com:owner/repo.git`
-- ✅ `https://github.com/owner/repo.git`
+- ✅ [github.com/octocat/Hello-World.git](https://github.com/octocat/Hello-World.git)
 
 **Multiple remotes?** Ask user which remote to use.
 

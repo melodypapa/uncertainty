@@ -6,6 +6,7 @@ license: MIT
 repository: https://github.com/melodypapa/uncertainty
 keywords: [requirements, traceability, iso-29148, iso-29119-4, test-design, test-cases, coverage, documentation]
 version: "1.3.3"
+product-version: "1.3.3"
 spec-version: "1.0.0"
 ---
 
