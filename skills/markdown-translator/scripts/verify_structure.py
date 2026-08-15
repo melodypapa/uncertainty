@@ -157,7 +157,9 @@ def untranslated_prose_cells(text):
     """Table cells in the translation that are still English prose (not
     identifiers/symbols): at least 2 words, one lowercase, no digits/underscore/
     equals, and no Chinese. These should have been translated per the skill
-    ('Table cells containing prose')."""
+    ('Table cells containing prose'). OCR-spaced field names like 'D d ACP' or
+    'MRCFG c' (a standalone lowercase letter between tokens) are identifiers
+    and are not flagged."""
     flags = []
     for ln in text.splitlines():
         if not ln.lstrip().startswith("|"):
@@ -171,6 +173,10 @@ def untranslated_prose_cells(text):
             if "_" in cell or "=" in cell or "{" in cell or "}" in cell:
                 continue
             if re.search(r"\d", cell):
+                continue
+            # OCR-spaced identifier: a standalone lowercase letter between tokens
+            # (D d ACP, MRCFG c, PID m [TSM] (b), DERRLOC d [MRCINST])
+            if re.search(r"(^| )[a-z]( |$)", cell):
                 continue
             words = re.findall(r"[A-Za-z][A-Za-z\-']*", cell)
             if len(words) < 2:
