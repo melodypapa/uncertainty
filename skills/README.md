@@ -41,7 +41,8 @@ Bulk-translate markdown documentation between parallel language folders (default
 - Docling/PDF-to-markdown support: inline base64 images never pass through the model — extracted to placeholder tokens, re-inserted byte-for-byte, then verified
 - Local image assets copied to mirrored paths so translated docs still render
 - Content-completeness verification: every heading, table row, list item, and caption mechanically checked against the source — silent omissions cannot ship
-- Incremental: MISSING/STALE plan report, existing-translation conflict handling
+- Incremental: MISSING/STALE plan via `scan`, existing-translation conflict handling
+- Parallel translation: large chapters split at heading boundaries (`md_split.py`) with segments translated by concurrent subagents, batches distributed across workers with a shared terminology glossary — no more segment-after-segment serial translation
 - Terminology consistency with existing translations; code blocks, frontmatter, URLs, and identifiers preserved verbatim
 
 **Usage:**

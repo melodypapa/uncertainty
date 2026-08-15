@@ -12,7 +12,7 @@ version: "1.0.0"
 
 Translate every markdown file under a source-language folder into a target language, writing results to a parallel folder with the same internal structure. The default and most common case is English (`en/`) → Simplified Chinese (`chn/`), but the folder names and target language are parameters, so the same workflow handles any pair (e.g., `en/` → `ja/` in Japanese).
 
-The translation is done by you, directly, file by file. Read a file, produce a complete high-quality translation, write it out, then move to the next. No external translation services are used.
+The translation is done by you and the subagents you dispatch: files and segments are translated in parallel (see *Performance: parallel translation*), then verified mechanically. No external translation services are used.
 
 ## Parameters
 
@@ -36,15 +36,15 @@ Defaults exist so a vague prompt still works. Explicit user wording always wins:
    - **Update stale only** — compare modification times; re-translate files whose source is newer than its translation
    - **Re-translate all**
 
-   For large trees, don't compare by hand — run the bundled script's `plan` subcommand (`python <skill-dir>/scripts/md_images.py plan <path>/<source_dir> <path>/<target_dir>`) to list MISSING and STALE files mechanically.
+   For large trees, don't compare by hand — run the bundled `scan` subcommand once (`python <skill-dir>/scripts/md_images.py scan <path>/<source_dir> <path>/<target_dir>`). It prints JSON: every file's `status` (missing/stale/ok), its `text_bytes` (size with inline images excluded), and a `todo_text_bytes` total — exactly the input needed to plan the parallel work (see *Performance*).
 
    If no interactive user is available (background or headless run), default to **skip existing** and list the skipped files in the final summary instead of silently overwriting someone's work.
 
-4. **Translate file by file.** Before reading a source file, check it for inline base64 images: `python <skill-dir>/scripts/md_images.py status <file>` (or `grep -c 'data:image' <file>`). Zero inline images: read it, translate it completely, write it to the mirrored path (creating parent directories as needed). Any inline images: use the extract → translate → restore pipeline in *Embedded images* below. When a file references local image or asset files, copy them into the mirrored location in the target folder. Never leave sections untranslated, never insert TODO placeholders, and never truncate long files — a partial translation looks done but isn't. Finishing each file before starting the next means an interrupted run loses at most one file.
+4. **Translate — in parallel, never segment after segment.** One conversation translating a large chapter section by section is the slowest possible path: every segment is a separate sequential round trip. Work through the batch in parallel instead (see *Performance: parallel translation*): small files whole, large files split into segments, each handled by its own subagent. Per file: check inline images with `python <skill-dir>/scripts/md_images.py status <file>` (or `grep -c 'data:image' <file>`); zero inline images — read it, translate it completely, write it to the mirrored path (creating parent directories as needed); any inline images — use the extract → translate → restore pipeline in *Embedded images* below. When a file references local image or asset files, copy them into the mirrored location in the target folder. Never leave sections untranslated, never insert TODO placeholders, and never truncate long files — a partial translation looks done but isn't. An interrupted run loses at most one segment, not the batch.
 
-5. **Report.** When finished, print a short summary: number of files translated, inline images restored and local asset files copied, files skipped (and why), and any files that contained no translatable prose (pure code/config files — just copy or note them). Include the output folder path.
+5. **Report.** When finished, print a short summary: number of files translated, parallel workers used and segments split (see *Performance*), inline images restored and local asset files copied, files skipped (and why), and any files that contained no translatable prose (pure code/config files — just copy or note them). Include the output folder path.
 
-For large batches (more than ~10 files), give brief progress updates every few files rather than going silent.
+For large batches (more than ~10 files), give brief progress updates as parallel workers complete rather than going silent.
 
 ## What to preserve verbatim
 
@@ -69,7 +69,7 @@ Docling and similar PDF→markdown converters embed images INLINE as base64 data
 
 1. **Extract** — `python <skill-dir>/scripts/md_images.py extract <src.md> <work>/src stripped.md <work>/src.map.json`
    Writes a text-only copy where every inline image becomes `![Image](IMG_PLACEHOLDER_0)`, plus a JSON map holding the original image markdown.
-2. **Translate** the text-only copy into `<work>/translated.md` following the rules in this skill. The tokens are load-bearing: never translate, renumber, reorder, reformat, or delete `IMG_PLACEHOLDER_N`, and never alter the `![...]()` wrapper around it. Each token stays on the same line/position as in the stripped file.
+2. **Translate** the text-only copy into `<work>/translated.md` following the rules in this skill. If the copy is large (>~8 KB of text), translate it as parallel segments instead — see *Performance: parallel translation*. The tokens are load-bearing: never translate, renumber, reorder, reformat, or delete `IMG_PLACEHOLDER_N`, and never alter the `![...]()` wrapper around it. Each token stays on the same line/position as in the stripped file.
 3. **Restore** — `python <skill-dir>/scripts/md_images.py restore <work>/translated.md <work>/src.map.json <dst.md>`
    Re-inserts each original image byte-for-byte. The script exits with an error naming any placeholder the translation lost, so corruption surfaces immediately instead of shipping broken images.
 4. **Verify** — run both checks on every file that used the pipeline:
@@ -90,6 +90,54 @@ Keep work files in a scratch folder (e.g. `<target_dir>/.work/` or `/tmp`) and d
 
 The most dangerous failure mode of bulk translation is silent omission: a dropped table row, a skipped glossary entry, a missing section. Readers rarely notice, so verification must be mechanical, not visual. That is why the pipeline ends in two independent checks (image bytes + structure). A related trap specific to docling output: converters split long tables across page breaks into separate blocks with `Table continues...` / `Table continued...` markers between them. Keep the source's block boundaries exactly — do not merge continued tables into one or re-split them at different points, or the translated document will no longer line up with the source's pagination structure.
 
+## Performance: parallel translation
+
+Sequential translation — one conversation reading a file and generating its translation "segment after segment" — is the bottleneck of bulk work. Every segment is a separate model round trip; a 40 KB chapter can cost dozens, and a batch costs dozens more. Files are independent of each other, and the sections of one file are independent once the terminology is fixed, so translate in parallel with subagents.
+
+### Plan the work with `scan` (once, before translating)
+
+    python <skill-dir>/scripts/md_images.py scan <path>/<source_dir> <path>/<target_dir>
+
+Prints JSON: per-file `status` (missing/stale/ok) and `text_bytes` (inline images excluded — the size that actually drives translation cost), plus a `todo_text_bytes` summary. Use it to decide:
+
+- **Big files** (`text_bytes > ~8000`, roughly 150+ lines of prose) → split into segments (below).
+- **Everything else** → translate whole, one subagent per file or small group.
+- **Worker count** → 3–6 subagents total; group small files so each worker gets a fair share. A few small files don't pay for the overhead — translate directly.
+
+### Fix terminology before any worker starts
+
+The only thing that couples translations is terminology, and it must be decided once, up front, so workers never wait on each other:
+
+1. If the target folder already has translations, skim one and extract its term pairs (e.g. `component → 组件`).
+2. Otherwise skim the most representative source file — an index or glossary file if present, else the first file in sorted order — and pick terms for the recurring nouns (parser, interface, configuration, pipeline, ...).
+3. Hand the SAME glossary and language conventions to every worker. Consistency then holds by construction instead of by checking each other's output.
+
+### Parallelize a batch across files
+
+Dispatch one subagent per file (or per small group). Each worker gets: the source path, the mirrored destination path, the target language, the glossary, and the translation rules in this skill (preserve code/frontmatter/URLs verbatim; translate headings/prose/tables/link text; run extract → restore → verify for its own files if they contain inline images). Workers write their own files and run their own verification; the main agent re-translates nothing.
+
+### Parallelize one large file across segments
+
+For a big file (or a big stripped copy):
+
+1. **Extract** inline images if any (pipeline above) → text-only copy + map.
+2. **Split** the text-only copy at heading boundaries:
+
+       python <skill-dir>/scripts/md_split.py split <stripped.md> <segdir> --target-size 4096
+
+   Segments never split inside fenced code blocks or frontmatter, and the IMG_PLACEHOLDER_N tokens keep their global numbering, so no renumbering is ever needed. A `NO-SPLIT` result means the file has no usable heading boundaries — translate it directly.
+3. **Dispatch** one subagent per part. Each worker reads its part file and writes `<part>.zh.md` next to it, then stops. The worker prompt must repeat the preservation rules: keep code blocks, frontmatter, URLs, HTML tags, and every `IMG_PLACEHOLDER_N` token byte-for-byte; keep heading levels and table structure; apply the glossary and language conventions. Workers never restore images or verify structure — that happens once, after join.
+4. **Join**:
+
+       python <skill-dir>/scripts/md_split.py join <segdir> <translated.md>
+
+   Fails loudly if any part is missing (a worker that didn't finish) or if a placeholder token count drifted. Fix the failed part, then rejoin.
+5. **Restore + verify** exactly as in the single-file pipeline (restore, then image verify + structure verify). The checks don't change: the joined file IS the full translation.
+
+Keep segments in the scratch folder (`<target_dir>/.work/segments/`) and delete them after a successful verify.
+
+**Never** hand-split a file, **never** let workers translate each other's segments or re-read the whole manual, and **never** skip the final verification after joining — split/join bugs surface exactly there.
+
 ## What to translate
 
 - Headings, paragraphs, list items, blockquotes
@@ -102,7 +150,7 @@ The most dangerous failure mode of bulk translation is silent omission: a droppe
 - Keep in English: product and standard names (AUTOSAR, ARXML), acronyms the reader is expected to know (ECU, BSW, API, CLI), tool and command names (`arxml-format`), and anything that is also an identifier in the surrounding code.
 - Translate common technical nouns when a standard term exists in the target language (e.g., Simplified Chinese: component → 组件, interface → 接口, configuration → 配置, parser → 解析器). When no standard term exists, keep the English word — an untranslated term reads fine, a mistranslated one misleads.
 - If the target folder (or the project) already contains translations, skim one first and match its terminology and tone. Consistency with existing docs beats individual preference.
-- Pick terminology in the first file and stick with it across the whole batch.
+- Pick terminology in the first file and stick with it across the whole batch. In a parallel run, decide the glossary BEFORE any worker starts — see *Fix terminology before any worker starts* under *Performance*; workers start simultaneously, so there is no "first file" to learn from.
 
 ## Simplified Chinese conventions
 
