@@ -9,7 +9,15 @@ Additional checks that catch real-world translation defects:
   * blank-line separation - a heading directly after a table row (no blank line)
     is swallowed INTO the table by renderers like MkDocs/Python-Markdown
   * continuation-marker drift - docling "Table continued from the previous page..."
-    headings must keep their exact positions relative to sections
+    markers must keep their exact positions relative to sections AND their exact
+    markdown form: a marker that is a `##` heading in the source must stay a
+    heading, and a bare paragraph marker must stay a paragraph. Converting a
+    plain-text marker into a heading (or vice versa) changes the rendered HTML
+    (<h2>/<p> counts no longer match the source) even though every table row is
+    still present.
+  * callout-marker translation - docling callout headings like `## NOTE` must keep
+    the English marker word; translating it to Chinese (注) breaks site styles and
+    doc pipelines that key on it
   * untranslated English prose left inside table cells
 
 Usage: compare_structure.py <source.stripped.md> <translated.stripped.md> <label>
@@ -92,6 +100,22 @@ def blank_before_heading(text):
     return out
 
 
+def is_continuation_marker(text):
+    """Docling 'table continues/continued on the next/previous page' page-break
+    marker, English or Chinese. Distinguishes them from table captions
+    ('Table 131. ...' / '表 131. ...'), which never match."""
+    t = text.lstrip("#").strip()
+    tl = t.lower()
+    if "continued from the previous page" in tl or "continues on the next page" in tl:
+        return True
+    # Chinese variants seen in the field. '表（续' covers 表（续）...、表（续上页）。
+    # 表（续）自上一页...、表（续）来自上一页...、表（续）在下页...、表（续）在下一页...
+    # 表（续）至下一页...、表（续）见下一页... Translators are inconsistent about
+    # which variant maps to 'continues' vs 'continued', so all of them collapse to
+    # one structural key (see structural_key).
+    return t.startswith("表（续")
+
+
 def structural_key(h):
     """Normalize a heading to a structural token so translated headings compare
     equal to their source counterparts: numbered sections by number, docling
@@ -101,14 +125,16 @@ def structural_key(h):
         return "SEC:" + m.group(1)
     t = h.lstrip("#").strip()
     tl = t.lower()
-    if "continued from the previous page" in tl or "承接上页" in t:
+    if is_continuation_marker(t):
+        # All marker variants (EN continued/continues, CN 表（续）...) collapse to
+        # one key: Chinese translations don't consistently preserve the
+        # continued-vs-continues distinction, so enforcing it would create false
+        # positives. Count/order/position relative to sections is what matters.
         return "CONT"
-    if "continues on the next page" in tl or "在下页继续" in t:
-        return "CONTNEXT"
     if re.match(r"Table \d+\.", t) or re.match(r"表 \d+", t):
         return "CAP"
     if t in ("Offset", "Function", "Diagram", "Fields", "Register reset values") or t in (
-        "偏移量", "功能", "图示", "字段", "寄存器复位值"
+        "偏移量", "偏移", "功能", "图示", "图", "字段", "寄存器复位值"
     ):
         return "BODY"
     if t == "NOTE":
@@ -151,6 +177,60 @@ def structural_drift(skeys, dkeys, sh, dh):
             if a:
                 deleted.append((a, nearest_section(sh, i1)))
     return inserted, deleted
+
+
+def continuation_forms(text):
+    """Count docling continuation-marker lines by markdown form, as
+    (headings, plain_text). The source mixes `## Table continued from the
+    previous page...` headings with bare 'Table continues on the next page...'
+    paragraphs; a translation that flips a marker between forms changes the
+    rendered <h2>/<p> structure even when count/position are preserved."""
+    heads = plain = 0
+    for ln in text.splitlines():
+        if not is_continuation_marker(ln):
+            continue
+        if ln.lstrip().startswith("#"):
+            heads += 1
+        else:
+            plain += 1
+    return heads, plain
+
+
+CALLOUT_MARKERS = ("NOTE", "WARNING", "CAUTION", "IMPORTANT", "INFO", "TIP")
+TRANSLATED_CALLOUTS = ("注", "注意", "警告", "小心", "重要", "提示", "信息")
+
+
+def translated_callout_headings(sh, dh):
+    """Flag translation headings that translated a docling callout marker heading
+    (## NOTE / ## WARNING / ...) into Chinese. The skill keeps the marker word
+    untranslated - site styles and doc pipelines key on it. A translation heading
+    is flagged only when it is a bare Chinese callout word AND the source has an
+    English callout heading in the same numbered section, so genuine Chinese
+    headings elsewhere are not false positives."""
+    def section(hs, i):
+        for h in reversed(hs[: i + 1]):
+            m = re.match(r"#+\s*(\d+(?:\.\d+)*)", h)
+            if m:
+                return m.group(1)
+        return None
+
+    flags = []
+    for i, h in enumerate(dh):
+        t = h.lstrip("#").strip()
+        if t not in TRANSLATED_CALLOUTS:
+            continue
+        sec = section(dh, i)
+        if sec is None:
+            continue
+        src_in_sec = [s for j, s in enumerate(sh) if section(sh, j) == sec]
+        src_markers = [
+            s.lstrip("#").strip()
+            for s in src_in_sec
+            if s.lstrip("#").strip().upper() in CALLOUT_MARKERS
+        ]
+        if src_markers:
+            flags.append((t, sec, src_markers))
+    return flags
 
 
 def untranslated_prose_cells(text):
@@ -286,6 +366,31 @@ def main():
     sl, dl = len(list_items(src)), len(list_items(dst))
     if abs(sl - dl) > max(2, sl // 10):
         problems.append("list item count differs notably: source {} vs {} {}".format(sl, dl, label))
+
+    # Docling continuation markers must also keep their markdown form
+    # (## heading vs bare paragraph line): a flip changes the rendered
+    # <h2>/<p> structure of the generated HTML.
+    sf = continuation_forms(src)
+    df = continuation_forms(dst)
+    if sf != df:
+        problems.append(
+            "continuation-marker form drift: source has {} heading + {} plain-text marker(s), translation has {} heading + {} plain - a 'Table continues/continued...' / '表（续）...' marker was converted between ## heading and paragraph form, which changes the rendered <h2>/<p> structure".format(
+                sf[0], sf[1], df[0], df[1]
+            )
+        )
+
+    # Callout marker headings (## NOTE etc.) must keep the English marker word.
+    callouts = translated_callout_headings(sh, dh)
+    if callouts:
+        detail = "; ".join(
+            "'{}' (section {}) - source has {}".format(t, sec, ",".join(m))
+            for t, sec, m in callouts[:6]
+        )
+        problems.append(
+            "{} callout marker heading(s) translated to Chinese (keep the English marker word NOTE/WARNING/CAUTION/IMPORTANT): {}{}".format(
+                len(callouts), detail, " ..." if len(callouts) > 6 else ""
+            )
+        )
 
     # Untranslated English prose left in table cells.
     flags = untranslated_prose_cells(dst)
