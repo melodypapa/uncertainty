@@ -81,6 +81,25 @@ notice or footer banner to the body.
 - Lists mirror the source's bullets and numbering. Source `NOTE` → `**注意：**`,
   `CAUTION` → `**警告：**`, followed by the translated body.
 - No `**说明**:` + `C` blocks — that is the AUTOSAR API convention.
+- Bold markers stay balanced on every line — a stray `**` after a bolded term
+  (`复位概述（**Reset Overview**）**`) renders as literal asterisks and is a
+  defect.
+
+## Cross-references
+
+- A reference to another chapter of the same manual ("see X", 「参见 X」) becomes
+  a Markdown link to the target article, using the article path pre-assigned in
+  `references/chapter-map.md`, linked relative between sibling directories:
+  `[复位概述（**Reset Overview**）](../ch060_reset_overview/index.md)`.
+- A link to a chapter **not yet translated is still written** (a forward link):
+  the slug is pre-assigned and stable, so the link goes live when that chapter
+  lands. List the forward links in the PR body.
+- References inside the same article stay plain text — no self links.
+- Register-name mentions ("see PMC Configuration (CONFIG)") are register
+  references, not section references; they stay plain text.
+- References to documents outside the chapter corpus (attached IOMUX or
+  memory-map sheets, other vendor manuals, Arm documentation) stay plain text:
+  there is nothing to link to.
 
 ## Tables
 
