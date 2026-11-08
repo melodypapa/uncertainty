@@ -21,7 +21,7 @@ conventions live in `references/`, not in this file.
 
 There is no `STANDARD.md` for `docs/cortex/`. The law is the existing articles
 plus `references/article-format.md`. Read that reference before writing, and
-read at least one neighbouring article in the same `docs/cortex/<core>_processor/`
+read at least one neighbouring article in the same `docs/cortex/<document>/`
 tree so the new page matches its tone and structure.
 
 ## Step 1 — Resolve the source document
@@ -47,9 +47,12 @@ evidence is the figure/table number in the source (`Figure8-*` ⇒ chapter 8,
 match section headings before writing.
 
 A source chapter becomes one article at
-`docs/cortex/<core>_processor/<topic>/index.md` (`m7_processor/`,
-`r52p_processor/`). Propose the directory name to the user when a topic
-straddles two chapters or could be split.
+`docs/cortex/<document>/<topic>/index.md`, where `<document>` is the source
+document folder — `m7-trm/` (Cortex-M7 TRM DDI0489F), `armv7-m/` (Armv7-M ARM
+DDI0403E) or `r52plus-trm/` (Cortex-R52+ TRM 102199). First level is the
+source document, second level the chapter; never file two documents in one
+folder. Propose the directory name to the user when a topic straddles two
+chapters or could be split.
 
 ## Step 3 — Gap analysis before any writing
 Compare the article's `## ` headings against the source chapter's section list:
@@ -142,9 +145,11 @@ if nothing else links to it.
 
 ## Step 7 — Register the page
 
-- `mkdocs.yml`: add the page under the `ARM Cortex` group of the right core
-  (`Cortex-M7 内核` / `Cortex-R52+ 内核`).
-- `docs/cortex/index.md`: add the numbered link under the matching core section.
+- `mkdocs.yml`: add the page under the `ARM Cortex` group of the source
+  document (`Cortex-M7 TRM（DDI0489F r1p2）` / `Armv7-M 架构参考手册（DDI0403E E.e）`
+  / `Cortex-R52+ TRM（102199 r0p3）`).
+- `docs/cortex/<document>/index.md`: add the numbered link to the document
+  landing page; `docs/cortex/index.md` only links the document landing pages.
 - Insert both entries at the page's **source chapter position** — the nav group
   and the landing list are ordered by chapter number (ch1 → ch14 → appendix),
   not by arrival time. Never append a new page at the end of the group; a
@@ -167,9 +172,9 @@ if nothing else links to it.
   `system_address_map`). Insert them at their source position and renumber
   every later section, or the page silently drops the chapter's own front
   matter.
-- The document glossary is its own page: `docs/cortex/<core>_processor/glossary/index.md`,
+- The document glossary is its own page: `docs/cortex/m7-trm/glossary/index.md`,
   `title: "术语表（Glossary）"`, no local word list, one link to the Arm
-  Glossary, registered last in the core group (appendix position).
+  Glossary, registered last in the document group (appendix position).
 - Concept articles that cite external sources stay outside this skill.
 
 ## Step 8 — Verify (two-phase gate)

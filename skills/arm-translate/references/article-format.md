@@ -120,19 +120,26 @@ Never add `spec:`, `release:` or tags — that convention belongs to `docs/autos
 
 ## Landing pages and navigation
 
-- `docs/cortex/<core>_processor/<topic>/index.md` — one directory per topic.
+- `docs/cortex/<document>/<topic>/index.md` — one directory per topic, under
+  the source document folder (`m7-trm/`, `armv7-m/`, `r52plus-trm/`).
 - One source chapter maps to exactly one article. Do not split a chapter across
   directories (two articles for ch2's PSR and exception model, a separate MPU
   page for ch6); merge the parts into one page, renumber the appended sections,
   and keep old URLs alive through `redirect_maps`.
-- The document glossary goes in `docs/cortex/<core>_processor/glossary/index.md`
+- The document glossary goes in `docs/cortex/m7-trm/glossary/index.md`
   with the `title: "术语表（Glossary）"`, the sentence that the manual keeps no
   local word list, and a single link to the Arm Glossary. It is registered last
-  in the core group (appendix position).
-- `mkdocs.yml`, group `ARM Cortex` → `Cortex-M7 内核` / `Cortex-R52+ 内核`: add
-  `- "<中文标题>": cortex/<core>_processor/<topic>/index.md`.
-- `docs/cortex/index.md`: numbered link under the matching core heading
-  (`1. [程序员模型（Programmers Model）](r52p_processor/programmers_model/index.md)`).
+  in the document group (appendix position).
+- `mkdocs.yml`, group `ARM Cortex` → one nav group per source document
+  (`Cortex-M7 TRM（DDI0489F r1p2）` / `Armv7-M 架构参考手册（DDI0403E E.e）` /
+  `Cortex-R52+ TRM（102199 r0p3）`): add
+  `- "<中文标题>": cortex/<document>/<topic>/index.md` under the matching
+  document group.
+- `docs/cortex/<document>/index.md`: numbered link in source chapter order
+  (`1. [程序员模型（Programmers Model）](programmers_model/index.md)`).
+- `docs/cortex/index.md`: numbered link to the **document landing page**
+  (`1. [Cortex-R52+ TRM（102199 r0p3）](r52plus-trm/index.md)`), never to the
+  individual chapter.
 - `docs/cortex/concept/` holds externally sourced explainers; they are not
   produced by this skill.
 
