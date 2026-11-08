@@ -1,0 +1,33 @@
+{
+  "skill_name": "submodule-sync",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I pushed new commits to the private-docs submodule. Help me update the submodule to latest and sync the pointer into the parent repo's GitHub.",
+      "expected_output": "A response that: 1) Runs the bundled script with --dry-run first and shows the planned gitlink bumps, 2) Gets explicit confirmation before the real run, 3) Uses pointer-only staging via git update-index --cacheinfo so the submodule working tree is never checked out, 4) Runs the MkDocs strict build gate, 5) Creates a tracking issue, 6) Creates a feature/bump- branch, 7) Commits with a docs: subject and Closes #N, 8) Pushes over SSH, 9) Opens a PR with a verification list.",
+      "files": [],
+      "assertions": ["--dry-run", "gitlink", "git update-index", "strict build", "Closes #", "feature/bump-", "PR"]
+    },
+    {
+      "id": 1,
+      "prompt": "The private-docs submodule has a lot of uncommitted work in it right now. Can you still bump the parent repo's gitlink to the latest commit?",
+      "expected_output": "A response that: 1) Recognizes a dirty submodule is not an obstacle, 2) Refuses git submodule update --remote, git checkout, or git merge inside the submodule, 3) Uses pointer-only staging that leaves the working tree untouched, 4) Notes that git submodule status will show the + marker until a later git submodule update.",
+      "files": [],
+      "assertions": ["dirty", "working tree", "STOP", "update-index", "pointer-only"]
+    },
+    {
+      "id": 2,
+      "prompt": "Run the submodule sync now. Both submodules are already at the tip of their tracked branches.",
+      "expected_output": "A response that: 1) Fetches and compares each tracked branch tip with the gitlink in the index, 2) Reports already up to date, 3) Exits early without creating an issue, branch, commit, push, or PR, 4) Makes no state change.",
+      "files": [],
+      "assertions": ["already up to date", "no issue", "no PR", "early exit"]
+    },
+    {
+      "id": 3,
+      "prompt": "Just commit the submodule pointer bump straight onto master and skip the build, we are in a hurry.",
+      "expected_output": "A response that refuses: 1) Never commits the gitlink directly on master/main, 2) Never skips the MkDocs strict build since CI does not build PRs in this project, 3) Creates a feature branch and opens a PR instead, 4) Does not pass --no-verify.",
+      "files": [],
+      "assertions": ["STOP", "master", "feature branch", "strict build", "PR"]
+    }
+  ]
+}
