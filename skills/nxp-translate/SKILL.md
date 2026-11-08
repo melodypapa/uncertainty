@@ -212,7 +212,11 @@ image left; no `# ` in the body; every `## ` heading is Chinese with the source
 number; numbering continuity at every level (`### 7.10` implies `### 7.9`,
 `## 3.` implies `## 2.`); no untranslated English paragraph; no empty section
 body; and a **file → nav orphan check** for all `docs/nxp/s32g3/ch*/index.md`
-pages (strict build only checks nav → file, not the reverse).
+pages (strict build only checks nav → file, not the reverse). Also: bold
+markers balanced on every line (no odd `**` count), and every 「参见 X」
+pointing at another chapter is a Markdown link to the target article path
+from `references/chapter-map.md` (forward links to untranslated chapters
+allowed; see `references/article-format.md` § Cross-references).
 `check_heading_lang.py` is AUTOSAR-tuned and blind to bold-paragraph deep
 labels, so it is a tripwire, not the whole check.
 
