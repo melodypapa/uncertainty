@@ -1,15 +1,16 @@
 ---
 name: autosar-translate
 description: >
-  Use when working on the AUTOSAR articles of the melodypapa.github.io MkDocs
-  site: translating, completing, updating, verifying, or inventorying any
-  article under docs/autosar/; syncing a specification document (AUTOSAR
-  SWS/EXP/SRS/TPS, releases R22-11/R23-11/R25-11, docs/autosar_pdf PDFs, or
-  the ../autosar_standard markdown tree) into a Type A article;
-  checking which specs still lack articles; or answering coverage and
-  progress questions about docs/autosar/ (TODO.md, STANDARD.md). Also use
-  for any AUTOSAR module name (CanSM, SoAd, Dem, NvM, EthSwt, Com, Det…)
-  appearing in the context of this site.
+  Use when translating, completing, updating, verifying or inventorying AUTOSAR
+  articles under docs/autosar/ of the melodypapa.github.io MkDocs site; syncing
+  a spec (SWS/EXP/SRS/TPS, R22-11/R23-11/R25-11, docs/autosar_pdf PDFs,
+  ../autosar_standard markdown) into a Type A article; checking which specs
+  lack articles; or answering coverage questions (TODO.md, STANDARD.md). Also
+  for any AUTOSAR module name (CanSM, SoAd, Dem, NvM, EthSwt, Com, Det…) in
+  this site's context.
+author: melodypapa
+license: MIT
+repository: https://github.com/melodypapa/uncertainty
 ---
 
 # AUTOSAR Spec → Site Article Sync

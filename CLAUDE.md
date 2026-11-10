@@ -93,7 +93,7 @@ xdm-schema-req also has `trigger_evals.json` for trigger-condition testing.
 
 - **Never read SKILL.md directly** — invoke skills via `Skill` tool (system handles loading)
 - **Never commit to main** — always feature branch + PR
-- **Skill frontmatter**: `name` only `[a-z0-9-]`; `description` third person, starts with "Use when...", max 1024 chars, describes triggers only (never summarizes workflow)
+- **Skill frontmatter**: `name` only `[a-z0-9-]`; `description` third person, starts with "Use when...", max 500 chars, describes triggers only (never summarizes workflow); `author`, `license` and `repository` are required by `skills-check@1.2.1 lint`
 - **Commit format**: `<type>: <description>` with `Closes #<issue-number>`, no `Co-Authored-By`
 - **Skill spec**: https://agentskills.io/specification
 - **Graphviz dot syntax** for flowcharts

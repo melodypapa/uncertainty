@@ -40,7 +40,7 @@ skills/<skill-name>/<skill-name>-workspace/
 
 ## Critical Rules
 - Never read `SKILL.md` directly — invoke skills via `Skill` tool
-- Skill frontmatter: `name` only [a-z0-9-]; `description` third person, starts with "Use when...", max 1024 chars (trigger conditions only, no workflow summary)
+- Skill frontmatter: `name` only [a-z0-9-]; `description` third person, starts with "Use when...", max 500 chars (trigger conditions only, no workflow summary); `author`, `license` and `repository` are required — `skills-check@1.2.1 lint . --fail-on error` enforces all three and the 500-char cap
 - Skill TDD: RED (baseline without skill) → GREEN (minimal fix) → REFACTOR (close loopholes). Details in `skills/README.md`
 - Commit format: `<type>: <description>` with `Closes #<issue>`. No `Co-Authored-By`
 - **NEVER commit directly to main branch** — Always create a feature branch, then PR for review

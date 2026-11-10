@@ -1,14 +1,16 @@
 ---
 name: arm-translate
 description: >
-  Use when translating, completing, verifying, or inventorying the Arm
-  technical-reference articles under docs/cortex/ of the melodypapa.github.io
-  MkDocs site; when syncing a Cortex-M7, Cortex-R52 or Armv8-M Arm document (TRM,
-  Armv7-M/Armv8-M architecture reference manual, SDEN errata) from the local
-  `reference-docs/arm` mirror into a docs/cortex page; or when asked about coverage of
-  a Cortex core chapter such as MPU, cache, memory system, programmers model,
-  exception model, instruction set, or system address map; or when merging split
-  chapter pages and registering a document glossary.
+  Use when translating, completing, verifying or inventorying the Arm reference
+  articles under docs/cortex/ of the melodypapa.github.io MkDocs site; syncing a
+  Cortex-M7, Cortex-R52+ or Armv8-M document (TRM, Armv7-M/Armv8-M manual,
+  SDEN errata) from `reference-docs/arm` into a docs/cortex page; answering
+  coverage questions about MPU, cache, memory system, programmers model,
+  exception model, instruction set or system address map; or merging split
+  chapter pages and registering a glossary.
+author: melodypapa
+license: MIT
+repository: https://github.com/melodypapa/uncertainty
 ---
 
 # Arm Document → Cortex Article Sync
