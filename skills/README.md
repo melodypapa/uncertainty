@@ -105,13 +105,17 @@ skill-name/
 ---
 name: skill-name-with-hyphens
 description: Use when [specific triggering conditions and symptoms]
+author: melodypapa
+license: MIT
+repository: https://github.com/melodypapa/uncertainty
 ---
 ```
 
 **Rules:**
 - `name`: Only letters, numbers, hyphens (no parentheses/special chars)
 - `description`: Third person, starts with "Use when...", includes specific triggers/symptoms, NEVER summarizes workflow
-- Max 1024 characters total in frontmatter
+- `description`: Max 500 characters — `skills-check@1.2.1 lint . --fail-on error` fails the CI job above that
+- `author`, `license`, `repository`: Required for publishing; CI lint fails without them
 
 ## Example Template
 
@@ -119,6 +123,9 @@ description: Use when [specific triggering conditions and symptoms]
 ---
 name: example-skill
 description: Use when encountering [specific problem] with [symptoms like error X, situation Y]
+author: melodypapa
+license: MIT
+repository: https://github.com/melodypapa/uncertainty
 ---
 
 # Skill Name

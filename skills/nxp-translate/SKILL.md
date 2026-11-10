@@ -3,11 +3,13 @@ name: nxp-translate
 description: >
   Use when translating, completing, verifying or inventorying the Chinese NXP
   S32G3 articles under docs/nxp/s32g3/ of the melodypapa.github.io MkDocs site;
-  when a chapter of the NXP S32G3 Reference Manual (S32G3RM) in
-  reference-docs/nxp/ needs a one-chapter-one-file page; when asked about S32G3
-  chapter coverage or a module chapter (PIT, FlexCAN, XRDC, MC_CGM, MC_ME,
-  FCCU, ERM, EIM, Debug); or when the task involves NXP register tables,
-  globally numbered figures, or cropping diagrams from an NXP manual PDF.
+  when an S32G3 Reference Manual (S32G3RM) chapter in reference-docs/nxp/
+  needs a one-chapter-one-file page; for S32G3 chapter coverage or module
+  chapters (PIT, FlexCAN, XRDC, MC_CGM, MC_ME, FCCU, ERM, EIM, Debug); or for
+  NXP register tables, globally numbered figures, or cropping manual diagrams.
+author: melodypapa
+license: MIT
+repository: https://github.com/melodypapa/uncertainty
 ---
 
 # NXP Reference Manual → Chapter Article Sync
