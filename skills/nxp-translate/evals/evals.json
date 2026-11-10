@@ -148,6 +148,11 @@
           "check": "no file edits, no git commands"
         }
       ]
+    },
+    {
+      "id": 10,
+      "prompt": "Offline inventory run: produce a sections-only chapter inventory for chapter 91 of the S32K5 RM PDF (rm1131130-S32K5_RM_Rev3_plain.pdf) with target root /tmp/eval-nxp-target — report the target article path, PDF page range, outline section count and chapter title. Do not modify any repository.",
+      "expected_output": "A report with target /tmp/eval-nxp-target/ch091_flexible_i_o_flexio/index.md, page range 5314-5392, 97 outline sections, title 'Flexible I/O (FLEXIO)'"
     }
   ]
 }
