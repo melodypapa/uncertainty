@@ -1,28 +1,44 @@
 ---
 name: autosar-translate
 description: >
-  Use when translating, completing, updating, verifying or inventorying AUTOSAR
-  articles under docs/autosar/ of the melodypapa.github.io MkDocs site; syncing
-  a spec (SWS/EXP/SRS/TPS, R22-11/R23-11/R25-11, docs/autosar_pdf PDFs,
-  ../autosar_standard markdown) into a Type A article; checking which specs
-  lack articles; or answering coverage questions (TODO.md, STANDARD.md). Also
-  for any AUTOSAR module name (CanSM, SoAd, Dem, NvM, EthSwt, Com, Det…) in
-  this site's context.
+  Use when translating, completing, updating, verifying or inventorying
+  Chinese AUTOSAR standard articles (Type A SWS module articles and
+  skeleton-exempt Foundation guides); syncing a spec (SWS/EXP/SRS/TPS from any
+  release, from a markdown mirror or bundled PDFs — locations are run
+  parameters) into a Type A article; checking which specs lack articles; or
+  answering coverage questions (TODO.md, STANDARD.md). Also for any AUTOSAR
+  module name (CanSM, SoAd, Dem, NvM, EthSwt, Com, Det…) in the context of an
+  AUTOSAR article corpus. Corpus-agnostic: the source corpus and the target
+  location are run parameters.
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
 ---
 
-# AUTOSAR Spec → Site Article Sync
+# AUTOSAR Spec → Article Sync
 
-Translate or complete the Chinese articles under `docs/autosar/` of this
-MkDocs site from authoritative AUTOSAR standard documents. The workflow below
-distills six completed syncs (BswM, EcuM, Mode-Management guide, ICU, DIO,
-Port, PWM, OCU); follow it in order.
+Translate or complete the Chinese AUTOSAR articles of a target corpus from
+authoritative AUTOSAR standard documents. The workflow below distills many
+completed syncs; follow it in order.
+
+## Run parameters
+
+Every run is anchored on parameters taken from the requester or from the
+corpus's own ledger — never from this skill:
+
+| Parameter | Meaning |
+| --- | --- |
+| **Source corpus** | the AUTOSAR markdown mirror (preferred) and/or bundled-PDF corpus, with the release to translate from |
+| **Target root** | the directory the articles are written to (`<target>/cp/<section>/`, `<target>/foundation/<topic>/`) |
+
+Per-corpus artifacts (`STANDARD.md`, `TODO.md`, `sync-todo/`, `glossary.md`,
+the API listing) live **inside the target root**. This skill names no
+repository or folder of any specific corpus; the melodypapa.github.io corpus
+serves as the worked example in many rule annotations below.
 
 ## Step 0 — Read the law of the land
 
-Read `docs/autosar/STANDARD.md` in the target repo before anything else. It
+Read `<target>/STANDARD.md` before anything else. It
 defines the mandatory Type A chapter skeleton, canonical chapter wording,
 formatting rules, translation principles, landing-page format, and the
 exemption list (guide/EXP articles). This skill does not restate those rules —
@@ -33,25 +49,25 @@ stop and ask the user how to proceed rather than guessing conventions.
 
 Read `references/source-resolution.md` for the full recipe. Summary:
 
-1. **Primary source**: markdown conversion of the standard,
-   `../autosar_standard/markdown/Classic_Platform/Releases/R23-11/<Category>/AUTOSAR_CP_<Type>_<Name>.md`
-   (confirm the path on this machine first; it is outside the repo).
+1. **Primary source**: the markdown mirror of the standard (a run parameter),
+   laid out as
+   `<mirror>/Classic_Platform/Releases/<Release>/<Category>/AUTOSAR_CP_<Type>_<Name>.md`.
    Use the **SWS** document for module articles, **EXP** for guides. The SRS
    is only for requirement-coverage checks — never as the structural source.
-   **Foundation rows** (`sync-todo/Group-foundation-exp.md`, `Group-foundation-rs-prs.md`) resolve against the
-   sibling tree
-   `../autosar_standard/markdown/Foundation/Releases/R23-11/<Topic>/AUTOSAR_FO_<Type>_<Name>.md`;
+   **Foundation rows** resolve against the sibling tree
+   `<mirror>/Foundation/Releases/<Release>/<Topic>/AUTOSAR_FO_<Type>_<Name>.md`;
    every Foundation document (RS/PRS/TPS/TR/EXP/ASWS) is skeleton-exempt
    (STANDARD.md §7) and follows the EXP-guide flow — the article mirrors the
-   source's own chapter numbering under `docs/autosar/foundation/<topic>/`.
-   The RS/PRS/TPS item-ID handling decision lives in the `Group-foundation-rs-prs.md` header.
+   source's own chapter numbering under `<target>/foundation/<topic>/`.
+   The RS/PRS/TPS item-ID handling decision (2026-11-03, Foundation batch) is: item IDs are dropped, titles translate only.
 2. **Fallback by release**: no R22-11 markdown exists. If the requested
    release is missing, use the nearest available release and **state which
    release you used** in the issue and PR text.
-3. **Last resort**: bundled PDFs in `docs/autosar_pdf/AUTOSAR_CP/<Release>/`
-   (pypdf extraction recipe and fidelity warnings in the reference). No
-   Foundation PDFs are bundled; the corpus repo holds them under
-   `../autosar_standard/Foundation/Releases/<Release>/` (Git LFS).
+3. **Last resort**: the bundled-PDF corpus (a run parameter), laid out as
+   `<pdf-corpus>/AUTOSAR_CP/<Release>/` (pypdf extraction recipe and fidelity
+   warnings in the reference). Foundation PDFs may live in the mirror repo
+   under `<mirror>/Foundation/Releases/<Release>/` (often Git LFS — confirm
+   materialisation).
 
 ## Step 2 — Map spec → target article
 
@@ -104,24 +120,27 @@ site convention and reading them can break the API pipeline.
 Before writing anything, turn the gap analysis into a **concrete checkbox todo
 list**. Three sources feed it:
 
-- **The rule**: expand `docs/autosar/STANDARD.md` into a per-article checklist
+- **The rule**: expand `<target>/STANDARD.md` into a per-article checklist
   — 7-chapter skeleton, canonical chapter wording, no forbidden chapters, no
   requirement IDs, front-matter title only, footer pattern, nav registration
   and the three derived index pages (Step 6.3).
-- **The progress**: the article's current row in `docs/autosar/TODO.md` plus
+- **The progress**: the article's current row in `<target>/TODO.md` plus
   the gap-analysis results.
 - **The decisions**: anything the user decides mid-run (a wording choice, a
   scope cut, a source-release fallback) is appended to the file the moment it
   is given.
 
 **Output contract:** the program's todo is the **persistent batch queue** in
-`docs/autosar/sync-todo/` — `Group-<section>.md` files, one row per document,
-each row carrying a 6-step sub-checklist; `index.md` orders the batches
+`<target>/sync-todo/` — two files:
+`Group-unfinished.md` (open rows, verbatim, one row per document each carrying
+a 6-step sub-checklist, grouped by source batch) and `Group-finished.md`
+(condensed archive of done rows); `index.md` holds the resume rules
 (`todo.md` alongside the outputs for a workspace/eval run). A run consumes
-**one row**: take the first `[ ]` row of the named (or next unfinished) batch,
+**one row**: take the first `[ ]` row of the named (or next unfinished)
+source-batch section in Group-unfinished.md,
 append run findings to its `- Note:` bullets, tick each step the moment it
 passes, flip the row `[x]` with the commit hash (Step 8). If the user names an
-article with no queue row, add the row to the right batch file first. Format,
+article with no queue row, add the row to Group-unfinished.md first. Format,
 row template and rules: read `references/todo-format.md`. In short:
 
 - The parenthetical is the short fixed fields only; findings, evidence and
@@ -132,7 +151,7 @@ row template and rules: read `references/todo-format.md`. In short:
   batch-check at the end, never tick because a later step re-verifies it.
 - A queue row exists for the article ⇒ **resume**: take the first `[ ]` row;
   do not re-derive scope from TODO.md or re-ask decisions already in Notes.
-- The row `[x]` + its 6 step boxes `[x]` + the `docs/autosar/TODO.md` row
+- The row `[x]` + its 6 step boxes `[x]` + the `<target>/TODO.md` row
   updated (Step 8) = the run is finished. Never declare it finished with any
   `[ ]` left in the row.
 
@@ -140,8 +159,8 @@ Observed failures when this contract is skipped: the iteration-1 baseline run
 translated end-to-end and only surfaced its plan afterwards, as prose —
 coverage decisions were never reviewable before the work was done; the DIO run
 (2026-10-24) posted its todo to chat and never saved a file. The full-program
-queue (`docs/autosar/sync-todo/`, generated 2026-10-24 from the R23-11
-inventory) is the "translate one by one" backbone; `TODO.md`'s Backlog keeps
+queue (`<target>/sync-todo/`) is the "translate one by one" backbone;
+`TODO.md`'s Backlog keeps
 program-level fixes outside single-article runs (wording sweeps, hygiene).
 
 ## Step 5 — Translate in place
@@ -375,7 +394,7 @@ program-level fixes outside single-article runs (wording sweeps, hygiene).
   参见/详见 references stay candidates for a user decision — no corpus article
   links constants (audited 2026-10-25). The census excludes the article's own
   module from cross-article mentions (a self-link is never a candidate). Use
-  `.agents/skills/autosar-translate/scripts/link_candidates.py --apply
+  `<path-to>/autosar-translate/scripts/link_candidates.py --apply
   <article>` (idempotent — re-running changes 0 lines; identifier/error-code
   links scan through 时序图 prose and stop before 配置规范 whose tables are
   definitional; citation-marker links scan the whole article).
@@ -425,7 +444,7 @@ program-level fixes outside single-article runs (wording sweeps, hygiene).
 
 ## Step 6 — Regenerate the derived indexes (glossary, API list, site indexes)
 
-`docs/autosar/cp/api/` (landing page + type list + function list) is a
+`<target>/cp/api/` (landing page + type list + function list) is a
 **pure derivation** (regenerate via `gen_api_list.py` when its source data
 changed); `glossary.md` is
 **manually extended during translation runs** (see below — user decision
@@ -481,7 +500,7 @@ changed); `glossary.md` is
      was pasted). `scripts/rewrite_glossary.py` normalizes the whole page
      (format, ordering, duplicate handling) and is re-runnable; it refuses
      to guess at a substantively different definition.
-2. **API listing `docs/autosar/cp/api/`** — landing page plus two A–Z pages
+2. **API listing `<target>/cp/api/`** — landing page plus two A–Z pages
    (types / functions), derived **from the translated articles only** (the
    repository is the sole input — no external corpus): identifiers are
    enumerated from each article's own identifier-shaped headings,
@@ -490,7 +509,7 @@ changed); `glossary.md` is
    excluded; the scan stops at the 配置规范 chapter), and each identifier
    deep-links to its heading's anchor. Regenerate after any front-matter
    `spec:`/`release:` change, article addition, or API-chapter change:
-   `python .agents/skills/autosar-translate/scripts/gen_api_list.py`. The
+   `python <path-to>/autosar-translate/scripts/gen_api_list.py`. The
    per-article report lines are the coverage record — articles whose API
    chapters are prose-structured simply contribute what their headings
    expose.
@@ -508,26 +527,26 @@ changed); `glossary.md` is
      2026-10-29); the full name belongs to the article title and the index
      link labels. A page can build cleanly and still be unreachable from the
      indexes: `--strict` only catches a nav entry with no file.
-   - **Section landing page** (`docs/autosar/cp/<section>/index.md`, or
-     `docs/autosar/foundation/<topic>/index.md`) — fixed
+   - **Section landing page** (`<target>/cp/<section>/index.md`, or
+     `<target>/foundation/<topic>/index.md`) — fixed
      shape: front-matter `title`, one intro paragraph, `## 文章`,
      `## 相关内容`. `## 文章` lists **every** page of that nav branch in nav
      order (nested `*` bullets for sub-groups); link text is the target's
      front-matter `title`, never a directory identifier, and it keeps the
      `English（中文）` structure below.
-   - **CP AUTOSAR overview** (`docs/autosar/cp/index.md`) — mirrors the whole
+   - **CP AUTOSAR overview** (`<target>/cp/index.md`) — mirrors the whole
      `CP（经典平台）` nav group: one `###` group per nav section in nav order,
      each starting with its landing page, every content page appearing
      exactly once underneath it. `## 相关内容` keeps API 清单 / AUTOSAR 总览 /
      Foundation / 术语表 / 首页. The Foundation overview
-     (`docs/autosar/foundation/index.md`) mirrors the `Foundation（基础标准）`
+     (`<target>/foundation/index.md`) mirrors the `Foundation（基础标准）`
      group the same way.
-   - **AUTOSAR hub** (`docs/autosar/index.md`) — the tab's landing page:
+   - **AUTOSAR hub** (`<target>/index.md`) — the tab's landing page:
      links the 术语表 and the two platform overviews only (direct children of
      the tab); the platform overviews own the full page trees.
-   - **Site home** (`docs/index.md`) — one bullet per top-level nav tab, in
-     nav order, label = nav label (including its `（…）` gloss), target = the
-     section's landing page or its first page when the section has none;
+   - **Site home** (the site root index) — one bullet per top-level nav tab,
+     in nav order, label = nav label (including its `（…）` gloss), target =
+     the section's landing page or its first page when the section has none;
      `About` last.
    - **Entry structure** — a bilingual article title/label is
      `English（中文）`: the English document or module name first, its Chinese
@@ -539,7 +558,7 @@ changed); `glossary.md` is
      `Utilization of Crypto Services（加密服务使用指南）`). A Chinese-first
      title is fixed at the front-matter `title`, not only in the link label,
      and the rename propagates to the landing page, the overview,
-     `glossary.md` 来源 lines and the API listing (`docs/autosar/cp/api/`) in the same commit.
+     `glossary.md` 来源 lines and the API listing (`<target>/cp/api/`) in the same commit.
      The three levels are deliberately different (user rule 2026-10-29):
      the **article front-matter `title` and every index link label** carry the
      full `English（中文）` name (`Powertrain Engine Domain（动力总成（发动机）域）`),
@@ -555,14 +574,14 @@ changed); `glossary.md` is
      (`VFB（虚拟功能总线）`). `check_indexes.py --titles` detects structural
      issues only; it cannot judge translation meaning. Fix a confirmed
      mismatch in the front-matter `title`, every index link label,
-     `glossary.md` 来源 line and the API listing (`docs/autosar/cp/api/`) in the same commit.
+     `glossary.md` 来源 line and the API listing (`<target>/cp/api/`) in the same commit.
    - Link targets are relative to the file that contains them; angle-bracket
      a target containing a space
      (`<communication/data_distribution service/index.md>`). An empty `（）`
      is a defect in the title itself: fill in the Chinese half and propagate
      the fixed title to every link label in the same commit.
    - Mechanical check: `python
-     .agents/skills/autosar-translate/scripts/check_indexes.py` — exit 0
+     <path-to>/autosar-translate/scripts/check_indexes.py` — exit 0
      means every nav target exists, the overview and every section landing
      page link their full branch, the home links every tab, and no index link
      is broken. Add `--titles` to audit the `English（中文）` structure of
@@ -583,7 +602,8 @@ before every commit, the second is evidence for the Step 8 confirmation.
 
 **Phase A — mechanical checks** (scriptable; stop on any failure):
 
-1. `mkdocs build --strict` via the venv recipe in the repo `AGENTS.md`: exit 0,
+1. The host site's strict build (e.g. the venv recipe in its `AGENTS.md`):
+   exit 0,
    **zero WARNINGs** (pre-existing INFO anchor notices are fine).
 2. Heading audit: `grep '^## '` on the article equals the STANDARD.md §1
    skeleton with §2 wording, numbered `1.`–`7.` only — plus an unnumbered
@@ -601,7 +621,7 @@ before every commit, the second is evidence for the Step 8 confirmation.
    content annex that is not the droppable NA-requirements appendix
    (STANDARD.md §1) — its heading is a direct translation of the source title.
    **Before renaming
-   a heading to a STANDARD.md term, grep that heading across `docs/autosar`** —
+   a heading to a STANDARD.md term, grep that heading across the target** —
    if the standard and the site majority disagree, it is a user decision
    (record it; update STANDARD.md in the same PR), not a silent rename.
    Then sweep §2's `不用` variants mechanically: for every variant STANDARD.md
@@ -623,7 +643,7 @@ before every commit, the second is evidence for the Step 8 confirmation.
    sub-heading passes it silently (the GlobalTime batch shipped 115 of them:
    StbM 12, CanTSyn 52, EthTSyn 51 — the prose was translated but the source
    heading text was copied verbatim). Run
-   `python .agents/skills/autosar-translate/scripts/check_heading_lang.py <article>`:
+   `python <path-to>/autosar-translate/scripts/check_heading_lang.py <article>`:
    exit 0 proves every sub-heading is translated. Identifier-titled headings
    are exempt — API/type/container/port names stay verbatim (STANDARD.md §4):
    the script recognizes them by shape (`StbM_Init`, `StbMGeneral`, `ISRType`,
@@ -645,7 +665,7 @@ before every commit, the second is evidence for the Step 8 confirmation.
    `docs/`-relative), removed pages cleaned in the same commit; renamed or
    renumbered headings — grep inbound `](…#…)` links site-wide and fix them in
    the same commit. Then run
-   `python .agents/skills/autosar-translate/scripts/check_indexes.py`: exit 0
+   `python <path-to>/autosar-translate/scripts/check_indexes.py`: exit 0
    proves nav, the CP AUTOSAR overview, every section landing page and the
    site home agree (Step 6.3). A page present in nav but missing from its
    landing page or the overview is a failed gate, not a pass — the build
@@ -663,7 +683,7 @@ before every commit, the second is evidence for the Step 8 confirmation.
    own terms are present in `glossary.md` (grep spot-check) — the page is
    manually extended in the same commit that translates them.
 7. API-chapter sync: `python
-   .agents/skills/autosar-translate/scripts/check_api_sync.py <source.md>
+   <path-to>/autosar-translate/scripts/check_api_sync.py <source.md>
    <article>` exits 0 — source 8.2.x/8.3.x heading names, counts and order
    match the article's 7.2.x/7.3.x, and the `**说明**` block count in §7.3
    equals the function count. The script is a tripwire for missing, renamed,
@@ -794,7 +814,7 @@ evidence, not asserted):
 **Confirmation gate — before the final commit and the PR.** Present to the
 user, in one message: the queue row's current state (steps + Notes), the
 Phase A results, the Phase B coverage map and deviations, and the proposed
-`docs/autosar/TODO.md` status row with its source-release note. The
+`<target>/TODO.md` status row with its source-release note. The
 coverage map must list **every section omitted under the placeholder
 exception** (`None.`/`N.A.`-only sections) as a deliberate omission, each
 with a reminder for the user to verify it before confirmation. Wait
@@ -807,12 +827,12 @@ open.
 
 **After confirmation, finish in this order:**
 
-1. Update `docs/autosar/TODO.md` in the same PR: flip the touched article's
+1. Update `<target>/TODO.md` in the same PR: flip the touched article's
    status, refresh its source-release note, update the `Last updated` date.
    Format
    and status definitions: `references/progress-file.md`. TODO.md is the
    status ledger of the whole program (the execution queue is
-   `docs/autosar/sync-todo/`) — coverage questions are answered from them (or
+   `<target>/sync-todo/`) — coverage questions are answered from them (or
    by regenerating them), never by re-inventing an inventory; if a section has
    drifted badly, regenerate it from a fresh gap analysis.
 2. Commit (article + queue file + TODO.md), push, open the PR, then record the
@@ -824,14 +844,17 @@ open.
    complete). Anything still `[ ]` → say exactly what remains; never report
    the run as finished with an open step.
 
-## Repository quirks that burn you
+## Host-repo quirks that burn you
 
-- `github.com` HTTPS is intermittently flaky — push/fetch via
-  `git@github.com:melodypapa/melodypapa.github.io.git`; `gh` (API) always works.
-- A failed fetch can break `refs/remotes/origin/master`; repair with
-  `git update-ref refs/remotes/origin/master <sha>`.
-- The Jekyll-era stale `.gitignore` patterns were removed on 2026-11-02 (repo is
-  now mkdocs-only); trust `git ls-files` over `git check-ignore`.
+Recorded from the corpus's host repo (your host repo may differ — record its
+own):
+
+- One provider's HTTPS git transport was intermittently flaky while the API
+  endpoint (`gh`) always worked — prefer the transport that works; measure the
+  payload before blaming history.
+- A failed fetch can break `refs/remotes/origin/<default>`; repair with
+  `git update-ref`.
+- Trust `git ls-files` over `git check-ignore`.
 - No CI on PRs — the strict build you run locally is the only gate there is.
 
 ## Common mistakes (all observed in real runs)
@@ -843,7 +866,7 @@ open.
 | Opening figure files (`Figure*.png`) during gap analysis | Pipeline/API image errors | Text-only rule in Step 3 |
 | Flagging STANDARD.md-forbidden chapters as "missing" | False work items on compliant articles | Step 3 compliance rule: omissions the standard mandates are compliance |
 | Taking the SRS wording as ground truth | "Fixing" faithful SWS translations into errors | Step 4 + source-resolution.md |
-| Renaming a heading to STANDARD.md's listed term when most of the site uses a different one (DIO run: STANDARD listed 周期函数, 7 articles used 调度函数 — user kept 调度函数) | Churn in the wrong direction; the standard itself was stale | Before aligning wording, `grep` the heading across `docs/autosar`; if STANDARD.md and the site majority disagree, put the choice in the todo list as a user decision and update STANDARD.md in the same PR |
+| Renaming a heading to STANDARD.md's listed term when most of the corpus uses a different one (DIO run: STANDARD listed 周期函数, 7 articles used 调度函数 — user kept 调度函数) | Churn in the wrong direction; the standard itself was stale | Before aligning wording, `grep` the heading across the target; if STANDARD.md and the corpus majority disagree, put the choice in the todo list as a user decision and update STANDARD.md in the same PR |
 | Shortening a source heading to fit the canonical list (DIO §3.1: *Input documents & related standards and norms* renamed 「输入文件」 per the then-canonical; user reverted 2026-10-25 to the direct translation 「输入文件和相关标准与规范」 — STANDARD.md updated in the same change) | The canonical list ends up codifying the drift it was meant to prevent — headings drift away from the source wording, site-wide | Headings are direct translations of the source headings; a source heading longer than the §2 rendering is translated in full, never shortened |
 | Copying the source's heading text verbatim into the article instead of translating it (GlobalTime batch 2026-10-30: 115 `###`+ headings shipped in English — StbM 12, CanTSyn 52, EthTSyn 51 — while the prose beneath them was Chinese; the `grep '^## '` audit saw only the level-2 skeleton and passed) | A bilingual-looking article whose table of contents reads as a list of English source section names — the reader sees untranslated content the standard's own chapter titles never were | Every heading title is a direct translation of its source heading; identifier-titled headings (API/type/container/port names) stay verbatim, prose titles translate even when they look like names (General, Common, Accuracy, Variants). Phase A check 2 runs `check_heading_lang.py`, which flags CJK-less `###`+ titles |
 | Translating *Configurable Interfaces* as `可配置的接口` because the pre-2026-10-24 §2 listed it (baseline test 2026-10-24: an agent handed the old §2 line reproduced the rejected heading verbatim, while agents given no wording guidance naturally wrote `可配置接口` — the danger is the stale authority, not free translation) | New articles silently diverge from the canonical term — the site's 5 IO articles all read `可配置接口` (user decision 2026-10-24, issue #54; STANDARD.md §2 updated in the same PR) | Phase A check 2's §2 `不用` sweep: grep every forbidden variant on the article to 0 hits |
@@ -858,6 +881,6 @@ open.
 | Writing a rule as Phase B prose without a mechanical trigger (potential-links lived as a Phase B bullet for six runs — dio/port/pwm/ocu/icu/ecu/bswm — and was never executed once; its own "user decision" semantics made doing nothing always compliant) | Codified rules that only a gate presentation could surface get dropped when presentations lengthen; the omission is invisible in a deviations-framing | Any new rule gets (a) a tick-box in the step it executes in, and/or (b) a mechanical counter whose zero-output is explicit. Test rules at RUN level ("did a full sync execute it?"), not comprehension level |
 | Turning report-only link candidates into individual edits | Unreviewed candidates can create wrong or unwanted links, and one-by-one patching is costly | Use article-only `--list` for the required census; `--apply` handles only documented classes, while other candidates stay report-only until a user decision |
 | Registering a new page in `mkdocs.yml` only (the five `general` guides shipped in nav on 2026-10-29 but absent from `general/index.md` and the CP AUTOSAR overview) | The page is reachable from the sidebar but invisible to a reader browsing the section or the landing page; the strict build cannot see the gap | Step 6.3 + Phase A check 4: `check_indexes.py` fails when any branch page is missing from its landing page or the overview |
-| Letting an index entry copy a Chinese-first title verbatim (`加密服务使用指南（Utilization of Crypto Services）`) | The entry breaks the list's `English（中文）` structure, so the same list mixes two conventions | Step 6.3 entry-structure rule: fix the article's front-matter `title` to `English（中文）`, then propagate to the index labels, `glossary.md` 来源 line and the API listing (`docs/autosar/cp/api/`); `check_indexes.py --titles` lists remaining drift |
+| Letting an index entry copy a Chinese-first title verbatim (`加密服务使用指南（Utilization of Crypto Services）`) | The entry breaks the list's `English（中文）` structure, so the same list mixes two conventions | Step 6.3 entry-structure rule: fix the article's front-matter `title` to `English（中文）`, then propagate to the index labels, `glossary.md` 来源 line and the API listing (`<target>/cp/api/`); `check_indexes.py --titles` lists remaining drift |
 | Delegating translation to subagents — the RTE/OS runs segmented giant sources by line range across parallel writer agents (2026-10-25/26), and provider concurrency caps repeatedly blocked dispatches mid-run | Split writers cannot carry one terminology, one numbering scheme and the in-place insertion discipline across segments; a capped dispatch stalls the run with half-translated segments; the queue-row ticks and user decisions live in the main session, not in the writers | Step 5 rule 1: the main session translates sequentially; subagent dispatches never write article text (user decision 2026-10-28) |
 | Writing a glossary entry without the `>` separator line before its 「来源：」 line, or gluing the next `**Term**` heading straight onto the previous entry's attribution | Without the separator, python-markdown merges definition and attribution into one `<p>` — the attribution reads as part of the definition (found on all 558 entries, 2026-10-30); a glued heading is swallowed into the previous entry's `<blockquote>` and loses its own heading (13 entries) | Step 6.1 entry format: `**Term**` / `> 释义` / `>` / `> 来源：…` / `{: .glossary-source}`; `scripts/rewrite_glossary.py` normalizes the page and the strict build shows the resulting HTML |

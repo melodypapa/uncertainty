@@ -4,11 +4,15 @@ The translation program's todo is a set of **persistent batch-queue files**
 (SKILL.md Step 4), modelled on py-armodel `sync-autosar-class`'s Group files
 (Rules 0016.6/0016.7/0018 there), adapted to one article per run.
 
-- **Status ledger** = `docs/autosar/TODO.md` — what each article currently IS
+- **Status ledger** = `<target>/TODO.md` — what each article currently IS
   (✅/🔶/⚠️/⛔/❌/📖) and site-wide counts.
-- **Execution queue** = `docs/autosar/sync-todo/` — what to do next: one
-  `Group-<section>.md` per batch, one row per document; `index.md` holds the
-  recommended batch order.
+- **Execution queue** = `<target>/sync-todo/` — what to do next. Since the
+  2026-11-11 regroup (matching TODO.md's Finished/Unfinished groups) the queue
+  is TWO files, not one per batch: open rows live in `Group-unfinished.md`
+  (verbatim rows with their 6-step checklists), done rows are archived in
+  `Group-finished.md` as condensed one-line records (article · spec · date ·
+  commits · PRs; full row blocks of the former per-batch files remain in git
+  history). `index.md` holds the resume rules and the former batch table.
 
 Both live in the repo, excluded from the site build (`exclude_docs`), updated
 in the same PR as the article.
@@ -16,20 +20,19 @@ in the same PR as the article.
 ## Files
 
 ```
-docs/autosar/sync-todo/
-  index.md            # batch order + counts + resume rules
-  Group-io.md         # one batch file per section/topic
-  Group-general.md
-  ...
-  Group-exp.md
-  Group-foundation-exp.md     # Foundation R23-11 guide/template/report docs (EXP/TR/TPS/ASWS)
-  Group-foundation-rs-prs.md  # Foundation R23-11 requirement/protocol specs (RS/PRS)
+<target>/sync-todo/
+  index.md              # resume rules + former batch table (all complete)
+  Group-unfinished.md   # open rows, verbatim, grouped by source batch — the resume file
+  Group-finished.md     # condensed archive of done rows (audit trail)
+  VerifyFinished.md     # finished-row verification ledger (unchanged)
+  SyncTodoIndex.md      # generated per-row report (gen_sync_todo_index.py)
 ```
 
-**Resume rule:** pick the batch (user names it, or the first unfinished batch
-in index order) → read the file → take the **first row still `[ ]`** → run the
-6 steps. Do not re-derive scope from TODO.md or the source tree; do not re-ask
-decisions already in the row's Notes.
+**Resume rule:** open `Group-unfinished.md` → take the **first row still
+`[ ]`** (unless the user names a specific row) → run the 6 steps. Do not
+re-derive scope from TODO.md or the source tree; do not re-ask decisions
+already in the row's Notes. When the last open row of a source-batch section
+flips, the section stays as that batch's record.
 
 ## Row format
 

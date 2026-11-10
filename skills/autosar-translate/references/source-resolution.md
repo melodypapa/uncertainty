@@ -7,7 +7,7 @@ text — reviewers rely on it.
 ## 1. Primary: markdown conversion, R23-11
 
 ```
-~/Workspace/autosar_standard/markdown/Classic_Platform/Releases/R23-11/<Category>/AUTOSAR_CP_<TYPE>_<Name>.md
+<mirror>/Classic_Platform/Releases/R23-11/<Category>/AUTOSAR_CP_<TYPE>_<Name>.md
 ```
 
 - Confirm this root exists on the machine before relying on it; it lives
@@ -33,7 +33,7 @@ nearest release, say so explicitly, and note content differences you notice
 ## 3. Last resort: bundled PDFs in the repo
 
 ```
-docs/autosar_pdf/AUTOSAR_CP/<Release>/<Category>/<AUTOSAR_<TYPE>_<Name>>.pdf
+<pdf-corpus>/AUTOSAR_CP/<Release>/<Category>/<AUTOSAR_<TYPE>_<Name>>.pdf
 ```
 
 Releases currently bundled: `R22-11`, `R4.3.1` (226 PDFs; ~124 SWS-class).
@@ -42,7 +42,7 @@ Extraction recipe with pypdf (no `pdftotext` on this machine):
 ```bash
 python3 - <<'EOF'
 from pypdf import PdfReader
-r = PdfReader("docs/autosar_pdf/AUTOSAR_CP/R22-11/IO/AUTOSAR_SWS_ICUDriver.pdf")
+r = PdfReader("<pdf-corpus>/AUTOSAR_CP/R22-11/IO/AUTOSAR_SWS_ICUDriver.pdf")
 print("\n".join((p.extract_text() or "") for p in r.pages))
 EOF
 ```

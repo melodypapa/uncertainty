@@ -2,14 +2,14 @@
 
 ## Platform → site tree (2026-11-02)
 
-`docs/autosar/` holds one subtree per AUTOSAR platform, mirroring the source
-corpus `~/Workspace/autosar_standard/markdown/<Platform>/Releases/R23-11/`:
+`<target>/` holds one subtree per AUTOSAR platform, mirroring the source
+corpus `<mirror>/<Platform>/Releases/R23-11/`:
 
 | Source tree | Site tree | Content |
 | --- | --- | --- |
-| `Classic_Platform/…` (`AUTOSAR_CP_*`) | `docs/autosar/cp/<section>/<article>/` | SWS/EXP/TPS translations, the generated API listing `cp/api/` |
-| `Foundation/…` (`AUTOSAR_FO_*`) | `docs/autosar/foundation/<topic>/<article>/` | RS/PRS/TPS/TR/EXP translations (no SWS documents exist) |
-| — | `docs/autosar/index.md`, `docs/autosar/glossary.md` | platform hub and the shared 术语表 |
+| `Classic_Platform/…` (`AUTOSAR_CP_*`) | `<target>/cp/<section>/<article>/` | SWS/EXP/TPS translations, the generated API listing `cp/api/` |
+| `Foundation/…` (`AUTOSAR_FO_*`) | `<target>/foundation/<topic>/<article>/` | RS/PRS/TPS/TR/EXP translations (no SWS documents exist) |
+| — | `<target>/index.md`, `<target>/glossary.md` | platform hub and the shared 术语表 |
 
 Paths carry no release segment; the release is recorded in each article's
 front-matter `release:`. Article paths in this file are relative to the
@@ -17,7 +17,7 @@ platform tree (`cp/` or `foundation/`).
 
 ## Category → site section (Classic Platform)
 
-| Standard taxonomy dir | Site dir under `docs/autosar/cp/` |
+| Standard taxonomy dir | Site dir under `<target>/cp/` |
 | --- | --- |
 | `ApplicationInterfaces` | `application_interfaces/` |
 | `Communication` | `communication/` |
@@ -39,7 +39,7 @@ platform tree (`cp/` or `foundation/`).
 
 ## Category → site section (Foundation)
 
-| Standard taxonomy dir | Site dir under `docs/autosar/foundation/` |
+| Standard taxonomy dir | Site dir under `<target>/foundation/` |
 | --- | --- |
 | `General` | `general/` (TR Glossary translated) |
 | `CommunicationManagement` | `communication_management/` |
@@ -52,12 +52,12 @@ platform tree (`cp/` or `foundation/`).
 | `Security` | `security/` |
 | `SystemServices` | `system_services/` |
 
-All ten Foundation topic directories exist with landing pages; only
-`general/tr_glossary/` holds a (partially translated) article so far. Every
-Foundation document is queued in `sync-todo/Group-foundation-exp.md`
-(EXP/TR/TPS/ASWS guide/template/report documents — the CP `Group-exp.md`
-counterpart) and `sync-todo/Group-foundation-rs-prs.md` (RS/PRS
-requirement/protocol specifications).
+All ten Foundation topic directories exist with landing pages; the Foundation
+R23-11 queue (52 documents, split by document type 2026-11-03 — EXP/TR/TPS/ASWS
+guide/template/report documents vs RS/PRS requirement/protocol specifications)
+is delivered except `tps_generic_structure_template` (PR #320 open at the
+2026-11-11 queue regroup; the former `Group-foundation-*.md` batch headers are
+preserved in `sync-todo/Group-unfinished.md` / `Group-finished.md`).
 Foundation article slug = `<type>_<snake_name>` of the source file name after
 the `tr_glossary` precedent (`rs_main`, `prs_e2e_protocol`,
 `tps_generic_structure_template`): the type prefix keeps the same-named RS/PRS
@@ -65,7 +65,7 @@ pairs apart (`rs_someip_protocol` vs `prs_someip_protocol`).
 
 ## Known mappings (curated; keep in sync with the repo)
 
-Paths are relative to `docs/autosar/cp/`.
+Paths are relative to `<target>/cp/`.
 
 | Spec document (any release naming) | Article |
 | --- | --- |
@@ -146,7 +146,7 @@ document.
     (`AUTOSAR Ethernet Switch Driver（以太网交换机驱动程序）`,
     `Powertrain Engine Domain（动力总成（发动机）域）`).
   - index link labels (`## 文章`, overview, `glossary.md` 来源,
-    the API listing `docs/autosar/cp/api/`) = the target's full front-matter
+    the API listing `<target>/cp/api/`) = the target's full front-matter
     `title`, never the nav's short label.
 - `中文（English）` is invalid (user rule 2026-10-29): fix the title itself,
   not just the index link label, and update the derived indexes and 来源 lines
@@ -163,12 +163,12 @@ List what exists on either side:
 
 ```bash
 # SWS/EXP docs available in a release
-find ~/Workspace/autosar_standard/markdown/Classic_Platform/Releases/R23-11 \
+find <mirror>/Classic_Platform/Releases/R23-11 \
   \( -iname "AUTOSAR_CP_SWS_*.md" -o -iname "AUTOSAR_CP_EXP_*.md" \) -not -path "*artifacts*" \
   | sed 's|.*/Releases/||' | sort
 
 # Existing articles (CP and Foundation trees)
-find docs/autosar/cp docs/autosar/foundation -name index.md | sort
+find <target>/cp <target>/foundation -name index.md | sort
 ```
 
 Then reconcile using the known-mapping table first; anything unmatched on the

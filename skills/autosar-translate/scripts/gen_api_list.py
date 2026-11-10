@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the AUTOSAR API listing under docs/autosar/cp/api/ from the site's
+"""Generate the AUTOSAR API listing under <corpus>/cp/api/ from the site's
 TRANSLATED articles — the repository itself is the only input (no external
 corpus dependency).
 
@@ -36,15 +36,21 @@ Usage:
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 from collections import OrderedDict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
+# The AUTOSAR article corpus (containing cp/, foundation/, glossary.md, ...).
+# Default: the `docs/autosar/` sibling of the skills checkout. Override with
+# AUTOSAR_CORPUS_ROOT or `--root <corpus-dir>`.
+ROOT = Path(os.environ.get(
+    "AUTOSAR_CORPUS_ROOT",
+    Path(__file__).resolve().parents[4] / "docs" / "autosar"))
 # CP articles only: the API listing is derived from CP SWS API chapters, and
-# Foundation (docs/autosar/foundation/) has no SWS documents.
-DOCS = ROOT / "docs" / "autosar" / "cp"
+# Foundation (<corpus>/foundation/) has no SWS documents.
+DOCS = ROOT / "cp"
 API_DIR = DOCS / "api"
 OUT_INDEX = API_DIR / "index.md"
 OUT_TYPES = API_DIR / "types.md"
@@ -196,7 +202,7 @@ def render_list(title: str, chapter_note: str, entries, n_items: int) -> list[st
             current = letter
             out += [f"## {letter if letter != '#' else '其他'}", ""]
         for name, kind, spec_disp, release, label_link, anchor in occ:
-            # article paths are stored relative to docs/autosar/cp/; the list
+            # article paths are stored relative to <corpus>/cp/; the list
             # pages live one level deeper (autosar/cp/api/), so prefix ../
             target = f"../{label_link[1]}"
             out.append(f"**[{name}]({target}#{anchor})**")
@@ -327,6 +333,21 @@ def build():
 
 
 def main(argv):
+    global ROOT, DOCS, API_DIR
+    if "--root" in argv:
+        i = argv.index("--root")
+        if i + 1 < len(argv):
+            ROOT = Path(argv[i + 1])
+            DOCS = ROOT / "cp"
+            API_DIR = DOCS / "api"
+        argv = argv[:i] + argv[i + 2:]
+    argv = [a for a in argv if not a.startswith("--root=")]
+    if "--root=" in " ".join(argv):
+        val = [a for a in argv if a.startswith("--root=")][0].split("=", 1)[1]
+        ROOT = Path(val)
+        DOCS = ROOT / "cp"
+        API_DIR = DOCS / "api"
+        argv = [a for a in argv if not a.startswith("--root=")]
     pages, report = build()
     if "--check" in argv:
         for out, content in pages:

@@ -24,10 +24,34 @@ import re
 import subprocess
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-QUEUE_DIR = os.path.join(ROOT, "docs", "autosar", "sync-todo")
-OUT = os.path.join(QUEUE_DIR, "SyncTodoIndex.md")
+def _find_root(cli_root=None):
+    """The AUTOSAR article corpus dir (containing sync-todo/). Resolution
+    order: --root CLI arg, AUTOSAR_REPO_ROOT / AUTOSAR_CORPUS_ROOT env, then
+    walk up from this file looking for <candidate>/docs/autosar/sync-todo
+    (works both from the repo submodule checkout and from a ~/.agents/skills
+    runtime copy pointed at a workspace)."""
+    candidates = ([cli_root] if cli_root else []) + [
+        os.environ.get("AUTOSAR_REPO_ROOT"),
+        os.environ.get("AUTOSAR_CORPUS_ROOT"),
+    ]
+    d = os.path.dirname(os.path.abspath(__file__))
+    walk = [os.path.join(d, *("..",) * i) for i in range(1, 9)]
+    for c in [c for c in candidates if c]:
+        c = os.path.abspath(c)
+        if os.path.isdir(os.path.join(c, "sync-todo")):
+            return c
+    for c in walk + ([cli_root] if cli_root else []):
+        c = os.path.abspath(c)
+        if os.path.isdir(os.path.join(c, "docs", "autosar", "sync-todo")):
+            return os.path.join(c, "docs", "autosar")
+    raise SystemExit("cannot locate the AUTOSAR corpus (a dir holding "
+                     "sync-todo/); pass --root or set AUTOSAR_CORPUS_ROOT")
+
+
+ROOT = None      # resolved in main()
+QUEUE_DIR = None
+OUT = None
+_LS_PREFIX = "."  # git pathspec for the corpus, set with ROOT
 
 
 def git(*args):
@@ -44,12 +68,12 @@ _ls = None
 def article_exists(name):
     global _ls
     if _ls is None:
-        _ls = git("ls-files", "docs/autosar").splitlines()
+        _ls = git("ls-files", _LS_PREFIX).splitlines()
     return any(l.endswith(f"/{name}/index.md") for l in _ls)
 
 
 def article_add_commit(name):
-    path = next((l for l in (git("ls-files", "docs/autosar").splitlines())
+    path = next((l for l in (git("ls-files", _LS_PREFIX).splitlines())
                  if l.endswith(f"/{name}/index.md")), "")
     if not path:
         return ""
@@ -138,13 +162,28 @@ def commit_ref(done, name, block):
     return "N/A"
 
 
-def main():
+def main(argv=None):
+    global ROOT, QUEUE_DIR, OUT, _LS_PREFIX
+    argv = list(sys.argv[1:] if argv is None else argv)
+    cli_root = None
+    if "--root" in argv:
+        i = argv.index("--root")
+        cli_root = argv[i + 1]
+        argv = argv[:i] + argv[i + 2:]
+    argv = [a for a in argv if not a.startswith("--root=")]
+    ROOT = _find_root(cli_root)
+    QUEUE_DIR = os.path.join(ROOT, "sync-todo")
+    OUT = os.path.join(QUEUE_DIR, "SyncTodoIndex.md")
+    # git pathspec: relative from the repo top to the corpus, or "." when the
+    # corpus IS the repo top
+    top = git("rev-parse", "--show-toplevel")
+    _LS_PREFIX = "." if not top else os.path.relpath(ROOT, top)
     files = sorted(f for f in os.listdir(QUEUE_DIR) if re.match(r"Group-.*\.md$", f))
     out = []
     out.append("# All Sync Todo Articles by Group\n")
-    out.append("Generated from all Group files in `docs/autosar/sync-todo/` — "
+    out.append("Generated from all Group files in the corpus's `sync-todo/` — "
                "articles ordered by group, then by appearance order within each group. "
-               "Regenerate with `python .agents/skills/autosar-translate/scripts/gen_sync_todo_index.py`.\n")
+               "Regenerate with `gen_sync_todo_index.py` (autosar-translate scripts).\n")
     out.append("Status `Done` = all 6 queue steps complete (translation merged). "
                "Status `Aligned` = the article already exists on the site but the queue steps "
                "are not ticked — the remaining steps are an alignment pass, not a fresh "

@@ -37,7 +37,9 @@ Usage:
   check_heading_lang.py <article.md> [<article.md> ...]
   check_heading_lang.py --site [--allow <path-fragment> ...]
 
-`--site` sweeps the Type A module articles of `docs/autosar/`, skipping the
+`--site` sweeps the Type A module articles of the AUTOSAR corpus
+  (default: the `docs/autosar/` sibling of the skills checkout; override with
+  `--site-root <path>`), skipping the
 working documents (STANDARD.md, TODO.md), the sync-todo queue files, the
 generated glossary and API list — none of them are module articles.
 
@@ -209,6 +211,8 @@ def main() -> int:
             continue
         elif arg.startswith("--allow="):
             allow.append(arg.split("=", 1)[1])
+        elif arg == "--site-root" or arg.startswith("--site-root="):
+            continue  # consumed after the loop
         elif arg.startswith("--"):
             print(f"! unknown option: {arg}")
             return 2
@@ -224,9 +228,20 @@ def main() -> int:
             allow.append(rest[j])
             j += 1
 
+    site_root = None
+    for arg in args:
+        if arg.startswith("--site-root="):
+            site_root = arg.split("=", 1)[1]
+    if "--site-root" in args:
+        i = args.index("--site-root")
+        if i + 1 < len(args):
+            site_root = args[i + 1]
     if site:
-        repo = Path(__file__).resolve().parents[4]
-        corpus = repo / "docs" / "autosar"
+        if site_root:
+            corpus = Path(site_root)
+        else:
+            repo = Path(__file__).resolve().parents[4]
+            corpus = repo / "docs" / "autosar"
         if not corpus.is_dir():
             print(f"! cannot locate the AUTOSAR corpus at {corpus}")
             return 2
