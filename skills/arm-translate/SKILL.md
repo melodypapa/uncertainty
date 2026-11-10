@@ -96,14 +96,38 @@ first.
   of chapter length. Read-only subagents may do censuses or verification.
 - Faithful translation of Arm's own wording, not a summary. Keep technical
   identifiers, register names, bit-field names and instruction syntax
-  untranslated; bold the English term on first mention, Chinese gloss in
-  parentheses.
+  untranslated. Terminology and expression follow
+  `references/article-format.md` §Wording and markup (aligned with the
+  autosar-translate regime): Chinese gloss first with the bolded English term
+  in full-width parentheses on first mention, one rendering per term across
+  the document series, every heading level translated (identifier-titled
+  headings exempt), angle-bracket placeholders as `&lt;…&gt;` outside code
+  fences.
 - Renumber the source chapter to `## 1.` and mirror its relative structure
   (`### 1.1.`, `#### 1.1.1.`). Numbering restarts at 1 in every article.
 - Never write `# ` in the body (front-matter `title` is the only h1).
 - Keep code and instruction snippets in fenced blocks tagged `arm`
   (`MCR p15, 0, <Rt>, c6, CRm, op2`), verbatim from the source.
 - Source notes render as `**注意：**` paragraphs.
+- **术语与定义（term entries）render as a bold English head + `>` blockquote
+  definition** — the autosar glossary/definition form, never a GFM table and
+  never a bullet list:
+
+  ```markdown
+  **Address Area**
+  > 逻辑地址空间中的连续内存区域，通常将多个物理存储器扇区组合成一个逻辑地址区域。
+  ```
+
+  The English term is the head and stays verbatim (a term is a key, not
+  prose); the head carries no Chinese and is immediately followed by the
+  blockquote — never a bold paragraph with a plain paragraph under it. The
+  definition is the translated source sentence, opening with `中文（English）：`
+  in an unbolded parenthetical when the source names the term. Entry order and
+  entry set match the source exactly (no entry added, merged, split or
+  dropped). A source two-column *Term | Definition* table, a source prose
+  definition list and the source's `## Term` + paragraph layout all translate
+  into this form. A later mention in body prose is inline: 中文（**English**）
+  on first mention, the bare term after.
 - Register subsections keep the source's order: name, description,
   `**使用限制**`, access table (`| EL0 | EL1 | EL2 |`), field table.
 - Tables: every table translates to text. GFM is the default (header row +
@@ -177,10 +201,28 @@ if nothing else links to it.
   `system_address_map`). Insert them at their source position and renumber
   every later section, or the page silently drops the chapter's own front
   matter.
-- The document glossary is its own page: `docs/cortex/<document>/glossary/index.md`
-  (currently only `m7-trm/` has one), `title: "术语表（Glossary）"`, no local
-  word list, one link to the Arm Glossary, registered last in the document
-  group (appendix position).
+- **The glossary page carries real term entries, not a link**:
+  `docs/cortex/<document>/glossary/index.md`, `title: "术语表（Glossary）"`,
+  registered last in the document group (appendix position). It translates the
+  source document's own glossary chapter in the Step 5 term-entry form
+  (`**Term**` + `>` definition), alphabetically sectioned (`## A` … `## Z`)
+  when the source is alphabetical, otherwise in source order.
+  - **One term is defined once**: a term already defined on the page is never
+    re-defined with different wording; a second source document adding the same
+    term appends a 来源 line, not a second definition. The release/document
+    attribution goes in the page intro or the 来源 line — state the doc ID and
+    revision once, not per entry.
+  - **Every translation run extends it** in the same commit: the run's new
+    architecture terms and abbreviations are added, so the page reflects the
+    whole series rather than a single article.
+  - Terms the source document does not define stay out of the page; the
+    document's own glossary row set is the boundary, and the single link to the
+    Arm Glossary (`Arm Glossary`) stays as the pointer to terms outside it.
+  - **A document with no glossary chapter keeps the link-only page** — the
+    Cortex-M7 TRM (DDI0489F) has no Glossary chapter, so
+    `docs/cortex/m7-trm/glossary/index.md` correctly states that and links the
+    Arm Glossary. Do not invent entries for such a document; the rule above
+    applies only where the source has a glossary to translate.
 - Concept articles that cite external sources stay outside this skill.
 
 ## Step 8 — Verify (two-phase gate)
@@ -202,8 +244,21 @@ Plus: every `![](...)` target exists in the article directory; no `![Table…]`
 table image left in the article (each table is either a GFM table with a header
 row and `| --- |`, or an HTML `<table>` with `<thead>`/`<th>` headers); HTML
 table cells must contain no unprocessed Markdown (`**…**`, `[…](…)`); no `# `
-in the body; every `## ` heading is Chinese with the source number; no
+in the body; every heading at every level carries Chinese (identifier-titled
+headings exempt — `check_heading_lang.py` above is the tripwire); no
 untranslated English paragraph left behind.
+
+Terminology gate (same Phase A pass):
+
+- every glossary/definition entry is a `**English term**` line immediately
+  followed by a `>` blockquote definition — no `| 术语 | 定义 |` GFM table and
+  no `- **术语**（…）。` bullet list carries a definition;
+- `grep -c '^\*\*' <glossary page>` shows the run's new terms were added, and
+  `grep -n '^\*\*<Term>\*\*$'` finds each of them;
+- no term is defined twice on the glossary page with different wording
+  (`grep` the term head, then compare the definitions);
+- the same term renders identically across the series: grep the documented
+  Chinese rendering in the sibling articles and compare.
 
 Phase B (fidelity): walk the chapter section by section — each source section
 has a translation, each register/figure/table is present, row sets and bit
@@ -235,6 +290,9 @@ through a PR; `master` is protected.
   Markdown links inside HTML cells — they render literally.
 - Pasted PDF text with broken table cells or hyphen splits left unrepaired.
 - Figures skipped "because the parse has no caption" — the figure still embeds.
+- Rendering a term entry as a bullet list, a `| 术语 | 定义 |` table, a bold
+  paragraph over a plain paragraph, or a `## Term` heading — it is a bold
+  English head with the definition in a `>` blockquote.
 - Translating the proprietary notice or document history.
 - Adding the page without the nav entry (strict build passes, page is orphaned).
 - Treating `DDI0553B` (Armv8-M, M-profile) as the Cortex-R52+ architecture

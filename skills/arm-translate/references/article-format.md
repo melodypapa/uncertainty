@@ -16,6 +16,9 @@ title: "内存保护单元（Memory Protection Unit）"
 
 Short implementation chapters may use Chinese only (`"Cortex-M7 程序状态寄存器"`).
 Never add `spec:`, `release:` or tags — that convention belongs to `docs/autosar/`.
+The gloss order stays Chinese-first even though `docs/autosar/` titles are
+English-first: an AUTOSAR module name is a product identifier, an Arm chapter
+title is a descriptive phrase. Do not "realign" the order.
 
 ## Body structure
 
@@ -35,14 +38,65 @@ Never add `spec:`, `release:` or tags — that convention belongs to `docs/autos
 - No table of contents, no document history, no proprietary notice, no footer
   banner.
 
-## Wording and markup
+## Wording and markup（术语与表述）
+
+These rules mirror the autosar-translate terminology/expression regime
+(`docs/autosar/STANDARD.md` §4–§5) where the corpora overlap; Arm-specific
+conventions are marked as such.
 
 - Faithful translation of Arm's wording; technical identifiers stay in English.
-- Bold the English term on first mention with a Chinese gloss in parentheses:
-  `直写缓存（**Write-Through caching**）`; register names stay bold
-  (`**PRBAR**`, `**SCTLR.M**`); later mentions may drop the parentheses.
+- **Term entries use the bold-head + blockquote-definition form** — the same
+  form as the autosar glossary/definition chapters, never a GFM table and
+  never a bullet list:
+
+  ```markdown
+  **Address Area**
+  > 逻辑地址空间中的连续内存区域，通常将多个物理存储器扇区组合成一个逻辑地址区域。
+  ```
+
+  The English term is the entry head and stays verbatim (a glossary term is a
+  key, not prose); the head carries no Chinese, and the entry is a **head line
+  immediately followed by the blockquote** — never a bold paragraph with a
+  plain paragraph under it. The definition is the translated source sentence;
+  when the source sentence names or glosses the term, the definition opens with
+  the Chinese rendering and the English term in an unbolded parenthetical
+  (`> 架构可见（Architecturally visible）：…` — no `**…**`, because the head
+  already bolds it). One blank line between entries; the entry order is the
+  source's order, and the row set matches the source exactly — no entry added,
+  merged, split or dropped. This replaces both the source's two-column
+  *Term | Definition* table, a source prose definition list, and the source's
+  `## Term` + paragraph layout.
+- **First mention in body prose**: the Chinese gloss first, then the bolded
+  English term in full-width parentheses — `直写缓存（**Write-Through caching**）`;
+  later mentions drop the parentheses. A sentence that only names a term (no
+  gloss, no definition) is not a term entry — keep it inline prose.
+- **Bold marks terminology and identifiers only**: the English term inside a
+  first-mention gloss, a term entry's head, and register/field mentions
+  (`**PRBAR**`, `**SCTLR.M**`). Numbers, units and ordinary prose are not
+  bolded — legacy pages over-bold (`**256** 字节`); never copy that into new
+  work.
+- **One term, one rendering per document series**: a recurring architecture
+  term keeps the same Chinese rendering in every article of the series — grep
+  the sibling articles and reuse the established rendering before inventing
+  one. A term defined in one article is not re-defined word-for-word in
+  another; the second article refers to it.
+- **Every heading translates, at every level** (`##`–`######`): the title
+  carries Chinese. The only exemptions are identifier-titled headings —
+  register names (`MPU_RBAR`), instruction mnemonics, exception names — which
+  stay verbatim, like the code identifiers above. Prose-looking English titles
+  (Overview, Registers, Introduction) are **not** exempt. Enforced by
+  `check_heading_lang.py <article>` (Step 8 Phase A).
 - Numbers and encodings as in the source: `位 [5:3]`, `0x…`, `0b…`.
+- Angle-bracket placeholders in prose (`MPU_RBAR<n>`, `<Rt>` outside a listing)
+  render via HTML entities `&lt;…&gt;` — a bare `<n>` is dropped by the browser
+  as an unknown tag. Never inside code fences, where the listing stays
+  verbatim. In a heading the entity changes the Material slug — sweep inbound
+  anchors in the same commit.
 - Notes: `**注意：**` followed by the translated note body.
+- Cross-references: the source's "see section Bx.y" and "See also" render as
+  inline references or `参见：` bullets, renumbered to the article's own
+  section numbers and linked to the local anchor; a reference into a chapter
+  that lives on a sibling page links there instead.
 - Instruction and pseudo-code snippets go in fenced blocks, verbatim, tagged
   `ARM`; C snippets use `C`. Comments inside a listing translate; mnemonics and
   operands do not. (Legacy pages also use lowercase `arm`.)
@@ -82,6 +136,8 @@ Never add `spec:`, `release:` or tags — that convention belongs to `docs/autos
   carries it. Legacy `Table<chapter>-<n>.png` images in older directories are
   converted to text tables (GFM by default, HTML when the structure qualifies)
   as those articles are touched.
+- Table footnotes carry over: markers as `<sup>N</sup>`, the footnote text as
+  `> N …` blockquotes after the table (the autosar convention).
 
 ## Figures
 
@@ -129,10 +185,19 @@ Never add `spec:`, `release:` or tags — that convention belongs to `docs/autos
   directories (two articles for ch2's PSR and exception model, a separate MPU
   page for ch6); merge the parts into one page, renumber the appended sections,
   and keep old URLs alive through `redirect_maps`.
-- The document glossary goes in `docs/cortex/<document>/glossary/index.md`
-  (currently only `m7-trm/` has one) with the `title: "术语表（Glossary）"`, the
-  sentence that the manual keeps no local word list, and a single link to the
-  Arm Glossary. It is registered last in the document group (appendix position).
+- The document glossary goes in `docs/cortex/<document>/glossary/index.md` with
+  the `title: "术语表（Glossary）"`, registered last in the document group
+  (appendix position). It holds the **translated source glossary** in the
+  §Wording term-entry form (`**Term**` + `>` definition), alphabetically
+  sectioned (`## A` … `## Z`) when the source glossary is alphabetical. It is
+  not a link stub: a term the source document defines appears here as an entry,
+  and every translation run extends the page in the same commit. One term is
+  defined once — a second document contributing the same term appends a 来源
+  line instead of a second definition; the doc ID and revision are stated once
+  in the page intro. The single link to the Arm Glossary stays, as the pointer
+  to terms the document itself does not define. A document whose source has no
+  glossary chapter (the Cortex-M7 TRM DDI0489F) keeps the link-only page —
+  never invent entries.
 - `mkdocs.yml`, group `ARM Cortex` → one nav group per source document, using
   short labels (doc IDs live on the landing pages, not in the nav):
   `Cortex-M7 TRM`, `Armv7-M 架构参考手册`, `Cortex-R52+ TRM` and
@@ -174,3 +239,15 @@ Never add `spec:`, `release:` or tags — that convention belongs to `docs/autos
   folder/nav-group enumerations to four short-label groups, and fixed the
   verification script paths (`.agents/skills/skills/...`). Synthetic figure
   numbers are allowed when the source diagram has no caption.
+- 2026-11-10 — §Wording and markup aligned with the autosar-translate
+  terminology/expression regime (STANDARD.md §1 ch.2, §4–§5): **term entries
+  render as `**English Term**` + `>` blockquote definition** — the user's
+  stated format, replacing both the source's *Term | Definition* table and any
+  bullet-list definition; the glossary page carries those real entries instead
+  of being a link stub, extended by every run, one term defined once. Also
+  codified: heading-language rule at every level with the identifier-title
+  exemption, the angle-bracket `&lt;…&gt;` rule, bold discipline (terms and
+  identifiers only), one-term-one-rendering per document series, and the
+  cross-reference and table-footnote rules. Front-matter titles stay
+  Chinese-first — unlike autosar's English-first module titles, because an
+  Arm chapter title is a descriptive phrase, not a product identifier.

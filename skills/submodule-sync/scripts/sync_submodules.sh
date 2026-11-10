@@ -98,6 +98,68 @@ while IFS= read -r f; do
   is_managed "$f" || die "unrelated unstaged change: $f (resolve it before running)"
 done < <(git diff --name-only)
 
+# Resolve the branch/issue names before any GitHub call. A stale local branch
+# left behind by a previously merged bump PR must never abort the run *after*
+# the tracking issue has already been created.
+base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)
+[ -z "$base" ] && base=master
+base_ref="refs/remotes/origin/$base"
+git rev-parse --verify --quiet "$base_ref" >/dev/null || base_ref="$base"
+
+if [ ${#requested[@]} -eq 1 ]; then
+  slug=$(printf '%s' "${requested[0]}" | tr -cd 'a-zA-Z0-9-' | tr '[:upper:]' '[:lower:]')
+  subject="docs: bump $slug submodule to latest"
+else
+  slug=submodules
+  subject="docs: bump submodules to latest"
+fi
+[ -n "$slug" ] || die "empty branch slug"
+branch="feature/bump-$slug"
+
+# After a bump PR is squash-merged, GitHub deletes the remote branch but the
+# local one survives. Remove that leftover only when it is provably superseded:
+# a merged PR exists for that head, every change the branch carries is a managed
+# gitlink, and those gitlinks already match the base branch. Otherwise stop and
+# let the user resolve it — never delete a branch with unlanded work.
+prepare_branch() {
+  git show-ref --verify --quiet "refs/heads/$branch" || return 0
+
+  local merged mb changed p their_sha base_sha
+  merged=$(gh pr list --head "$branch" --state merged --json number --jq 'length' 2>/dev/null || printf '0')
+  [ "$merged" != "0" ] || \
+    die "branch $branch exists with no merged PR; resolve it before running"
+
+  mb=$(git merge-base "$branch" "$base_ref") || \
+    die "cannot compute merge base for $branch"
+  changed=$(git diff --name-only "$mb" "$branch")
+  for p in $changed; do
+    is_managed "$p" || \
+      die "branch $branch has non-gitlink changes ($p); resolve it manually"
+    their_sha=$(git ls-tree "$branch" -- "$p" | awk '{print $3}')
+    base_sha=$(git ls-tree "$base_ref" -- "$p" | awk '{print $3}')
+    [ "$their_sha" = "$base_sha" ] || \
+      die "branch $branch still has gitlink changes absent from $base; resolve it manually"
+  done
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    note "would remove stale local branch $branch (merged PR leftover)"
+    return 0
+  fi
+  if [ "$STAGE_ONLY" -eq 1 ]; then
+    note "stale local branch $branch left in place (stage-only)"
+    return 0
+  fi
+
+  git branch -D "$branch" >/dev/null
+  log "removed stale local branch $branch (merged PR leftover; gitlinks already on $base)"
+  if git show-ref --verify --quiet "refs/remotes/origin/$branch" &&
+     [ -z "$(git ls-remote --heads origin "refs/heads/$branch")" ]; then
+    git update-ref -d "refs/remotes/origin/$branch"
+    note "pruned stale remote-tracking ref origin/$branch"
+  fi
+}
+prepare_branch
+
 # --- fetch, compare, stage ---------------------------------------------------
 report=""
 bumped=0
@@ -193,21 +255,9 @@ log "running mkdocs build --strict"
   || die "strict build failed; no issue or PR created"
 
 # --- github workflow ---------------------------------------------------------
-base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)
-[ -z "$base" ] && base=master
-
-if [ ${#requested[@]} -eq 1 ]; then
-  slug=$(printf '%s' "${requested[0]}" | tr -cd 'a-zA-Z0-9-' | tr '[:upper:]' '[:lower:]')
-  subject="docs: bump $slug submodule to latest"
-else
-  slug=submodules
-  subject="docs: bump submodules to latest"
-fi
-[ -n "$slug" ] || die "empty branch slug"
-
-branch="feature/bump-$slug"
+# $base, $subject and $branch were resolved in preflight, before any GitHub call.
 if git show-ref --verify --quiet "refs/heads/$branch"; then
-  die "branch $branch already exists; delete or rename it first"
+  die "branch $branch reappeared after preflight; resolve it before running"
 fi
 
 # Build the shared markdown body. bash 3.2 mis-parses apostrophes inside a
