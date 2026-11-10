@@ -1,7 +1,8 @@
 """Unit tests for extract_chapter.py.
 
-Pure helpers are tested without the PDF. One integration test exercises the
-real source and is skipped when the PDF (or PyMuPDF) is unavailable.
+Pure helpers are tested without the PDF. Integration tests exercise a real
+NXP PDF and are skipped when the PDF (or PyMuPDF) is unavailable; point
+NXP_TEST_PDF at any NXP document to run them against it.
 
 Run:
   python3 -m unittest discover -s .agents/skills/nxp-translate/scripts -p 'test_*.py' -v
@@ -16,8 +17,11 @@ import extract_chapter as ec
 
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-PDF = os.path.join(REPO_ROOT, "reference-docs", "nxp", "s32g3",
-                   "reference_manual", "RMS32G3.pdf")
+PDF = os.environ.get(
+    "NXP_TEST_PDF",
+    os.path.join(REPO_ROOT, "reference-docs", "nxp", "s32g3",
+                 "reference_manual", "RMS32G3.pdf"),
+)
 
 
 class SlugTests(unittest.TestCase):
@@ -38,12 +42,17 @@ class SlugTests(unittest.TestCase):
             with self.subTest(title=title):
                 self.assertEqual(ec.slugify(title), expected)
 
-    def test_chapter_dir_is_zero_padded(self):
-        self.assertEqual(ec.chapter_dir(3, "Memory Map"), "ch03_memory_map")
-        self.assertEqual(ec.chapter_dir(43, "Periodic Interrupt Timer (PIT)"),
+    def test_chapter_dir_pads_to_chapter_count(self):
+        # 2-digit padding up to 99 chapters, 3 digits beyond
+        self.assertEqual(ec.chapter_dir(3, "Memory Map", 81), "ch03_memory_map")
+        self.assertEqual(ec.chapter_dir(43, "Periodic Interrupt Timer (PIT)", 81),
                          "ch43_periodic_interrupt_timer_pit")
-        self.assertEqual(ec.chapter_dir(81, "Aurora Trace Port (ATP) Subsystem"),
+        self.assertEqual(ec.chapter_dir(81, "Aurora Trace Port (ATP) Subsystem", 81),
                          "ch81_aurora_trace_port_atp_subsystem")
+        self.assertEqual(ec.chapter_dir(5, "SRAM Controller (SRAMCTL)", 111),
+                         "ch005_sram_controller_sramctl")
+        self.assertEqual(ec.chapter_dir(57, "Mode Entry Module (MC_ME)", 111),
+                         "ch057_mode_entry_module_mc_me")
 
 
 class HeadingTests(unittest.TestCase):
@@ -74,16 +83,24 @@ class HeadingTests(unittest.TestCase):
 
 
 class ChromeTests(unittest.TestCase):
-    def test_chrome_lines(self):
+    def test_universal_chrome_lines(self):
         for line in ["NXP Semiconductors", "Reference Manual",
                      "General Business Information", "2259 / 5101",
-                     "S32G3 Reference Manual, Rev. 5, 2025-09-17"]:
+                     "10491 / 10491"]:
             with self.subTest(line=line):
                 self.assertTrue(ec.is_chrome_line(line))
 
+    def test_derived_running_header_is_chrome(self):
+        is_chrome = ec.make_chrome_filter(
+            ["S32G3 Reference Manual, Rev. 5, 2025-09-17"])
+        self.assertTrue(is_chrome("S32G3 Reference Manual, Rev. 5, 2025-09-17"))
+        self.assertTrue(is_chrome("NXP Semiconductors"))
+        self.assertFalse(is_chrome("The PIT module is the source of:"))
+
     def test_content_lines_are_not_chrome(self):
         for line in ["43.1 Chip-specific PIT information",
-                     "Table 279. PIT triggers", "The PIT module is the source of:"]:
+                     "Table 279. PIT triggers", "The PIT module is the source of:",
+                     "S32K5XXRM"]:
             with self.subTest(line=line):
                 self.assertFalse(ec.is_chrome_line(line))
 
@@ -95,8 +112,8 @@ class ChromeTests(unittest.TestCase):
                 self.assertFalse(ec.is_chrome_line(line))
 
 
-def synthetic_toc():
-    """81 chapters: 1-4 level-1, 5-81 level-2 under group headers."""
+def s32g3_style_toc():
+    """81 chapters mixing levels: 1-4 level-1, 5-81 level-2 under group headers."""
     toc = [(1, "S32G3 Reference Manual", 1), (1, "Contents", 2)]
     chapter_pages = {1: 96, 2: 106, 3: 113, 4: 114}
     for n in range(5, 82):
@@ -106,7 +123,7 @@ def synthetic_toc():
     toc.append((1, "Chapter 5-23: System Modules", 115))
     for n in range(5, 82):
         toc.append((2, f"{n} Chapter{n}", chapter_pages[n]))
-    toc.append((1, "Debug", 4924))
+    toc.append((1, "Debug", 100))
     toc.append((1, "A General Changes", 5083))
     toc.append((1, "B Release notes", 5084))
     toc.append((3, "44.4.3.2 Status And Control (SC)", 2259))
@@ -114,15 +131,31 @@ def synthetic_toc():
     return toc, chapter_pages
 
 
-class OutlineTests(unittest.TestCase):
-    def setUp(self):
-        self.toc, self.pages = synthetic_toc()
+def s32k5_style_toc():
+    """111 chapters all at level 3 under level-2 group headers; no dots after
+    chapter numbers; appendix + legal information trail the last chapter."""
+    toc = [(1, "S32K5xx Reference Manual", 1),
+           (2, "Power Management", 99), (2, "Safety", 99)]
+    pages = {n: 100 + n * 3 for n in range(1, 112)}
+    for n in range(1, 112):
+        toc.append((3, f"{n} Chapter{n}", pages[n]))
+    toc.append((2, "Appendix A", 440))
+    toc.append((2, "Legal information", 450))
+    return toc, pages
 
-    def test_parse_chapters_finds_81_contiguous(self):
-        chapters = ec.parse_chapters(self.toc)
+
+class OutlineTests(unittest.TestCase):
+    def test_parse_chapters_finds_contiguous_levels_mixed(self):
+        toc, pages = s32g3_style_toc()
+        chapters = ec.parse_chapters(toc)
         self.assertEqual([c["number"] for c in chapters], list(range(1, 82)))
         self.assertEqual(chapters[0]["title"], "Chapter1")
-        self.assertEqual(chapters[80]["start"], self.pages[81])
+        self.assertEqual(chapters[80]["start"], pages[81])
+
+    def test_parse_chapters_accepts_flat_level_shape(self):
+        toc, pages = s32k5_style_toc()
+        chapters = ec.parse_chapters(toc)
+        self.assertEqual([c["number"] for c in chapters], list(range(1, 112)))
 
     def test_parse_chapters_rejects_broken_outline(self):
         broken = [(1, "1 One", 96), (2, "3 Three", 113)]
@@ -130,10 +163,19 @@ class OutlineTests(unittest.TestCase):
             ec.parse_chapters(broken)
 
     def test_chapter_range_uses_next_chapter_start(self):
-        chapters = ec.parse_chapters(self.toc)
-        self.assertEqual(ec.chapter_range(chapters, 1), (96, 105))
-        self.assertEqual(ec.chapter_range(chapters, 3), (113, 113))
-        self.assertEqual(ec.chapter_range(chapters, 81), (self.pages[81], 5082))
+        toc, pages = s32g3_style_toc()
+        chapters = ec.parse_chapters(toc)
+        self.assertEqual(ec.chapter_range(chapters, toc, 1, 5101), (96, 105))
+        self.assertEqual(ec.chapter_range(chapters, toc, 3, 5101), (113, 113))
+        self.assertEqual(ec.chapter_range(chapters, toc, 81, 5101),
+                         (pages[81], 5082))
+
+    def test_final_chapter_ends_before_trailing_matter(self):
+        toc, pages = s32k5_style_toc()
+        chapters = ec.parse_chapters(toc)
+        # appendix A begins at 440 -> last chapter (433) ends 439
+        self.assertEqual(ec.chapter_range(chapters, toc, 111, 460),
+                         (pages[111], 439))
 
     def test_section_tree_is_prefix_scoped(self):
         toc = [(2, "43 Periodic Interrupt Timer (PIT)", 2235),
@@ -163,16 +205,17 @@ class TableTests(unittest.TestCase):
         self.assertEqual(rows, [["A", "B"], ["C", "D"]])
 
 
-@unittest.skipUnless(os.path.isfile(PDF), "S32G3 RM PDF not available")
+@unittest.skipUnless(os.path.isfile(PDF), "NXP PDF not available (set NXP_TEST_PDF)")
 class IntegrationTests(unittest.TestCase):
-    def test_chapter_3_page_range_and_target(self):
-        report = ec.build_report(PDF, 3, sections_only=True)
+    def test_page_range_and_target(self):
+        report = ec.build_report(PDF, 3, target_root="docs/nxp/s32g3",
+                                 sections_only=True)
         self.assertEqual(report["pages"], [113, 113])
         self.assertEqual(report["target"],
                          "docs/nxp/s32g3/ch03_memory_map/index.md")
         self.assertTrue(any(s["title"].startswith("3.1") for s in report["sections"]))
 
-    def test_debug_group_chapter_78(self):
+    def test_chapter_78_has_no_chrome(self):
         report = ec.build_report(PDF, 78, sections_only=True)
         self.assertEqual(report["pages"], [4924, 5014])
         self.assertTrue(any(s["title"].startswith("78 ") for s in report["sections"]))
@@ -181,7 +224,8 @@ class IntegrationTests(unittest.TestCase):
         report = ec.build_report(PDF, 1)
         text = "\n".join(line for p in report["page_text"] for line in p["lines"])
         self.assertIn("1.1 Audience", text)
-        for marker in ("NXP Semiconductors", "General Business Information", "/ 5101"):
+        for marker in ("NXP Semiconductors", "General Business Information",
+                       "/ 5101", "S32G3 Reference Manual"):
             self.assertNotIn(marker, text)
 
 

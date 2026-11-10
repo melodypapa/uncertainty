@@ -1,44 +1,50 @@
 ---
 name: nxp-translate
 description: >
-  Use when translating, completing, verifying or inventorying the Chinese NXP
-  S32G3 articles under docs/nxp/s32g3/ of the melodypapa.github.io MkDocs site;
-  when an S32G3 Reference Manual (S32G3RM) chapter in reference-docs/nxp/
-  needs a one-chapter-one-file page; for S32G3 chapter coverage or module
-  chapters (PIT, FlexCAN, XRDC, MC_CGM, MC_ME, FCCU, ERM, EIM, Debug); or for
-  NXP register tables, globally numbered figures, or cropping manual diagrams.
-author: melodypapa
-license: MIT
-repository: https://github.com/melodypapa/uncertainty
+  Use when translating, completing, verifying or inventorying Chinese article
+  versions of an NXP-published PDF (reference manual, safety manual,
+  datasheet — any chaptered NXP document); when a chapter of such a document
+  needs a one-chapter-one-file page; when asked about chapter coverage or a
+  module chapter (registers, memory maps, field tables); or when the task
+  involves NXP register tables, globally numbered figures, or cropping
+  diagrams from an NXP manual PDF. Document-agnostic: the source PDF and the
+  target location are run parameters, nothing about the document or its
+  storage is hardcoded.
 ---
 
-# NXP Reference Manual → Chapter Article Sync
+# NXP PDF → Chapter Article Translation
 
-Translate or complete the Chinese articles under `docs/nxp/s32g3/` from the NXP
-S32G3 Reference Manual mirrored in `reference-docs/nxp/`. **One numbered chapter
-= one markdown file.** Follow the steps in order; the conventions live in
-`references/`, not in this file.
+Translate or complete Chinese chapter articles from an NXP-published PDF.
+**One numbered chapter = one markdown file.** Follow the steps in order; the
+conventions live in `references/`, not in this file.
 
 The source is a **PDF with no parsed Markdown mirror**. Everything structural
-comes from the PDF outline; everything textual comes from the PDF. Unlike
-`arm-translate`, there is no `.md` parse to lean on.
+comes from the PDF outline; everything textual comes from the PDF.
+
+## Run parameters
+
+Every run is anchored on two parameters, taken from the requester or from the
+corpus's own ledger — never from this skill:
+
+| Parameter | Meaning |
+| --- | --- |
+| **Source PDF** | the NXP-published document to translate from (any path) |
+| **Target root** | the directory the articles are written to |
+
+All derived artifacts (chapter map, progress ledger) live **inside the target
+root**, so multiple documents never collide. This skill names no repository,
+folder or file of any specific document.
 
 ## Step 0 — Read the law of the land
 
-There is no `STANDARD.md` for `docs/nxp/`. Read
-`references/article-format.md`, `references/source-resolution.md` and
-`references/chapter-map.md` before writing, and read at least one neighbouring
-`docs/nxp/s32g2/<topic>/index.md`.
+Read `references/article-format.md`, `references/source-resolution.md` and
+`references/chapter-map.md` before writing. If the target root already holds
+articles, read at least one neighbouring `<target>/chNN_<slug>/index.md`.
 
-Read the S32G2 page **for syntax only**: front matter, numbering, figure
-filenames. The legacy pages are partial translations and carry defects — do not
-copy them:
-
-- empty section bodies (`## 3. RTC 寄存器说明` with nothing under it);
-- `![Table_1](Table_1.png)` — a table cropped as an image;
-- whole register-description sections dropped;
-- untranslated English paragraphs.
-
+Read the neighbouring page **for syntax only**: front matter, numbering,
+figure filenames. A legacy or partial page may carry defects — do not copy
+them: empty section bodies, tables cropped as images (`![Table_1](Table_1.png)`),
+whole register-description sections dropped, untranslated English paragraphs.
 A faithful chapter translation has none of these. When a neighbouring page and
 `references/article-format.md` disagree, the reference wins.
 
@@ -46,42 +52,36 @@ A faithful chapter translation has none of these. When a neighbouring page and
 
 Read `references/source-resolution.md`. Summary:
 
-1. Primary source is
-   `reference-docs/nxp/s32g3/reference_manual/RMS32G3.pdf`
-   (`S32G3RM Rev. 5, 2025-09-17`, 5101 pages). It is Git-LFS tracked and
-   **read-only**. Confirm it is materialised (not a pointer) with `file` /
-   `git lfs pull` before relying on it.
-2. Use system `python3` with PyMuPDF (`pymupdf` is **not** in
-   `requirements.txt`, so the mkdocs venv does not have it).
-3. `doc.get_toc()` is the structural source: 81 contiguous numbered chapters,
-   section tree down to level 10, chapter start pages. Page text is the source
-   for wording. Never re-derive chapter boundaries from a page-text search.
+1. The source PDF path is a run parameter. Confirm it is materialised (not a
+   Git-LFS pointer) with `file` / `git lfs pull` before relying on it.
+2. Use system `python3` with PyMuPDF (`pymupdf` is typically not in an MkDocs
+   venv's `requirements.txt`).
+3. `doc.get_toc()` is the structural source: the section tree and chapter
+   boundaries. Page text is the source for wording. Never re-derive chapter
+   boundaries from a page-text search. Outline shapes differ per document —
+   `parse_chapters()` accepts chapters at any level and fails loudly when the
+   numbers are not contiguous.
 4. Run `scripts/extract_chapter.py <pdf> <chapter> --out /tmp/chNN.txt` for the
    chapter dump (section tree, chrome-stripped page text, table grids, caption
-   index). `--sections-only` for a fast outline-only census.
-5. Record the revision (`S32G3RM Rev. 5, 2025-09-17`) in the PR text. NXP
-   articles carry no `spec:` / `release:` front matter.
+   index). `--sections-only` for a fast outline-only census;
+   `--target-root <target>` to report the article path.
+5. Record the document identity (title, doc ID, revision, date) **as printed
+   by the document itself** in the PR text and the corpus's chapter-map header.
+   NXP articles carry no `spec:` / `release:` front matter.
 
-Never edit a PDF, never add a `.md` parse to `reference-docs/`, never commit a
-PDF as site content.
+Never edit a PDF, never add a `.md` parse beside it, never commit a PDF as
+site content.
 
 ## Step 2 — Map chapter → target article
 
-Read `references/chapter-map.md`. A source chapter becomes exactly one article:
-
-```
-docs/nxp/s32g3/chNN_<slug>/index.md
-```
-
-e.g. chapter 43 → `docs/nxp/s32g3/ch43_periodic_interrupt_timer_pit/index.md`.
-Use the **explicit table**, not a filename invented from the title. Zero-padded
-`chNN`; slug rule is in the map. One run consumes one chapter. Never split a
-chapter across files, never merge two chapters into one file, and never append
-a new page at the end of its nav group.
-
-Chapters 1–4 are level-1 outline entries; chapters 5–81 are level-2 under 11
-unnumbered group headers. Group headers, `Contents`, appendices A/B and
-`Legal information` are chrome, not chapters.
+Read `references/chapter-map.md`. One source chapter becomes exactly one
+article: `<target>/chNN_<slug>/index.md`, zero-padded to the chapter count's
+width, slug derived by `slugify()`. Use the corpus's recorded chapter map —
+derive it from the outline on the first run (see the reference for the rules
+and a worked example), never invent a filename from a chapter title on the
+fly. One run consumes one chapter. Never split a chapter across files, never
+merge two chapters into one file, and never append a new page at the end of
+its nav group.
 
 ## Step 3 — Gap analysis before any writing
 
@@ -95,7 +95,7 @@ Compare the article's headings against the chapter's outline section tree:
 - **Complete** → report alignment; check for sections the article dropped.
 
 Compare **all heading levels** (`##` through `######`) plus the bold-paragraph
-labels used for outline levels deeper than h6. The outline reaches level 10 —
+labels used for outline levels deeper than h6. The outline can reach level 10 —
 register and debug chapters have dozens of deep sections; comparing only `##`
 silently drops them. Do not open figures during gap analysis; it is text-only.
 
@@ -104,25 +104,25 @@ record the count. If the requester's description contradicts the source (wrong
 length, "no figures", "one table"), say so and follow the source.
 
 The droppable set is document chrome only: cover, contents, revision/release
-notes, legal notice, appendices A/B. Everything else that carries content —
+notes, legal notice, appendices. Everything else that carries content —
 including notes, register descriptions, memory maps and field tables —
-translates. For a chapter whose dump exceeds ~1500 lines (ch67, ch76, ch37,
-ch25 and others do), present the plan and get confirmation before translating.
+translates. For a chapter whose dump exceeds ~1500 lines, present the plan and
+get confirmation before translating.
 
 ## Step 4 — Create the work todo list
 
 Emit an explicit checklist before writing: chapter sections in source order,
 figures to crop, tables to rebuild as text (GFM by default; HTML only for
-qualified complex structures), register entries, nav registration, landing-page
-update, verification commands. If the target directory does not exist, create
-it first.
+qualified complex structures), register entries, nav registration if the
+target belongs to a site, landing-page update, verification commands. If the
+target directory does not exist, create it first.
 
-81 full-chapter articles cannot land in one session. On the first run create the
-persistent ledger described at the end of `references/chapter-map.md`
-(`docs/nxp/s32g3/TODO.md`, `sync-todo/`), add it to `exclude_docs` in
-`mkdocs.yml`, and record each chapter's status. **Resume rule:** take the first
-unfinished row in chapter order; do not re-derive scope or re-ask decisions
-already recorded in the row.
+A full document cannot land in one session. On the first run create the
+persistent ledger described in `references/chapter-map.md` (`<target>/TODO.md`,
+`<target>/sync-todo/`), excluded from any site build via `exclude_docs` when
+the target is inside an MkDocs `docs/` tree, and record each chapter's status.
+**Resume rule:** take the first unfinished row in chapter order; do not
+re-derive scope or re-ask decisions already recorded in the row.
 
 ## Step 5 — Translate in place
 
@@ -144,16 +144,16 @@ already recorded in the row.
 - **Never write `# ` in the body** (front-matter `title` is the only h1).
 - Source `NOTE` → `**注意：**`, `CAUTION` → `**警告：**`.
 - **Tables: every table becomes text.** GFM by default (header row + `| --- |`),
-  including memory maps, field tables and register summaries. Never crop a table
-  as an image. Expand merged cells by repeating the spanning value in each row
-  of the block. Stitch tables split across pages (`Table continued...` /
-  `Table continues...`) into one grid, dropping the repeated header. A table the
-  detector flattened is rebuilt from the PDF layout, still as text. The narrow
-  HTML exception (block content in cells, ambiguous multi-tier header,
+  including memory maps, field tables and register summaries. Never crop a
+  table as an image. Expand merged cells by repeating the spanning value in
+  each row of the block. Stitch tables split across pages (`Table continued...`
+  / `Table continues...`) into one grid, dropping the repeated header. A table
+  the detector flattened is rebuilt from the PDF layout, still as text. The
+  narrow HTML exception (block content in cells, ambiguous multi-tier header,
   meaningful spanning cells) is in `references/article-format.md` §Tables.
 - Register subsections keep the source order: name + offset, `Function` prose,
   `Diagram` bit-field bar, `Fields` table. Bit ranges, reset values and offsets
-  match the source exactly.
+  match the source exactly; the `Fields` table matches the source row for row.
 - Figures: every content figure embeds, cropped and referenced without caption
   text (`![Figure_256](Figure_256.png)`).
 
@@ -177,86 +177,122 @@ is a table.
 Unnumbered register `Diagram` bit-field bars use `Diagram_<slug>.png`
 (`Diagram_sc.png`), with a numeric suffix on collision. Never name a figure
 `Table_<n>.png`. Legacy `Table_1.png` in a directory you are already editing is
-converted to a text table in the same run: delete the PNG and its reference once
-the translated table is verified against the source, and only if nothing else
-links to it.
+converted to a text table in the same run: delete the PNG and its reference
+once the translated table is verified against the source, and only if nothing
+else links to it.
 
-## Step 7 — Register the page
+## Step 7 — Register the page (only when the target belongs to a site)
 
-- `mkdocs.yml`: add a `S32G3:` subgroup under `NXP:`, with the section landing
-  `nxp/s32g3/index.md` as the **unlabeled first entry** (`navigation.indexes`),
-  then `- "<中文标题>": nxp/s32g3/chNN_<slug>/index.md` at the chapter's source
-  position. The nav group is ordered by chapter number, not arrival time.
-- `docs/nxp/s32g3/index.md`: front matter, one intro sentence, `## 文章` link
-  list grouped by the 11 source group headers, then `## 相关内容`.
-- `docs/nxp/index.md`: add a `## S32G3` link list under the existing `## S32G2`.
-- `docs/index.md`: refresh the NXP tab description when the S32G3 pages land.
-- Every page must be registered or `--strict` fails. A strict build passing
-  with an unregistered page means the page is orphaned.
+If the target root is part of an MkDocs site, follow **that site's** existing
+registration conventions — where NXP/manual groups live, how section landings
+are registered, where a new subgroup goes. The generic pattern:
 
-**Offline / output-dir mode.** When the requester asks for output to a directory,
-for an inventory, or explicitly says "don't modify the repo", produce only the
-articles/dumps there and **skip Steps 7–9**. Evals use this mode. Never claim
-the site was updated when it was not.
+- `mkdocs.yml` (or equivalent nav config): the corpus's section landing as the
+  **unlabeled first entry** of its group (`navigation.indexes`), then the new
+  article's `<中文标题>` at the chapter's **source position** (nav is ordered
+  by chapter number, not arrival time). Every page must be registered or
+  `--strict` fails.
+- Section landing page (`<target>/index.md`): front matter, one intro sentence,
+  `## 文章` link list grouped by the document's group headers, then
+  `## 相关内容`.
+- Every page registered; a strict build passing with an unregistered page
+  means the page is orphaned.
+
+**Offline / output-dir mode.** When the requester asks for output to a
+directory outside any site, for an inventory, or explicitly says "don't modify
+the repo", produce only the articles/dumps there and **skip Steps 7–9**. Evals
+use this mode. Never claim the site was updated when it was not.
 
 ## Step 8 — Verify (two-phase gate)
 
 Phase A (mechanical, all must pass):
 
 ```
+python3 <path-to>/nxp-translate/scripts/check_tables.py <target>
+python3 <path-to>/autosar-translate/scripts/check_indexes.py   # when the target lives in the autosar-managed site
+python3 <path-to>/autosar-translate/scripts/check_heading_lang.py <article>
+# when the target belongs to an MkDocs site, that site's strict build, e.g.:
 /tmp/mkdocs-venv/bin/python -m mkdocs build --strict --site-dir /tmp/mkdocs-check
-python3 .agents/skills/autosar-translate/scripts/check_indexes.py
-python3 .agents/skills/autosar-translate/scripts/check_heading_lang.py <article>
 ```
 
 Plus: every `![](...)` target exists in the article directory; no `![Table…]`
 image left; no `# ` in the body; every `## ` heading is Chinese with the source
 number; numbering continuity at every level (`### 7.10` implies `### 7.9`,
 `## 3.` implies `## 2.`); no untranslated English paragraph; no empty section
-body; and a **file → nav orphan check** for all `docs/nxp/s32g3/ch*/index.md`
-pages (strict build only checks nav → file, not the reverse). Also: bold
-markers balanced on every line (no odd `**` count), and every 「参见 X」
-pointing at another chapter is a Markdown link to the target article path
-from `references/chapter-map.md` (forward links to untranslated chapters
-allowed; see `references/article-format.md` § Cross-references).
-`check_heading_lang.py` is AUTOSAR-tuned and blind to bold-paragraph deep
-labels, so it is a tripwire, not the whole check.
+body; and a **file → nav orphan check** for all `<target>/ch*/index.md` pages
+when the target belongs to a site (a strict build only checks nav → file, not
+the reverse). Also: bold markers balanced on every line (no odd `**` count),
+and every 「参见 X」 pointing at another chapter is a Markdown link to the
+target article path from the corpus's chapter map (forward links to
+untranslated chapters allowed; see `references/article-format.md`
+§ Cross-references). `check_heading_lang.py` is AUTOSAR-tuned and blind to
+bold-paragraph deep labels, so it is a tripwire, not the whole check.
+`check_tables.py` enforces four rules mechanically: (1) every block of pipe
+lines carries a header row + `| --- |` separator — without them GFM renders the
+rows as one soft-joined run-on paragraph (a corpus once shipped 11 chapters
+this way, one alone losing 52); (2) bold balance — a stray `*` outside `**`
+pairs renders as a literal asterisk (`**xxx***`); (3) heading level = numeric
+depth + 1; (4) no Markdown markup in front-matter titles (`**` renders
+literally in the h1, browser tab and nav). Checked, never eyeballed.
 
 Phase B (fidelity): walk the chapter section by section — each outline section
 has a translation, each register/figure/table is present, row sets, bit ranges,
 register offsets and reset values match the source, and deprecated Chinese-only
-wording is not used where the source is a proper noun.
+wording is not used where the source is a proper noun. When comparing Fields
+tables programmatically, cut each section's text at the next section's heading
+line, never at the TOC's page boundary: a register's Fields table often sits
+below the next section's start page, and the `Fields` block on a section's own
+start page may belong to the previous register.
 
 Report both phases with concrete evidence; do not claim completion without the
-build output. Run the gate even when the requester says they will verify it
-themselves — Phase A is the author's responsibility, not a hand-off.
+verification output. Run the gate even when the requester says they will verify
+it themselves — Phase A is the author's responsibility, not a hand-off.
 
-## Step 9 — Repository workflow
+## Step 9 — Repository workflow (only when the target lives in a repo)
 
-Feature branch (`feature/nxp-s32g3-<topic>`), English issue and PR text,
-`docs:` commit with `Closes #N`, strict build before commit, no co-work
-attribution (never add `Co-Authored-By:` / "Generated with …" footers or any
-mention of the agent/session). PR body: lead with a summary, group changes per
-area (article / skill+script / other), end with a verification list including
-the strict-build result. Merge through a PR; `master` is protected. A PR that
-creates or changes the skill itself is `feat:`, not `docs:`.
+Follow the host repo's own conventions for branching, issue/PR language and
+commit messages. Baseline rules: feature branch, English issue and PR text,
+`docs:` commit (a PR that creates or changes the skill itself is `feat:`), the
+quality gate from Step 8 before every commit, and **no co-work attribution**
+(never add `Co-Authored-By:` / "Generated with …" footers or any mention of the
+agent/session). PR body: lead with a summary, group changes per area (article /
+skill+script / other), end with a verification list including the gate results.
+Merge through a PR when the default branch is protected.
 
 ## Common mistakes
 
-- Inventing a filename from the chapter title instead of using
-  `references/chapter-map.md`, or omitting the `chNN_` prefix.
+- Inventing a filename from the chapter title instead of using the corpus's
+  chapter map, or omitting the `chNN_` prefix / wrong zero-padding width.
 - Keeping the source chapter number (`## 43.1.`) instead of restarting at 1.
 - Writing `#######` for an outline level deeper than h6 instead of a bold
   paragraph.
 - Cropping a table as `Table_<n>.png`, or leaving a legacy table image in
   place while editing the article — tables are text.
+- Emitting table rows without the header row and `| --- |` separator (a GFM
+  table does not exist without them — the rows render as one run-on
+  paragraph); run `check_tables.py`, do not eyeball it.
+- Writing a heading whose `#` count does not match its numeric depth
+  (`### 1.7.1.` for a 3-component number) — the gate catches it.
+- Merging or dropping `Reserved` rows in a Fields table, or renaming a field
+  away from the source Fields table (e.g. to the Diagram's label): the row set
+  must match the source row for row. When the document self-contradicts
+  (Fields vs Function prose vs Diagram), follow Fields + Diagram and record
+  the conflict.
+- Putting Markdown markup (`**`) in a front-matter title — it renders as
+  literal asterisks.
+- Linking a chapter to itself (`[芯片特定的 X 信息](index.md)`) — same-article
+  references stay plain text.
+- Copying PDF text-layer artifacts: non-breaking spaces (U+00A0), split hex /
+  binary values (`0000 0000h` → `0000_0000h`), stray underscores that exist in
+  the source itself (`AMBA_ AHB`) — verify against a rendered page region and
+  repair.
 - Pasting PDF text with split identifiers (`PIT 0 _`, `0000 0000h _`) or broken
   table cells unrepaired.
-- Treating the S32G2 stub pages as the standard and leaving empty sections or
+- Treating a legacy partial page as the standard and leaving empty sections or
   dropping register descriptions.
 - Using Arm conventions: `Figure<ch>-<n>.png`, chapter-scoped table numbers,
-  `docs/cortex/` targets, `spec:` front matter, or cropping register `Diagram`
-  bars as tables.
+  chapter-scoped figure numbering, or cropping register `Diagram` bars as
+  tables.
 - Translating the cover, contents, release notes or legal notice.
 - Adding the page without the nav entry, or adding it at the end of the group
   instead of its chapter position.
@@ -266,8 +302,10 @@ creates or changes the skill itself is `feat:`, not `docs:`.
 
 - "One chapter is small, I'll skip the outline" — the outline is structural.
 - "I'll summarise the register tables" — a dropped row is a defect.
-- "The S32G2 pages do it this way" — they are partial stubs.
+- "The legacy pages do it this way" — they are partial and carry defects.
 - "Tables are easier as images" — never.
 - "I'll check the build later" — Phase A is the author's job.
 - "This is different because it's an NXP doc" — it is exactly what this skill
   is for.
+- "The outline doesn't parse, I'll eyeball chapter boundaries" — stop and
+  inspect `doc.get_toc()`; never improvise boundaries from page text.
