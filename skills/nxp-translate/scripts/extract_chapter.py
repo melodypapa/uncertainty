@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
-"""Dump one chapter of the NXP S32G3 Reference Manual PDF for translation.
+"""Dump one chapter of an NXP-published PDF for translation.
 
-The NXP corpus has no parsed Markdown mirror, so the PDF is the sole source.
-This helper makes reading it deterministic: chapter boundaries and the section
-tree come from the PDF outline, page text is stripped of the repeated header and
-footer, tables are emitted as row grids, and figure/table captions are indexed
-by page.
+Works with any chaptered NXP document (reference manual, safety manual, ...)
+that carries a PDF outline: chapter boundaries and the section tree come from
+`get_toc()`, page text is stripped of the repeated running header and footer
+(both by page bands and by lines auto-derived from the document itself), tables
+are emitted as row grids, and figure/table captions are indexed by page.
+Nothing about the document is hardcoded — pass any PDF path and chapter number.
 
-Read-only: opens the PDF for reading only, never writes to the repo.
+Read-only: opens the PDF for reading only, never writes anything.
 
 Usage:
-  extract_chapter.py <pdf> <chapter> [--out FILE] [--sections-only] [--json]
+  extract_chapter.py <pdf> <chapter> [--target-root DIR] [--out FILE]
+                     [--sections-only] [--json]
 
-Exit codes: 0 ok, 2 bad input / missing source, 3 missing PyMuPDF.
+Exit codes: 0 ok, 2 bad input / missing source / outline not parseable,
+3 missing PyMuPDF.
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ import json
 import os
 import re
 import sys
+from collections import Counter
 
 try:
     import pymupdf
@@ -31,27 +35,26 @@ except ImportError:  # pragma: no cover - environment dependent
     print("error: PyMuPDF is not installed (pip install pymupdf)", file=sys.stderr)
     sys.exit(3)
 
-SOURCE_DOC = "S32G3RM Rev. 5, 2025-09-17"
-APPENDIX_PAGE = 5083  # appendix A ("A General Changes") begins here
-LAST_CHAPTER_END = 5082
-TOTAL_PAGES = 5101
-
+# '<N> Title' — whitespace right after the number excludes section entries
+# ('57.1 Chip-specific …' does not match). Chapters may sit at any outline
+# level and may mix levels across one document.
 CHAPTER_RE = re.compile(r"^(\d+)\s+(.+)$")
 SECTION_RE = re.compile(r"^(\d+(?:\.\d+)+)\s")
 CAPTION_RE = re.compile(r"^(Figure|Table)\s+(\d+)\.\s*(.*)$", re.IGNORECASE)
 CONTINUATION_RE = re.compile(r"^Table\s+(?:continued|continues)\b", re.IGNORECASE)
-CHROME_RES = [
+PAGE_NUMBER_RE = re.compile(r"^\d+\s*/\s*\d+$")
+
+# NXP layout universals. The document-specific running header (title, revision)
+# is auto-derived per document — see derive_running_headers().
+BASE_CHROME_RES = [
     re.compile(r"^NXP Semiconductors$"),
-    re.compile(r"^S32G3 Reference Manual,\s*Rev\.\s*5,\s*2025-09-17$"),
-    re.compile(r"^S32G3 Reference Manual.*$"),
     re.compile(r"^Reference Manual$"),
     re.compile(r"^General Business Information$"),
-    re.compile(r"^\d+\s*/\s*5101$"),
+    PAGE_NUMBER_RE,
 ]
 
 TOP_BAND = 62.0     # blocks above this y0 are the running header
 BOTTOM_BAND = 740.0  # blocks below this y0 are the page footer
-MAX_CHAPTER = 81
 
 
 def slugify(title: str) -> str:
@@ -60,9 +63,14 @@ def slugify(title: str) -> str:
     return re.sub(r"_+", "_", s)
 
 
-def chapter_dir(number: int, title: str) -> str:
-    """Target article directory, zero-padded so lexical order == chapter order."""
-    return f"ch{number:02d}_{slugify(title)}"
+def chapter_dir(number: int, title: str, total: int) -> str:
+    """Target article directory, zero-padded so lexical order == chapter order.
+
+    Pad width follows the chapter count: 2 digits up to 99 chapters (ch03),
+    3 digits beyond (ch057 of 111).
+    """
+    width = max(2, len(str(total)))
+    return f"ch{number:0{width}d}_{slugify(title)}"
 
 
 def heading_label(section_number: str):
@@ -83,8 +91,38 @@ def heading_label(section_number: str):
     return level, label, len(remaining) + 1 > 6
 
 
+def derive_running_headers(doc, sample: int = 40) -> list[str]:
+    """Lines repeated on (nearly) every sampled page: the running header/footer
+    text this document prints in addition to the NXP universals (title,
+    revision, confidential markings)."""
+    sample = min(sample, doc.page_count)
+    counts: Counter[str] = Counter()
+    for pno in range(sample):
+        for block in doc[pno].get_text("blocks"):
+            y0 = block[1]
+            if y0 < TOP_BAND or y0 > BOTTOM_BAND:
+                for raw in block[4].splitlines():
+                    line = raw.strip()
+                    if line and not CONTINUATION_RE.match(line):
+                        counts[line] += 1
+    threshold = sample / 2
+    return [line for line, n in counts.items() if n >= threshold]
+
+
+def make_chrome_filter(running_headers: list[str]):
+    res = list(BASE_CHROME_RES)
+    for line in running_headers:
+        res.append(re.compile("^" + re.escape(line) + "$"))
+
+    def is_chrome_line(line: str) -> bool:
+        return any(rx.match(line) for rx in res)
+
+    return is_chrome_line
+
+
 def is_chrome_line(line: str) -> bool:
-    return any(rx.match(line) for rx in CHROME_RES)
+    """Base-list variant (no derived headers); kept for direct reuse/tests."""
+    return any(rx.match(line) for rx in BASE_CHROME_RES)
 
 
 def is_continuation_marker(line: str) -> bool:
@@ -92,53 +130,72 @@ def is_continuation_marker(line: str) -> bool:
 
 
 def parse_chapters(toc):
-    """Numbered chapters from the PDF outline.
+    """Numbered chapters from the PDF outline, document-shape agnostic.
 
-    Chapters 1-4 are level-1 entries; chapters 5-81 are level-2 entries nested
-    under unnumbered level-1 group headers (including "Debug", which lacks a
-    "Chapter NN-NN:" prefix). Both are caught by level <= 2 + numeric title.
+    A chapter is any outline entry titled '<N> <Title>'. Entries may sit at any
+    outline level or mix levels across one document. Validation: the detected
+    numbers must form the contiguous sequence 1..N — otherwise the outline
+    shape is not understood and the error names what was found.
     """
     chapters = []
     for level, title, page in toc:
-        if level <= 2 and (m := CHAPTER_RE.match(title)):
+        if m := CHAPTER_RE.match(title):
             chapters.append({"number": int(m.group(1)), "title": m.group(2).strip(),
                              "start": page})
     numbers = [c["number"] for c in chapters]
-    expected = list(range(1, MAX_CHAPTER + 1))
-    if numbers != expected:
-        raise ValueError(f"expected 81 contiguous chapters, got {numbers[:5]}…{numbers[-5:]}")
+    if not numbers or numbers != list(range(1, numbers[-1] + 1)):
+        raise ValueError(
+            "outline does not yield contiguous numbered chapters; got "
+            f"{numbers[:8]}…{numbers[-8:] if len(numbers) > 8 else numbers[-8:]} "
+            "— this document's outline shape needs manual inspection "
+            "(doc.get_toc()) before extracting"
+        )
     return chapters
 
 
-def chapter_range(chapters, number: int):
-    """Inclusive PDF page range for a chapter."""
+def chapter_range(chapters, toc, number: int, page_count: int):
+    """Inclusive PDF page range for a chapter.
+
+    A non-final chapter ends where the next chapter starts. The final chapter
+    ends before the first trailing-matter entry (appendices, release notes,
+    legal information) — the first outline entry after the chapter's start
+    whose title is not one of the chapter's own sections.
+    """
     ch = next(c for c in chapters if c["number"] == number)
-    if number < MAX_CHAPTER:
+    if number < chapters[-1]["number"]:
         end = next(c["start"] for c in chapters if c["number"] == number + 1) - 1
     else:
-        end = LAST_CHAPTER_END
+        prefix = re.compile(rf"^{number}[\s.]")
+        end = page_count
+        for level, title, page in toc:
+            if page > ch["start"] and not prefix.match(title):
+                end = page - 1
+                break
+        end = max(end, ch["start"])
     return ch["start"], end
 
 
 def section_tree(toc, number: int, start: int, end: int):
     """All outline entries belonging to one chapter, in source order."""
-    prefix = re.compile(rf"^{number}\.")
+    prefix = re.compile(rf"^{number}[.\s]")
     out = []
     for level, title, page in toc:
         if not (start <= page <= end):
             continue
-        if prefix.match(title) or title.startswith(f"{number} "):
+        if prefix.match(title):
             out.append({"level": level, "title": title, "page": page})
     return out
 
 
-def clean_page(page):
+def clean_page(page, is_chrome=None):
     """Text lines with the repeated header/footer removed.
 
     Header/footer blocks live outside the TOP_BAND/BOTTOM_BAND content area.
     Continuation markers ("Table continued...", "Table continues...") sit near
     those bands but carry table state, so they are always preserved.
     """
+    if is_chrome is None:
+        is_chrome = is_chrome_line
     lines = []
     for block in page.get_text("blocks"):
         x0, y0, x1, y1, text = block[:5]
@@ -150,7 +207,7 @@ def clean_page(page):
             if is_continuation_marker(line):
                 lines.append(line)
                 continue
-            if in_band or is_chrome_line(line):
+            if in_band or is_chrome(line):
                 continue
             lines.append(line)
     return lines
@@ -192,19 +249,26 @@ def check_source(path: str):
         sys.exit(2)
 
 
-def build_report(pdf_path, number, sections_only=False):
+def build_report(pdf_path, number, target_root=".", sections_only=False):
     doc = pymupdf.open(pdf_path)
-    chapters = parse_chapters(doc.get_toc())
-    start, end = chapter_range(chapters, number)
+    toc = doc.get_toc()
+    chapters = parse_chapters(toc)
+    if not any(c["number"] == number for c in chapters):
+        print(f"error: chapter {number} is out of range 1-{chapters[-1]['number']}",
+              file=sys.stderr)
+        sys.exit(2)
+    start, end = chapter_range(chapters, toc, number, doc.page_count)
     ch = next(c for c in chapters if c["number"] == number)
+    total = chapters[-1]["number"]
+    document = (doc.metadata.get("title") or "").strip() or os.path.basename(pdf_path)
     report = {
         "source": pdf_path,
-        "document": SOURCE_DOC,
+        "document": document,
         "chapter": number,
         "title": ch["title"],
         "pages": [start, end],
-        "target": f"docs/nxp/s32g3/{chapter_dir(number, ch['title'])}/index.md",
-        "sections": section_tree(doc.get_toc(), number, start, end),
+        "target": f"{target_root}/{chapter_dir(number, ch['title'], total)}/index.md",
+        "sections": section_tree(toc, number, start, end),
         "captions": [],
         "tables": [],
         "page_text": [],
@@ -213,17 +277,18 @@ def build_report(pdf_path, number, sections_only=False):
         doc.close()
         return report
 
+    is_chrome = make_chrome_filter(derive_running_headers(doc))
     for pno in range(start, end + 1):
         page = doc[pno - 1]
-        lines = clean_page(page)
+        lines = clean_page(page, is_chrome)
         report["page_text"].append({"page": pno, "lines": lines})
         for line in lines:
             if m := CAPTION_RE.match(line):
                 report["captions"].append({"page": pno, "kind": m.group(1).title(),
-                                          "number": int(m.group(2)), "text": line})
+                                           "number": int(m.group(2)), "text": line})
             elif is_continuation_marker(line):
                 report["captions"].append({"page": pno, "kind": "Continuation",
-                                          "number": None, "text": line})
+                                           "number": None, "text": line})
         for grid in page_tables(page):
             report["tables"].append({"page": pno, "rows": grid})
     doc.close()
@@ -264,19 +329,19 @@ def render_text(report):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("pdf", help="path to RMS32G3.pdf")
-    ap.add_argument("chapter", type=int, help="chapter number 1-81")
+    ap.add_argument("pdf", help="path to the NXP-published source PDF")
+    ap.add_argument("chapter", type=int, help="chapter number to dump")
+    ap.add_argument("--target-root", default=".",
+                    help="article root the chapter maps to (default: current directory)")
     ap.add_argument("--out", help="write the dump to this file instead of stdout")
     ap.add_argument("--sections-only", action="store_true",
                     help="emit only the outline section tree (fast, no page text)")
     ap.add_argument("--json", action="store_true", help="emit JSON instead of text")
     args = ap.parse_args(argv)
 
-    if not 1 <= args.chapter <= MAX_CHAPTER:
-        print(f"error: chapter must be 1-{MAX_CHAPTER}", file=sys.stderr)
-        sys.exit(2)
     check_source(args.pdf)
-    report = build_report(args.pdf, args.chapter, args.sections_only)
+    report = build_report(args.pdf, args.chapter, args.target_root,
+                          args.sections_only)
     if args.json:
         payload = json.dumps(report, ensure_ascii=False, indent=2)
     else:

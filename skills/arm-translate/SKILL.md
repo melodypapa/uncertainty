@@ -1,63 +1,77 @@
 ---
 name: arm-translate
 description: >
-  Use when translating, completing, verifying or inventorying the Arm reference
-  articles under docs/cortex/ of the melodypapa.github.io MkDocs site; syncing a
-  Cortex-M7, Cortex-R52+ or Armv8-M document (TRM, Armv7-M/Armv8-M manual,
-  SDEN errata) from `reference-docs/arm` into a docs/cortex page; answering
-  coverage questions about MPU, cache, memory system, programmers model,
-  exception model, instruction set or system address map; or merging split
-  chapter pages and registering a glossary.
+  Use when translating, completing, verifying or inventorying the Chinese Arm
+  reference articles of an Arm document series (Cortex TRM, Armv7-M/Armv8-M
+  architecture manuals, SDEN errata notices — any Arm-published document with
+  a paired Markdown mirror + PDF); syncing a source chapter into a topic
+  article; answering coverage questions about MPU, cache, memory system,
+  programmers model, exception model, instruction set or system address map;
+  or merging split chapter pages and registering a glossary. Corpus-agnostic:
+  the source corpus and the target location are run parameters.
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
+version: "1.0.0"
+product-version: "1.0.0"
 ---
 
-# Arm Document → Cortex Article Sync
+# Arm Document → Article Sync
 
-Translate or complete the Chinese articles under `docs/cortex/` from the Arm
-documents mirrored in `reference-docs/arm/`. Follow the steps in order; the
-conventions live in `references/`, not in this file.
+Translate or complete the Chinese articles of an Arm document series from the
+Arm document corpus (paired ima-parsed Markdown + original PDF). Follow the
+steps in order; the conventions live in `references/`, not in this file.
+
+## Run parameters
+
+Every run is anchored on two parameters, taken from the requester or from the
+corpus's own ledger — never from this skill:
+
+| Parameter | Meaning |
+| --- | --- |
+| **Source corpus** | the paired `.md` + `.pdf` mirror holding the Arm document(s) to translate from |
+| **Target root** | the directory the articles are written to (`<target>/<document>/<topic>/index.md`) |
+
+Per-corpus artifacts (article↔source mapping, sync ledger, glossaries) live
+**inside the target root**, so multiple document series never collide. This
+skill names no repository or folder of any specific corpus; the cortex corpus
+serves as the worked example in `references/examples/`.
 
 ## Step 0 — Read the law of the land
 
-There is no `STANDARD.md` for `docs/cortex/`. The law is the existing articles
+There is no `STANDARD.md` for the Arm corpus. The law is the existing articles
 plus `references/article-format.md`. Read that reference before writing, and
-read at least one neighbouring article in the same `docs/cortex/<document>/`
-tree so the new page matches its tone and structure.
+read at least one neighbouring article in the same `<target>/<document>/` tree
+so the new page matches its tone and structure.
 
 ## Step 1 — Resolve the source document
 
 Read `references/source-resolution.md`. Summary:
 
-1. Primary source is the ima-parsed Markdown in `reference-docs/arm/<core>/`
-   (`cortex-m7/`, `cortex-r52/`), paired with the original PDF of the same doc ID
-   and revision. Use the `.md` for text, the `.pdf` for figures, and the `.pdf` to
+1. The source corpus location is a run parameter. Primary source is the
+   ima-parsed Markdown paired with the original PDF of the same doc ID and
+   revision. Use the `.md` for text, the `.pdf` for figures, and the `.pdf` to
    read the cell grid of a table the parse flattened.
-2. Confirm the pairing from the Sources table in `docs/cortex/sync-todo/index.md` —
-   it records the doc ID, revision, media size and which pairs are complete.
-   There is no `README.md` in the corpus. Filenames do not always match between
-   `.md` and `.pdf` (the M7 TRM PDF drops `_r1p2`; the SDEN PDF carries the long
-   `cortex_m7_at610_and_...` name).
+2. Confirm the pairing from the corpus's sync-todo **Sources table** — it
+   records the doc ID, revision, media size and which pairs are complete.
+   Filenames do not always match between `.md` and `.pdf`.
 3. The `.md` files are read-only; never edit them. Never translate from the PDF
    text layer when a `.md` exists — the parse is the structural source.
 
 ## Step 2 — Map source → target article
 
-Read `references/mapping.md` for the article ↔ source-chapter table. The
-evidence is the figure/table number in the source (`Figure8-*` ⇒ chapter 8,
-`TableB3-*` ⇒ Armv7-M ARM appendix B3); when the numbering does not prove it,
-match section headings before writing.
+Read `references/mapping.md` for the article ↔ source-chapter mapping rules.
+The evidence is the figure/table number in the source (`Figure8-*` ⇒ chapter 8,
+`TableB3-*` ⇒ appendix B3); when the numbering does not prove it, match
+section headings before writing.
 
 A source chapter becomes one article at
-`docs/cortex/<document>/<topic>/index.md`, where `<document>` is the source
-document folder — `m7-trm/` (Cortex-M7 TRM DDI0489F), `armv7-m/` (Armv7-M ARM
-DDI0403E), `r52plus-trm/` (Cortex-R52+ TRM 102199) or `armv8-m/` (Armv8-M ARM
-DDI0553B). First level is the source document, second level the chapter; never
-file two documents in one folder. Propose the directory name to the user when a
-topic straddles two chapters or could be split, and propose a new document
-folder name (matched to the existing lower_snake_case series) when opening a
-source document that has no series yet.
+`<target>/<document>/<topic>/index.md`, where `<document>` is the source
+document series folder. First level is the source document, second level the
+topic; never file two documents in one folder. Propose the directory name to
+the user when a topic straddles two chapters or could be split, and propose a
+new document folder name (matched to the existing lower_snake_case series)
+when opening a source document that has no series yet.
 
 ## Step 3 — Gap analysis before any writing
 Compare the article's `## ` headings against the source chapter's section list:
@@ -88,9 +102,9 @@ follow the source.
 One run consumes one article. Emit an explicit checklist before writing:
 chapter sections in source order, figures to crop, tables to rebuild as text
 (GFM by default; HTML only for qualified complex structures), register entries,
-nav registration, landing-page update, verification commands.
-If the user names an article with no target directory, create the directory
-first.
+nav registration if the target belongs to a site, landing-page update,
+verification commands. If the user names an article with no target directory,
+create the directory first.
 
 ## Step 5 — Translate in place
 
@@ -166,45 +180,41 @@ so the crop is never flush with its content. Figures that are
 bit-field bars, block diagrams or timing diagrams stay images; anything with
 rows and columns is a table and goes through Step 5 as text.
 
-Legacy directories mix `Figure4_77.png` and `FigureA3-1.png` — never rename
+Legacy directories may mix `Figure4_77.png` and `FigureA3-1.png` — never rename
 existing files, only keep new ones consistent. A legacy `Table<chapter>-<n>.png`
 in a directory you are already editing is converted to a text table (GFM by
 default, HTML when the structure qualifies) in the same run: delete the PNG and
 its reference once the translated table is verified against the source, and only
 if nothing else links to it.
 
-## Step 7 — Register the page
+## Step 7 — Register the page (only when the target belongs to a site)
 
-- `mkdocs.yml`: add the page under the `ARM Cortex` group of the source
-  document. The four nav groups use short labels (doc IDs live on the landing
-  pages, not in the nav): `Cortex-M7 TRM`, `Armv7-M 架构参考手册`,
-  `Cortex-R52+ TRM` and `Armv8-M 架构参考手册`.
-- `docs/cortex/<document>/index.md`: add the numbered link to the document
-  landing page; `docs/cortex/index.md` only links the document landing pages.
-- Insert both entries at the page's **source chapter position** — the nav group
-  and the landing list are ordered by chapter number (ch1 → ch14 → appendix),
-  not by arrival time. Never append a new page at the end of the group; a
-  concept article takes the position of the closest chapter it supports. See
-  `references/article-format.md`.
-- **One source chapter = one article.** When a chapter is currently split across
-  two directories (the PSR/exception split under TRM ch2, the TRM ch6 MPU and
-  the Armv7-M PMSAv7 extract), merge them into a single `index.md`: keep the
-  first article's directory and title, append the second article's sections
-  with their numbers shifted by the first article's last chapter number, move
-  its images with `git mv`, delete the retired directory, and add
-  `redirect_maps` entries in `mkdocs.yml` for every retired `…/index.md`.
-  Internal `#anchor` links inside moved sections must be renumbered with the
-  new heading number. Fix any reference to the old paths in the article tree and
-  in `docs/cortex/sync-todo/`.
+Follow **that site's** existing registration conventions for where the Arm
+groups live and how they are labelled (short labels; doc IDs live on the
+landing pages, not in the nav). The generic pattern:
+
+- Nav config: add the page under the source document's group; insert at the
+  page's **source chapter position** — nav groups and landing lists are
+  ordered by chapter number (ch1 → ch14 → appendix), not by arrival time.
+  Never append a new page at the end of the group; a concept article takes the
+  position of the closest chapter it supports.
+- `<target>/<document>/index.md`: add the numbered link to the document landing
+  page; the corpus root index only links the document landing pages.
+- **One source chapter = one article.** When a chapter is currently split
+  across two directories, merge them into a single `index.md`: keep the first
+  article's directory and title, append the second article's sections with
+  their numbers shifted by the first article's last chapter number, move its
+  images, delete the retired directory, and add `redirect_maps` entries for
+  every retired `…/index.md`. Internal `#anchor` links inside moved sections
+  must be renumbered with the new heading number. Fix any reference to the old
+  paths in the article tree and in the sync-todo ledger.
 - A merged chapter page must still be **chapter-complete**: the source's
-  overview, mode/state and monitor sections (TRM 2.1, 2.2, 2.5) belong on the
-  chapter page even when the chapter also points at sibling pages for other
-  topics (2.3 instruction set → `instruction_set`, 2.4 address map →
-  `system_address_map`). Insert them at their source position and renumber
-  every later section, or the page silently drops the chapter's own front
-  matter.
+  overview, mode/state and monitor sections belong on the chapter page even
+  when the chapter also points at sibling pages for other topics. Insert them
+  at their source position and renumber every later section, or the page
+  silently drops the chapter's own front matter.
 - **The glossary page carries real term entries, not a link**:
-  `docs/cortex/<document>/glossary/index.md`, `title: "术语表（Glossary）"`,
+  `<target>/<document>/glossary/index.md`, `title: "术语表 (Glossary)"`,
   registered last in the document group (appendix position). It translates the
   source document's own glossary chapter in the Step 5 term-entry form
   (`**Term**` + `>` definition), alphabetically sectioned (`## A` … `## Z`)
@@ -219,12 +229,11 @@ if nothing else links to it.
     whole series rather than a single article.
   - Terms the source document does not define stay out of the page; the
     document's own glossary row set is the boundary, and the single link to the
-    Arm Glossary (`Arm Glossary`) stays as the pointer to terms outside it.
-  - **A document with no glossary chapter keeps the link-only page** — the
-    Cortex-M7 TRM (DDI0489F) has no Glossary chapter, so
-    `docs/cortex/m7-trm/glossary/index.md` correctly states that and links the
-    Arm Glossary. Do not invent entries for such a document; the rule above
-    applies only where the source has a glossary to translate.
+    Arm Glossary stays as the pointer to terms outside it.
+  - **A document with no glossary chapter keeps the link-only page** — it
+    states that the source has no Glossary chapter and links the Arm Glossary.
+    Do not invent entries for such a document; the rule above applies only
+    where the source has a glossary to translate.
 - Concept articles that cite external sources stay outside this skill.
 
 ## Step 8 — Verify (two-phase gate)
@@ -232,15 +241,14 @@ if nothing else links to it.
 Phase A (mechanical, all must pass):
 
 ```
+python3 <path-to>/autosar-translate/scripts/check_indexes.py --root <site-root>
+python3 <path-to>/autosar-translate/scripts/check_heading_lang.py <article> [...]
+# when the target belongs to an MkDocs site, that site's strict build, e.g.:
 /tmp/mkdocs-venv/bin/python -m mkdocs build --strict --site-dir /tmp/mkdocs-check
-python3 .agents/skills/skills/autosar-translate/scripts/check_indexes.py --root .
-python3 .agents/skills/skills/autosar-translate/scripts/check_heading_lang.py <article> [...]
 ```
 
-`check_heading_lang.py --site` sweeps only the Type A articles of `docs/autosar/`;
-for `docs/cortex/` you must pass the article paths explicitly. The scripts live
-in the `uncertainty` submodule at `.agents/skills/skills/` (one extra `skills/`
-level), not `.agents/skills/`.
+`check_heading_lang.py --site` sweeps only the AUTOSAR Type A articles of its
+target; for an Arm corpus you must pass the article paths explicitly.
 
 Plus: every `![](...)` target exists in the article directory; no `![Table…]`
 table image left in the article (each table is either a GFM table with a header
@@ -270,16 +278,19 @@ heading has its predecessor (`### 7.10` implies `### 7.9`, `## 3.` implies
 `## 2.`); a jump is a defect even when the text reads fine.
 
 Report both phases with concrete evidence; do not claim completion without the
-build output. Run the gate even when the requester says they will verify it
-themselves — Phase A is the author's responsibility, not a hand-off.
+verification output. Run the gate even when the requester says they will verify
+it themselves — Phase A is the author's responsibility, not a hand-off.
 
-## Step 9 — Repository workflow
+## Step 9 — Repository workflow (only when the target lives in a repo)
 
-Feature branch (`feature/cortex-<core>-<topic>`), English issue and PR text,
-`docs:` commit with `Closes #N`, strict build before commit, no co-work
-attribution. Skill rule edits live in the `uncertainty` submodule and need a
-separate commit there (plus a submodule-pointer bump in the parent). Merge
-through a PR; `master` is protected.
+Follow the host repo's own conventions for branching, issue/PR language and
+commit messages. Baseline rules: feature branch, English issue and PR text,
+`docs:` commit, the Step 8 gate before every commit, and **no co-work
+attribution** (never add `Co-Authored-By:` / "Generated with …" footers or any
+mention of the agent/session). Skill rule edits live in the skills submodule
+and need a separate commit there (plus a submodule-pointer bump in the parent
+when the parent tracks it). Merge through a PR when the default branch is
+protected.
 
 ## Common mistakes
 
@@ -297,5 +308,6 @@ through a PR; `master` is protected.
   English head with the definition in a `>` blockquote.
 - Translating the proprietary notice or document history.
 - Adding the page without the nav entry (strict build passes, page is orphaned).
-- Treating `DDI0553B` (Armv8-M, M-profile) as the Cortex-R52+ architecture
-  manual — the R52+ is Armv8-R AArch32; they are separate series.
+- Treating an M-profile architecture manual as another series' architecture
+  manual — each core series follows its own TRM plus its own architecture
+  manual; they are separate document series.

@@ -1,14 +1,17 @@
 # NXP article format
 
-Derived from the translated pages under `docs/nxp/s32g2/` and the
-`arm-translate` conventions. There is **no `STANDARD.md` for `docs/nxp/`**: this
-file plus the neighbouring article (read for syntax) are the law.
+Document-agnostic conventions for NXP chapter articles (`<target>/chNN_<slug>/index.md`).
+Derived from the translated NXP pages and the `arm-translate` conventions.
+There is **no `STANDARD.md` for NXP corpora**: this file plus the neighbouring
+article (read for syntax) are the law. Paths below are placeholders — a run's
+real target root comes from its run parameters.
 
 ## Reading the neighbouring article (syntax only)
 
-Read one `docs/nxp/s32g2/<topic>/index.md` before writing so the new page matches
-its front matter, numbering and figure filenames. Use it **for syntax only**.
-The legacy S32G2 pages are partial translations; do **not** copy their defects:
+Read one neighbouring `<target>/chMM_<slug>/index.md` before writing so the new
+page matches its front matter, numbering and figure filenames. Use it **for
+syntax only**. Legacy or partial pages may carry defects; do **not** copy
+them:
 
 - empty section bodies (`## 3. RTC 寄存器说明` with nothing under it);
 - `![Table_1](Table_1.png)` — a table cropped as an image;
@@ -19,18 +22,25 @@ A faithful chapter translation has none of these.
 
 ## Front matter
 
-Only `title`. Chinese title with the English term bolded in half-width
-parentheses, separated by a space:
+Only `title`. Chinese title, English term in half-width parentheses preceded
+by a space — **no Markdown markup in the title** (`**` renders literally:
+Material does not parse the front-matter title, so `**PIT**` shows as literal
+asterisks in the page h1, the browser tab and the sidebar nav):
 
 ```yaml
 ---
-title: "周期性中断定时器 (**PIT**)"
+title: "周期性中断定时器 (PIT)"
 ---
 ```
 
 Chapters whose title has no acronym use Chinese only
 (`"存储器映射（Memory Map）"` is also acceptable when the English term is a
-proper term). Never add `spec:`, `release:` or tags — that convention belongs to
+proper term). This differs from body text, where the Chinese gloss keeps
+full-width parentheses and **bolds** the term (`本地存储器控制器（**LMEM**）`) —
+bold belongs to the body only; the title is rendered un-parsed. The title
+check in `check_tables.py` is position-agnostic: a trailing descriptor after
+the term (`"S32K5xx 参考手册 (Reference Manual) 章节翻译"`) is fine. Never
+add `spec:`, `release:` or tags — that convention belongs to
 `docs/autosar/`. Never add a table of contents, document history, proprietary
 notice or footer banner to the body.
 
@@ -40,6 +50,10 @@ notice or footer banner to the body.
   translated sections in **source order**. Do not invent overview or summary
   sections; keep the source's own overview section on the chapter page.
 - **Never write `# ` in the body** — the front-matter `title` is the only h1.
+- A section that immediately branches into subsections needs no intro text;
+  "empty section" means nothing under it at all. `check_tables.py` gates the
+  heading-level rule (level = numeric depth + 1) mechanically — a `### 1.7.1.`
+  for a 3-component number is a defect, not a style choice.
 - **Numbering restarts at 1 for every article.** Drop the chapter number, keep
   the remaining components, and set heading level = (number of remaining
   numeric components) + 1:
@@ -54,8 +68,8 @@ notice or footer banner to the body.
   `scripts/extract_chapter.py`'s `heading_label()` computes this. Keep the
   relative structure; numbering is contiguous — a jump (`## 3.` with no `## 2.`,
   `### 7.10` with no `### 7.9`) is a defect, not a style choice.
-- **Clamp at `######`.** The S32G3 RM outline reaches level 10 (103 entries
-  deeper than h6, e.g. `78.8.2.3.2.3.1.3.1 Lock`). For a source level whose
+- **Clamp at `######`.** NXP outlines reach level 10 (register and debug
+  chapters carry dozens of deep entries, e.g. `78.8.2.3.2.3.1.3.1 Lock`). For a source level whose
   article level would exceed 6, do **not** write `#######`. Render the full
   number and title as a bold paragraph instead:
 
@@ -77,7 +91,17 @@ notice or footer banner to the body.
   `自由运行计数器（**free-running counter**）`; acronyms and register names stay
   bold (`**PIT**`, `**SC**`). Later mentions may drop the parentheses.
 - Numbers and encodings as printed. Repair the PDF text layer's underscore
-  splits (`PIT 0 _` → `PIT_0`) before writing.
+  splits (`PIT 0 _` → `PIT_0`) before writing; normalize non-breaking spaces
+  (U+00A0) to plain spaces; keep the underscore separators in hex and binary
+  enumerations (`0000_0000h`, `0000_0000_0000_0000_0000b`) — a space-separated
+  form is a text-layer artifact, not the printed value.
+- A stray `*` outside `**` pairs (`**xxx***`, a dropped opener) renders as a
+  literal asterisk — `check_tables.py` gates bold balance. A literal `*` is
+  allowed only inside code spans or table cells that document a `*` marker
+  (ECC coverage matrices).
+- The source itself can carry typos (`AMBA_ AHB` printed in the S32K5 RM).
+  Verify against a rendered page region before "repairing", repair to the
+  evident intent, and record the source typo in the PR text.
 - Lists mirror the source's bullets and numbering. Source `NOTE` → `**注意：**`,
   `CAUTION` → `**警告：**`, followed by the translated body.
 - No `**说明**:` + `C` blocks — that is the AUTOSAR API convention.
@@ -94,7 +118,13 @@ notice or footer banner to the body.
 - A link to a chapter **not yet translated is still written** (a forward link):
   the slug is pre-assigned and stable, so the link goes live when that chapter
   lands. List the forward links in the PR body.
-- References inside the same article stay plain text — no self links.
+- References inside the same article stay plain text — no self links
+  (`[芯片特定的 X 信息](index.md)` is a defect).
+- A reference to a whole group of chapters (「参见时钟（**Clocking**）章节」,
+  「参见 Reset 或 MC_ME 章节」) stays plain text — groups have no landing page
+  to target. Link only when a single chapter article is the target.
+- Link text never carries the internal `chNNN` prefix (`[ch012 SIUL2]` →
+  `[SIUL2（**System Integration Unit Lite2**）]`).
 - Register-name mentions ("see PMC Configuration (CONFIG)") are register
   references, not section references; they stay plain text.
 - References to documents outside the chapter corpus (attached IOMUX or
@@ -105,8 +135,17 @@ notice or footer banner to the body.
 
 - **Every table is text.** GFM is the default: a header row and `| --- |`
   separator, translated cell by cell. Tables are **never** cropped as images —
-  the one legacy `Table_1.png` in `docs/nxp/s32g2/system_timer_module/` is a
-  defect, not a precedent.
+  a legacy `Table_1.png` in a directory you are editing is a defect, not a
+  precedent.
+- **The header row is mandatory, never dropped.** A GFM table exists only when
+  the first pipe line is a header and the second is the `| --- |` separator;
+  rows without them render as one soft-joined run-on paragraph, not a table.
+  Every source table carries a header (`Fields` tables: `Field | Function`;
+  memory maps: `Offset | Register | Width (In bits) | Access | Reset value`) —
+  translate it (`位 | 字段 | 功能`, `偏移 | 寄存器 | 宽度（位） | 访问 | 复位值`),
+  matching the column shape the rows actually use. The S32K5 RM corpus shipped
+  11 chapters with header-less tables (ch057 alone lost 52 field-table
+  headers); `scripts/check_tables.py` gates this in Phase A.
 - A table numbered in the source (`Table 279.`) carries its number in the
   paragraph that introduces it, not in a caption line and not in a filename.
 - Tables split across pages (`Table continued...` / `Table continues...`) are
@@ -153,21 +192,30 @@ The memory-map table (`Offset | Register | Width | Access | Reset value`) heads
 the register-description section. Access values (`RW`, `RO`), bit ranges, reset
 values and offsets match the source exactly — a dropped row is a defect.
 
+**Fields tables match the source row for row** — bit range and field name,
+including every `Reserved` row: never merge reserved rows (`31-5`/`4`/`3-1`
+stay three rows), never drop one, never rename a field to the Diagram's label
+when the Fields table differs. When the RM self-contradicts (Fields vs
+Function prose vs Diagram), follow Fields + Diagram — the Function prose is
+the likeliest copy-paste error — and record the conflict in the PR text.
+
 ## Landing pages and navigation
 
-- One chapter = one article directory:
-  `docs/nxp/s32g3/chNN_<slug>/index.md` (`ch03_memory_map`,
-  `ch43_periodic_interrupt_timer_pit`). Never split a chapter across files.
-- `mkdocs.yml`, group `NXP` → `S32G3:` — add
-  `- "<中文标题>": nxp/s32g3/chNN_<slug>/index.md` at the chapter's **source
-  position** (nav is ordered by chapter number, not arrival time). Every page
-  must be registered or `--strict` fails.
-- `docs/nxp/s32g3/index.md` is the section landing, registered as the unlabeled
-  first entry of the `S32G3:` group (`navigation.indexes`). Front-matter title,
-  one intro sentence, `## 文章` link list grouped by the 11 source group
+Applies only when the target root belongs to an MkDocs site; follow that
+site's existing conventions for placement. The generic pattern:
+
+- One chapter = one article directory: `<target>/chNN_<slug>/index.md`
+  (`ch03_memory_map`, `ch43_periodic_interrupt_timer_pit`). Never split a
+  chapter across files.
+- Nav config: the corpus's group gets `- "<中文标题>": <site-path>/chNN_<slug>/index.md`
+  at the chapter's **source position** (nav is ordered by chapter number, not
+  arrival time). Every page must be registered or `--strict` fails.
+- `<target>/index.md` is the section landing, registered as the unlabeled
+  first entry of the group (`navigation.indexes`). Front-matter title, one
+  intro sentence, `## 文章` link list grouped by the document's source group
   headers, then `## 相关内容`.
-- `docs/nxp/index.md`: add a `## S32G3` link list under the existing `## S32G2`.
-- `docs/index.md`: refresh the NXP tab description when the S32G3 pages land.
+- Any parent landing page that lists corpora gets a link list for the new
+  corpus.
 
 ## Quality rules
 
