@@ -92,7 +92,9 @@ Never add `spec:`, `release:` or tags — that convention belongs to `docs/autos
 - Naming: `Figure<chapter>-<sequence>.png`, using the source document's own
   numbering (`Figure8-2`, `FigureB3-1` for an appendix). Legacy directories mix
   `Figure4_77.png`, `FigureA3-1.png` and now-unused `Table9-1.png` — never
-  rename existing files.
+  rename existing files. When the source has no figure number (a caption-less
+  parse diagram), use a synthetic `Figure<chapter>-<n>.png` and record it in
+  the queue note.
 - Crop from the sibling PDF with PyMuPDF at a resolution that keeps bitmap text
   legible (scale ≥ 2× page zoom).
 - **Leave a margin when cropping (user decision 2026-11-07)** — never crop a
@@ -121,25 +123,28 @@ Never add `spec:`, `release:` or tags — that convention belongs to `docs/autos
 ## Landing pages and navigation
 
 - `docs/cortex/<document>/<topic>/index.md` — one directory per topic, under
-  the source document folder (`m7-trm/`, `armv7-m/`, `r52plus-trm/`).
+  the source document folder (`m7-trm/`, `armv7-m/`, `r52plus-trm/`,
+  `armv8-m/`).
 - One source chapter maps to exactly one article. Do not split a chapter across
   directories (two articles for ch2's PSR and exception model, a separate MPU
   page for ch6); merge the parts into one page, renumber the appended sections,
   and keep old URLs alive through `redirect_maps`.
-- The document glossary goes in `docs/cortex/m7-trm/glossary/index.md`
-  with the `title: "术语表（Glossary）"`, the sentence that the manual keeps no
-  local word list, and a single link to the Arm Glossary. It is registered last
-  in the document group (appendix position).
-- `mkdocs.yml`, group `ARM Cortex` → one nav group per source document
-  (`Cortex-M7 TRM（DDI0489F r1p2）` / `Armv7-M 架构参考手册（DDI0403E E.e）` /
-  `Cortex-R52+ TRM（102199 r0p3）`): add
+- The document glossary goes in `docs/cortex/<document>/glossary/index.md`
+  (currently only `m7-trm/` has one) with the `title: "术语表（Glossary）"`, the
+  sentence that the manual keeps no local word list, and a single link to the
+  Arm Glossary. It is registered last in the document group (appendix position).
+- `mkdocs.yml`, group `ARM Cortex` → one nav group per source document, using
+  short labels (doc IDs live on the landing pages, not in the nav):
+  `Cortex-M7 TRM`, `Armv7-M 架构参考手册`, `Cortex-R52+ TRM` and
+  `Armv8-M 架构参考手册`. Add
   `- "<中文标题>": cortex/<document>/<topic>/index.md` under the matching
   document group.
 - `docs/cortex/<document>/index.md`: numbered link in source chapter order
   (`1. [程序员模型（Programmers Model）](programmers_model/index.md)`).
 - `docs/cortex/index.md`: numbered link to the **document landing page**
   (`1. [Cortex-R52+ TRM（102199 r0p3）](r52plus-trm/index.md)`), never to the
-  individual chapter.
+  individual chapter. A new document series also gets its own `## N.` section
+  here.
 - `docs/cortex/concept/` holds externally sourced explainers; they are not
   produced by this skill.
 
@@ -160,3 +165,12 @@ Never add `spec:`, `release:` or tags — that convention belongs to `docs/autos
   (`.md-typeset table:not([class])`) but that `md_in_html` does not parse
   Markdown inside HTML cells. Supersedes the earlier unrestricted "every table
   is a GFM table" wording.
+- 2026-11-10, issue #361 — Opened the fourth document series `armv8-m/` for
+  the Armv8-M ARM (DDI0553B B.y), a separate M-profile series: the Cortex-R52+
+  is Armv8-R AArch32, and DDI0553B is not its architecture manual. With it,
+  corrected the corpus path from `private-docs/ARM/{M7,R52}/` to
+  `reference-docs/arm/{cortex-m7,cortex-r52}/` (no README on disk — the
+  sync-todo Sources table is the pairing ledger), generalised the
+  folder/nav-group enumerations to four short-label groups, and fixed the
+  verification script paths (`.agents/skills/skills/...`). Synthetic figure
+  numbers are allowed when the source diagram has no caption.

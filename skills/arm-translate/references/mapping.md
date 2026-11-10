@@ -6,11 +6,11 @@ numbered figure; confirm against the source heading before translating.
 
 ## Cortex-R52+ TRM (`docs/cortex/r52plus-trm/`)
 
-Source: `R52/cortex_r52_trm_100026_0100_00_en.md` (TRM r1p0), plus
-`R52/arm_cortex_r52plus_processor_trm_102199_0001_03_en.pdf` (TRM r0p3 — the
-authoritative revision, chapter numbers two above r1p0) and
-`R52/DDI0553B_y_armv8m_arm.md` (Armv8-M ARM) for architecture rules. Articles
-are filed under `cortex/r52plus-trm/`.
+Source: `cortex-r52/cortex_r52_trm_100026_0100_00_en.md` (TRM r1p0), plus
+`cortex-r52/arm_cortex_r52plus_processor_trm_102199_0001_03_en.pdf` (TRM r0p3 —
+the authoritative revision, chapter numbers two above r1p0). Articles are filed
+under `cortex/r52plus-trm/`. The Cortex-R52+ is Armv8-R AArch32; its
+architecture rules come from the TRM, not from the Armv8-M ARM.
 
 | Article | Source chapter | Evidence |
 | --- | --- | --- |
@@ -35,8 +35,9 @@ SIMD and floating-point (ch15).
 
 ## Cortex-M7 (`docs/cortex/m7-trm/` and `docs/cortex/armv7-m/`)
 
-Sources: `M7/DDI0489F_cortex_m7_trm_r1p2.md` (TRM r1p2) and
-`M7/DDI0403E_e_armv7m_arm.md` (Armv7-M ARM E.e); `M7/cortex_m7_at610_at611_sden_1068427_v11_0_en.md`
+Sources: `cortex-m7/DDI0489F_cortex_m7_trm_r1p2.md` (TRM r1p2) and
+`cortex-m7/DDI0403E_e_armv7m_arm.md` (Armv7-M ARM E.e);
+`cortex-m7/cortex_m7_at610_at611_sden_1068427_v11_0_en.md`
 is the errata notice. Articles are filed per source document: `cortex/m7-trm/`
 for the TRM chapters, `cortex/armv7-m/` for the ARM chapters. A merged article
 (implementation chapter + architecture chapter) stays whole under its
@@ -52,8 +53,29 @@ implementation document.
 | `armv7-m/system_address_map/` | Armv7-M ARM system address map (B3.1–B3.4) | `TableB3-3` *(verify)* |
 
 Not yet translated (coverage backlog): M7 TRM clocking/reset, power control,
-debug/trace chapters, the SDEN errata notice, and the Armv8-M ARM (R52 pairs
-with `DDI0553B` but no article cites it yet).
+debug/trace chapters, and the SDEN errata notice.
+
+## Armv8-M ARM (`docs/cortex/armv8-m/`)
+
+Source: `cortex-r52/DDI0553B_y_armv8m_arm.md` + `.pdf` (Armv8-M ARM B.y). This
+is a **separate M-profile series** — the Cortex-R52+ is Armv8-R AArch32, so
+DDI0553B is not the R52+ architecture manual. The group was DEFERRED with an
+empty queue until 2026-11-10, when the series opened.
+
+| Article | Source chapter | Evidence |
+| --- | --- | --- |
+| `armv8-m/introduction/` | Part A A1 Introduction | chapter heading; `FigureA1-1` (synthetic — the source diagram has no caption/number) |
+
+Not yet translated (coverage backlog, in chapter order): Part B chapters B1
+Resets, B2 Power Management, B3 Programmers' Model, B4 Floating-point Support,
+B5 Vector Extension, B6 Pointer Authentication / BTI Extension, B7 Memory
+Model, B8 The System Address Map, B9 Synchronization and Semaphores, B10 The
+Armv8-M Protected Memory System Architecture, B11 The System Timer SysTick,
+B12 Nested Vectored Interrupt Controller, B13 Debug, B14 Debug and Trace
+Components, B15 The Performance Monitors Extension, B16 RAS Extension. Parts
+C–G (instruction set, register payload specification, pseudocode, debug packet
+protocols, glossary) are reference material, deliberately deferred — see
+`docs/cortex/sync-todo/ARMv8-M.md`.
 
 ## Naming new articles
 
