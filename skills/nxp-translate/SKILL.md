@@ -3,13 +3,16 @@ name: nxp-translate
 description: >
   Use when translating, completing, verifying or inventorying Chinese article
   versions of an NXP-published PDF (reference manual, safety manual,
-  datasheet — any chaptered NXP document); when a chapter of such a document
-  needs a one-chapter-one-file page; when asked about chapter coverage or a
-  module chapter (registers, memory maps, field tables); or when the task
-  involves NXP register tables, globally numbered figures, or cropping
-  diagrams from an NXP manual PDF. Document-agnostic: the source PDF and the
-  target location are run parameters, nothing about the document or its
-  storage is hardcoded.
+  datasheet — any chaptered NXP document); when a chapter needs a
+  one-chapter-one-file page; when asked about chapter coverage or a module
+  chapter (registers, memory maps, field tables); or when the task involves
+  NXP register tables, globally numbered figures, or cropping diagrams from
+  an NXP manual PDF. Source PDF and target location are run parameters.
+author: melodypapa
+license: MIT
+repository: https://github.com/melodypapa/uncertainty
+version: "1.0.0"
+product-version: "1.0.0"
 ---
 
 # NXP PDF → Chapter Article Translation

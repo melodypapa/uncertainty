@@ -12,6 +12,8 @@ description: >
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
+version: "1.0.0"
+product-version: "1.0.0"
 ---
 
 # Arm Document → Article Sync
