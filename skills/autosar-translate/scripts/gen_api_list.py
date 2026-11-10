@@ -57,6 +57,18 @@ OUT_TYPES = API_DIR / "types.md"
 OUT_FUNCS = API_DIR / "functions.md"
 OUT_BYMOD = API_DIR / "functions_by_module.md"
 
+
+def set_root(root) -> None:
+    """Point the module at a corpus dir; re-derives every path constant."""
+    global ROOT, DOCS, API_DIR, OUT_INDEX, OUT_TYPES, OUT_FUNCS, OUT_BYMOD
+    ROOT = Path(root)
+    DOCS = ROOT / "cp"
+    API_DIR = DOCS / "api"
+    OUT_INDEX = API_DIR / "index.md"
+    OUT_TYPES = API_DIR / "types.md"
+    OUT_FUNCS = API_DIR / "functions.md"
+    OUT_BYMOD = API_DIR / "functions_by_module.md"
+
 ART_HEAD = re.compile(r"^(#{2,6})\s+(.+?)\s*$", re.M)
 NUM_PREFIX = re.compile(r"^\d+(?:\.\d+)*\.?\s+")
 IDENT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
@@ -333,21 +345,19 @@ def build():
 
 
 def main(argv):
-    global ROOT, DOCS, API_DIR
-    if "--root" in argv:
-        i = argv.index("--root")
-        if i + 1 < len(argv):
-            ROOT = Path(argv[i + 1])
-            DOCS = ROOT / "cp"
-            API_DIR = DOCS / "api"
-        argv = argv[:i] + argv[i + 2:]
-    argv = [a for a in argv if not a.startswith("--root=")]
-    if "--root=" in " ".join(argv):
-        val = [a for a in argv if a.startswith("--root=")][0].split("=", 1)[1]
-        ROOT = Path(val)
-        DOCS = ROOT / "cp"
-        API_DIR = DOCS / "api"
-        argv = [a for a in argv if not a.startswith("--root=")]
+    args = list(argv)
+    root = None
+    if "--root" in args:
+        i = args.index("--root")
+        if i + 1 < len(args):
+            root = args[i + 1]
+        args = args[:i] + args[i + 2:]
+    eq = [a for a in args if a.startswith("--root=")]
+    if eq:
+        root = eq[0].split("=", 1)[1]
+        args = [a for a in args if not a.startswith("--root=")]
+    if root:
+        set_root(root)
     pages, report = build()
     if "--check" in argv:
         for out, content in pages:

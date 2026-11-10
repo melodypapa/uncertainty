@@ -158,6 +158,11 @@
           "check": "git status shows no tracked-file modifications after the run"
         }
       ]
+    },
+    {
+      "id": 10,
+      "prompt": "Run the standalone Phase A mechanical checks (check_indexes --root, check_heading_lang --site --site-root, gen_api_list --check) against the AUTOSAR corpus and report commands, exit codes and output summaries. Do not modify any repository.",
+      "expected_output": "Per-script: exact command, exit code, summary line; check_indexes and check_heading_lang pass; gen_api_list --check result reported accurately"
     }
   ]
 }
