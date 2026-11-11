@@ -16,14 +16,22 @@ The accurate recipe implemented here:
 3. the figure band starts below the LAST such body block, walking upward until
    the band contains >= 5 drawings (a NOTE sitting between the figure and its
    caption steps past it);
-4. bbox = union of the drawings inside the band, grown with every text block
-   that intersects it or vertically overlaps it without body width — figure
-   labels can sit just outside the drawing union (a bus label left of the
+4. bbox = union of the drawings inside the band, grown with label-like text
+   to a fixpoint: a block qualifies when it is not body width AND its font is
+   label-sized (<= 10pt; section headings are larger and are never absorbed),
+   and it intersects the bbox, vertically overlaps it, or sits within 25pt of
+   it — a label can sit fully outside the drawing union (the "Interrupt
+   vectors" label sits 1.4pt above its box; a bus label sits left of the
    diagram);
 5. margins: ~4% of the larger dimension (min 6pt) left/right/bottom; the top
    margin is capped at 6pt and clamped below the body-text boundary so NOTE
    borders cannot re-enter;
-6. render at >= 2x zoom.
+6. render at >= 2x zoom, then VERIFY the PNG: complete labels, no body text,
+   no heading, no NOTE and no caption.
+
+Note: check `page.get_image_info()` first — if the page embeds raster images,
+extract those instead (the S32G3 RM carries vector figures; the S32K5 RM also
+proves vector: 0 embedded images on its figure pages).
 
 Usage:
   recrop_figure.py <pdf> <figure-num> <page> <out.png> [--zoom Z]
@@ -42,6 +50,8 @@ MARGIN_MIN = 6.0
 BODY_MIN_CHARS = 40
 BODY_MIN_WIDTH = 380.0
 MIN_DRAWINGS = 5
+PROXIMITY_PT = 25.0
+LABEL_MAX_SIZE = 10.0  # pt; section headings are larger
 
 
 def figure_clip(page, fig_num):
@@ -65,13 +75,35 @@ def figure_clip(page, fig_num):
         u = pymupdf.Rect()
         for r in ds:
             u |= r
-        for b in page.get_text("blocks"):
-            r = pymupdf.Rect(b[:4])
-            if not (CONTENT_TOP < r.y0 and r.y1 < cap_y - 2):
+        # grow with label-like text to a fixpoint: a label can sit fully
+        # outside the drawing union (the "Interrupt vectors" label sits 1.4pt
+        # above its box). Label-like = not body width AND label-sized font
+        # (section headings are larger and are never absorbed); growth accepts
+        # blocks intersecting the bbox, vertically overlapping it, or within
+        # PROXIMITY_PT of it, and cascades as the bbox grows
+        labels = []
+        for blk in page.get_text("dict")["blocks"]:
+            if blk.get("type") != 0:
                 continue
-            vertical_overlap = r.y1 > u.y0 and r.y0 < u.y1
-            if r.intersects(u) or (vertical_overlap and r.width < BODY_MIN_WIDTH):
-                u |= r
+            r = pymupdf.Rect(blk["bbox"])
+            sizes = [s["size"] for ln in blk.get("lines", []) for s in ln.get("spans", [])]
+            txt = " ".join(sp["text"] for ln in blk.get("lines", []) for sp in ln.get("spans", []))
+            if not txt.strip() or not sizes:
+                continue
+            if (r.width < BODY_MIN_WIDTH and max(sizes) <= LABEL_MAX_SIZE
+                    and CONTENT_TOP < r.y0 and r.y1 < cap_y - 2):
+                labels.append((r, txt))
+        changed = True
+        while changed:
+            changed = False
+            near = pymupdf.Rect(u.x0 - PROXIMITY_PT, u.y0 - PROXIMITY_PT,
+                                u.x1 + PROXIMITY_PT, u.y1 + PROXIMITY_PT)
+            for r, txt in labels:
+                if r.intersects(near):
+                    before = (u.x0, u.y0, u.x1, u.y1)
+                    u |= r
+                    if (u.x0, u.y0, u.x1, u.y1) != before:
+                        changed = True
         band_top = top
         m = max(MARGIN_MIN, 0.04 * max(u.width, u.height))
         clip = pymupdf.Rect(max(40.0, u.x0 - m),
