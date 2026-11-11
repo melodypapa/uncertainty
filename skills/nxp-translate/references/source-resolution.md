@@ -123,6 +123,26 @@ read the cell grid from the PDF layout and rebuild it as text.
 python3 <path-to>/nxp-translate/scripts/recrop_figure.py <pdf> 260 <page> Figure_260.png
 ```
 
+**Manual fallback.** Some pages defeat the automatic recipe: tables fused
+directly onto waveforms, text-heavy lead-ins (terminology table + bullets +
+heading), prose directly above the diagram, two-figure pages. Observed on the
+S32K5 corpus (ch070 F340/F341, ch071 F342, ch038 F157, ch040 F160, ch055
+F260, ch069 F311/F320/F324). For those, set the boundaries by hand:
+
+```bash
+# step 1: render the whole content band above the caption for boundary reading
+python3 <path-to>/nxp-translate/scripts/recrop_figure.py <pdf> <N> <page> band.png --band
+# step 2: render the hand-set clip (PDF coordinates read off the band)
+python3 <path-to>/nxp-translate/scripts/recrop_figure.py <pdf> <N> <page> Figure_N.png --manual X0 Y0 X1 Y1
+```
+
+Read the top boundary off the band (below the last table row / heading /
+prose), keep the full content width when labels sit beside the diagram
+("Peripheral bus" sits left of the WKPU diagram), and VERIFY the result:
+complete labels, nothing above the boundary. Two crops typically need a
+second boundary raise (the first top clip cuts the waveform's top row or a
+lane header). Record the manual coordinates in the PR text.
+
 Bit-field bars inside register descriptions carry an unnumbered `Diagram`
 label rather than a `Figure N.` caption; they are still figures and use
 `Diagram_<slug>.png` (see `references/article-format.md`).

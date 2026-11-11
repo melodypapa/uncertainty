@@ -29,12 +29,24 @@ The accurate recipe implemented here:
 6. render at >= 2x zoom, then VERIFY the PNG: complete labels, no body text,
    no heading, no NOTE and no caption.
 
+Manual fallback (`--band` + `--manual`): some pages defeat the automatic
+recipe — tables fused directly onto waveforms, text-heavy lead-ins, prose
+directly above the diagram. For those, set the boundaries by hand:
+  1. `--band` renders the whole content band above the caption at reading
+     resolution — read the figure's boundaries off it;
+  2. re-run with `--manual X0 Y0 X1 Y1` (PDF coordinates) to render the
+     hand-set clip;
+  3. verify the PNG (complete labels, nothing above the boundary), and record
+     the manual boundaries in the PR text.
+
 Note: check `page.get_image_info()` first — if the page embeds raster images,
 extract those instead (the S32G3 RM carries vector figures; the S32K5 RM also
 proves vector: 0 embedded images on its figure pages).
 
 Usage:
   recrop_figure.py <pdf> <figure-num> <page> <out.png> [--zoom Z]
+  recrop_figure.py <pdf> <figure-num> <page> <out.png> --band
+  recrop_figure.py <pdf> <figure-num> <page> <out.png> --manual X0 Y0 X1 Y1
 
 Exit codes: 0 ok, 1 figure not found / no drawings, 2 usage.
 """
@@ -165,10 +177,38 @@ def main(argv=None):
     ap.add_argument("page", type=int, help="1-based PDF page holding the figure")
     ap.add_argument("out", help="output PNG path")
     ap.add_argument("--zoom", type=float, default=3.0, help="render zoom (default 3.0)")
+    ap.add_argument("--band", action="store_true",
+                    help="manual fallback step 1: render the whole content band "
+                         "above the caption at 1.5x for boundary reading")
+    ap.add_argument("--manual", nargs=4, type=float, metavar=("X0", "Y0", "X1", "Y1"),
+                    help="manual fallback step 2: render this hand-set clip "
+                         "instead of the automatic recipe")
     args = ap.parse_args(argv)
 
     doc = pymupdf.open(args.pdf)
     page = doc[args.page - 1]
+    if args.band:
+        caps = page.search_for(f"Figure {args.figure}.")
+        if not caps:
+            print(f"FAIL Figure {args.figure}: caption not found", file=sys.stderr)
+            return 1
+        cap_y = caps[0].y0
+        top = CONTENT_TOP if cap_y < 300 else max(CONTENT_TOP, cap_y - 480)
+        pix = page.get_pixmap(matrix=pymupdf.Matrix(1.5, 1.5),
+                              clip=pymupdf.Rect(40, top, page.rect.x1 - 37, cap_y + 8),
+                              alpha=False)
+        pix.save(args.out)
+        print(f"Figure {args.figure}: p{args.page} boundary-reading band "
+              f"{pix.width}x{pix.height}px (caption y={cap_y:.0f}) -> {args.out}")
+        return 0
+    if args.manual:
+        x0, y0, x1, y1 = args.manual
+        pix = page.get_pixmap(matrix=pymupdf.Matrix(args.zoom, args.zoom),
+                              clip=pymupdf.Rect(x0, y0, x1, y1), alpha=False)
+        pix.save(args.out)
+        print(f"Figure {args.figure}: p{args.page} MANUAL clip "
+              f"({x0:g},{y0:g},{x1:g},{y1:g}) {pix.width}x{pix.height}px -> {args.out}")
+        return 0
     # embedded raster? extract it natively instead of rendering the vector
     # clip (preserves the source resolution, no recomposition)
     caps = page.search_for(f"Figure {args.figure}.")
