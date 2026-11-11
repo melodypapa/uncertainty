@@ -33,7 +33,8 @@ from pathlib import Path
 SEP_RE = re.compile(r"^\|[\s:|-]+\|$")
 ROW_RE = re.compile(r"^\|.*\|$")
 MEMMAP_RE = re.compile(r"偏移.*寄存器.*复位值|Offset.*Register.*Reset")
-NAME_RE = re.compile(r"（\*\*([A-Za-z0-9_]+?)(?:_-_([A-Za-z0-9_]+?))?\*\*）")
+NAME_RE = re.compile(
+    r"（(?:\*\*)?([A-Za-z0-9_]+?)(?:_-_([A-Za-z0-9_]+?))?(?:\*\*)?）")  # bold or plain
 HEADING_RE = re.compile(r"^(#{2,6}) (.*)$")
 
 
@@ -86,8 +87,23 @@ def parse(article: Path):
                 in_table = False
     if in_table:
         tables.append((table_start, len(lines) - 1))
-    map_tables = [(s, e) for s, e in tables
-                  if e > s + 1 and MEMMAP_RE.search(lines[s])]
+    # a run may fuse several tables (a missing blank line); a memory map
+    # starts at any row matching the header shape whose next row is a separator
+    map_tables = []
+    for s, e in tables:
+        if e <= s + 1:
+            continue
+        if MEMMAP_RE.search(lines[s]):
+            map_tables.append((s, e))
+            continue
+        start = None
+        for i in range(s + 1, e + 1):
+            if MEMMAP_RE.search(lines[i]) and i < e and SEP_RE.match(lines[i + 1]):
+                if start is not None:
+                    map_tables.append((start, i - 1))
+                start = i
+        if start is not None:
+            map_tables.append((start, e))
     return lines, anchors, map_tables
 
 
@@ -130,6 +146,8 @@ def main(argv):
         print(__doc__)
         return 1
     mode, path = argv[1], Path(argv[2])
+    if path.is_dir():
+        path = path / "index.md"
     lines, anchors, map_tables = parse(path)
     cands = candidates(lines, anchors, map_tables)
     if mode == "--list":
