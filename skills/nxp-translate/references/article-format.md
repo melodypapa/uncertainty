@@ -125,8 +125,17 @@ notice or footer banner to the body.
   to target. Link only when a single chapter article is the target.
 - Link text never carries the internal `chNNN` prefix (`[ch012 SIUL2]` →
   `[SIUL2（**System Integration Unit Lite2**）]`).
-- Register-name mentions ("see PMC Configuration (CONFIG)") are register
-  references, not section references; they stay plain text.
+- Register-name mentions in prose and register subsections ("see PMC
+  Configuration (CONFIG)", reset-value tables) stay plain text — with one
+  applied exception: **the memory-map table's register-name cells link to the
+  register's own subsection** (`| **0h** | [控制密钥寄存器（**CTL_KEY**）](#52-控制密钥寄存器ctl_key) | …`),
+  restoring the source PDF's own memory-map hyperlinks. The anchor is the
+  target heading's Material slug (number dots stripped, `（）**` dropped, CJK
+  kept, lowercased, `[-\s]+` → `-` — `### 5.2. 控制密钥寄存器（**CTL_KEY**）`
+  anchors as `52-控制密钥寄存器ctl_key`). Range headings (`MBPTR0_-_MBPTR2`)
+  cover their enumerated rows; a register with no in-chapter subsection stays
+  plain and is reported. Run `scripts/link_registers.py --list` / `--apply`
+  (idempotent) — never hand-write these anchors.
 - References to documents outside the chapter corpus (attached IOMUX or
   memory-map sheets, other vendor manuals, Arm documentation) stay plain text:
   there is nothing to link to.
