@@ -96,22 +96,33 @@ read the cell grid from the PDF layout and rebuild it as text.
 - Figures are **vector drawings**, not embedded images: `page.get_images()` is
   empty on figure pages while `page.get_drawings()` returns many objects.
   Extract embedded XObjects and you get nothing. Crop by rendering a clip
-  rect:
+  rect — **the clip must contain only the figure**. The naive "union of all
+  drawings on the page" is wrong: NOTE/CAUTION pills and their divider rules
+  are vector drawings too, so their rects merge the figure's bbox with the
+  body text above it and the crop ships that text (observed on ch059 WKPU:
+  a NOTE block, a section heading and two paragraphs above the diagram).
+  Use `scripts/recrop_figure.py`, which implements the accurate recipe:
 
-```python
-import pymupdf
-page = doc[pno - 1]
-drawings = page.get_drawings()
-box = pymupdf.Rect()
-for d in drawings:
-    box |= d["rect"]
-# restrict to the region above the caption, then render at >= 2x zoom
-clip = pymupdf.Rect(54, box.y0 - 6, 558, caption_y0 - 4)
-pix = page.get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=clip, alpha=False)
-pix.save("Figure_260.png")
+  1. caption_y = position of the `Figure N.` caption;
+  2. body text above the caption = text blocks with >40 chars AND >380pt
+     width (figure labels can be long but never span the text column);
+  3. the figure band starts below the LAST such body block, walking upward
+     until the band contains >= 5 drawings (a NOTE sitting between the figure
+     and its caption steps past it);
+  4. bbox = union of the drawings inside the band, grown with every text
+     block that intersects it or vertically overlaps it without body width —
+     figure labels can sit just outside the drawing union (a bus label left
+     of the diagram);
+  5. margins: ~4% of the larger dimension (min 6pt) left/right/bottom; the
+     top margin is capped at 6pt and clamped below the body-text boundary so
+     NOTE borders cannot re-enter;
+  6. render at >= 2x zoom, then VERIFY the PNG: no body text, no heading, no
+     NOTE and no caption may appear in it.
+
+```bash
+python3 <path-to>/nxp-translate/scripts/recrop_figure.py <pdf> 260 <page> Figure_260.png
 ```
 
-Trim the clip to the figure's own band — a whole-page render is not a figure.
 Bit-field bars inside register descriptions carry an unnumbered `Diagram`
 label rather than a `Figure N.` caption; they are still figures and use
 `Diagram_<slug>.png` (see `references/article-format.md`).
