@@ -157,6 +157,11 @@ re-derive scope or re-ask decisions already recorded in the row.
 - Register subsections keep the source order: name + offset, `Function` prose,
   `Diagram` bit-field bar, `Fields` table. Bit ranges, reset values and offsets
   match the source exactly; the `Fields` table matches the source row for row.
+- Intra-article register links: the chapter's memory-map table links each
+  register-name cell to the register's own subsection, restoring the source
+  PDF's own hyperlinks. Run `scripts/link_registers.py --apply <article>`
+  once the article is complete (`--list` for the census; idempotent). See
+  `references/article-format.md` § Cross-references.
 - Figures: every content figure embeds, cropped and referenced without caption
   text (`![Figure_256](Figure_256.png)`).
 
@@ -236,7 +241,9 @@ rows as one soft-joined run-on paragraph (a corpus once shipped 11 chapters
 this way, one alone losing 52); (2) bold balance — a stray `*` outside `**`
 pairs renders as a literal asterisk (`**xxx***`); (3) heading level = numeric
 depth + 1; (4) no Markdown markup in front-matter titles (`**` renders
-literally in the h1, browser tab and nav). Checked, never eyeballed.
+literally in the h1, browser tab and nav). Checked, never eyeballed. The
+memory-map register links come from `link_registers.py --apply` — verify with
+`--list` (a second `--apply` must change 0 lines).
 
 Phase B (fidelity): walk the chapter section by section — each outline section
 has a translation, each register/figure/table is present, row sets, bit ranges,
