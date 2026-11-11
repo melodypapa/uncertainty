@@ -175,12 +175,14 @@ section from a neighbouring article to fill a gap.
 ## Step 6 — Produce the figures
 
 Read `references/article-format.md` for naming. Figures only: crop from the
-source PDF with PyMuPDF into the article directory, keeping the source's
-**global** figure number (`Figure_256.png`, `Figure_260.png`) so the figure can
-be traced back. Figures are vector drawings — render a clip rect at ≥ 2× zoom
-from `get_drawings()` bboxes, do not extract embedded images. Bit-field bars,
-block diagrams and timing diagrams stay images; anything with rows and columns
-is a table.
+source PDF into the article directory, keeping the source's **global** figure
+number (`Figure_256.png`, `Figure_260.png`) so the figure can be traced back.
+Figures are vector drawings — crop with `scripts/recrop_figure.py` (a naive
+union of the page's drawings ships body text when the page top carries
+NOTE/CAUTION decorations; the script's body-text-band recipe prevents that)
+and VERIFY the PNG: no body text, heading, NOTE or caption inside it.
+Bit-field bars, block diagrams and timing diagrams stay images; anything with
+rows and columns is a table.
 
 Unnumbered register `Diagram` bit-field bars use `Diagram_<slug>.png`
 (`Diagram_sc.png`), with a numeric suffix on collision. Never name a figure
