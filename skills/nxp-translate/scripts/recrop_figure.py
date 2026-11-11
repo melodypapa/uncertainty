@@ -40,7 +40,9 @@ Exit codes: 0 ok, 1 figure not found / no drawings, 2 usage.
 """
 
 import argparse
+import re
 import sys
+from pathlib import Path
 
 import pymupdf
 
@@ -52,66 +54,107 @@ BODY_MIN_WIDTH = 380.0
 MIN_DRAWINGS = 5
 PROXIMITY_PT = 25.0
 LABEL_MAX_SIZE = 10.0  # pt; section headings are larger
+CLUSTER_GAP_PT = 30.0  # vertical gap that separates figure clusters
+
+
+def find_caption(page, fig_num):
+    """The caption rect: a line that BEGINS with 'Figure N.' — prose
+    cross-references ('... as shown in Figure 319, ...') sit mid-line and are
+    rejected."""
+    for r in page.search_for(f"Figure {fig_num}."):
+        line = page.get_text("text", clip=pymupdf.Rect(r.x0 - 2, r.y0 - 1,
+                                                       page.rect.x1 - 40, r.y1 + 1))
+        if line.strip().startswith(f"Figure {fig_num}."):
+            return r
+    return None
+
+
+def all_caption_lines(page):
+    """Every 'Figure N.' caption line on the page (not prose mentions)."""
+    out = []
+    for b in page.get_text("dict")["blocks"]:
+        if b.get("type") != 0:
+            continue
+        for ln in b.get("lines", []):
+            r = pymupdf.Rect(ln["bbox"])
+            txt = "".join(sp["text"] for sp in ln.get("spans", [])).strip()
+            if re.match(r"^Figure \d+\.", txt):
+                out.append((r, txt))
+    return out
 
 
 def figure_clip(page, fig_num):
-    caps = page.search_for(f"Figure {fig_num}.")
-    if not caps:
-        return None, "caption not found"
-    cap_y = caps[0].y0
-    all_draw = [d["rect"] for d in page.get_drawings()
-                if d["rect"].y0 > CONTENT_TOP and d["rect"].y1 < CONTENT_BOTTOM
-                and d["rect"].width > 0.5 and d["rect"].height > 0.5]
-    longs = sorted([pymupdf.Rect(b[:4]) for b in page.get_text("blocks")
-                    if b[4].strip() and len(" ".join(b[4].split())) > BODY_MIN_CHARS
-                    and (b[2] - b[0]) > BODY_MIN_WIDTH
-                    and b[3] < cap_y and b[1] > CONTENT_TOP],
-                   key=lambda r: r.y1)
-    sentinels = sorted([r.y1 for r in longs] + [CONTENT_TOP], reverse=True)
-    for top in sentinels:
-        ds = [r for r in all_draw if r.y0 >= top - 2 and r.y1 <= cap_y - 2]
-        if len(ds) < MIN_DRAWINGS:
-            continue
+    cap = find_caption(page, fig_num)
+    if cap is None:
+        return None, "caption not found on this page"
+    cap_y = cap.y0
+
+    # a page can hold several figures; only drawings of THIS figure belong to
+    # the band — the previous figure's drawings end above its own caption
+    prev_cap_bottom = CONTENT_TOP
+    for r, txt in all_caption_lines(page):
+        if r.y1 < cap_y - 5:
+            prev_cap_bottom = max(prev_cap_bottom, r.y1 + 2)
+
+    draws = [d["rect"] for d in page.get_drawings()
+             if d["rect"].y0 > prev_cap_bottom and d["rect"].y1 < cap_y - 2
+             and (d["rect"].width > 1 or d["rect"].height > 1)]
+    if len(draws) < MIN_DRAWINGS:
+        return None, (f"only {len(draws)} drawings between the previous caption "
+                      f"({prev_cap_bottom:.0f}) and this caption")
+    # cluster by vertical proximity; the figure = the bottom-most cluster with
+    # a dominant area (it sits directly above its caption)
+    draws.sort(key=lambda r: r.y0)
+    clusters = []
+    for r in draws:
+        if clusters and r.y0 - max(x.y1 for x in clusters[-1]) <= CLUSTER_GAP_PT:
+            clusters[-1].append(r)
+        else:
+            clusters.append([r])
+    unions = []
+    for g in clusters:
         u = pymupdf.Rect()
-        for r in ds:
+        for r in g:
             u |= r
-        # grow with label-like text to a fixpoint: a label can sit fully
-        # outside the drawing union (the "Interrupt vectors" label sits 1.4pt
-        # above its box). Label-like = not body width AND label-sized font
-        # (section headings are larger and are never absorbed); growth accepts
-        # blocks intersecting the bbox, vertically overlapping it, or within
-        # PROXIMITY_PT of it, and cascades as the bbox grows
-        labels = []
-        for blk in page.get_text("dict")["blocks"]:
-            if blk.get("type") != 0:
-                continue
-            r = pymupdf.Rect(blk["bbox"])
-            sizes = [s["size"] for ln in blk.get("lines", []) for s in ln.get("spans", [])]
-            txt = " ".join(sp["text"] for ln in blk.get("lines", []) for sp in ln.get("spans", []))
-            if not txt.strip() or not sizes:
-                continue
-            if (r.width < BODY_MIN_WIDTH and max(sizes) <= LABEL_MAX_SIZE
-                    and CONTENT_TOP < r.y0 and r.y1 < cap_y - 2):
-                labels.append((r, txt))
-        changed = True
-        while changed:
-            changed = False
-            near = pymupdf.Rect(u.x0 - PROXIMITY_PT, u.y0 - PROXIMITY_PT,
-                                u.x1 + PROXIMITY_PT, u.y1 + PROXIMITY_PT)
-            for r, txt in labels:
-                if r.intersects(near):
-                    before = (u.x0, u.y0, u.x1, u.y1)
-                    u |= r
-                    if (u.x0, u.y0, u.x1, u.y1) != before:
-                        changed = True
-        band_top = top
-        m = max(MARGIN_MIN, 0.04 * max(u.width, u.height))
-        clip = pymupdf.Rect(max(40.0, u.x0 - m),
-                            max(CONTENT_TOP, u.y0 - 6, band_top + 2),
-                            min(page.rect.x1 - 40, u.x1 + m),
-                            min(cap_y - 2, u.y1 + m))
-        return clip, f"band top {top:.0f}; bbox {u}"
-    return None, "no drawing cluster found above the caption"
+        unions.append(u)
+    max_area = max(u.get_area() for u in unions)
+    cand = [u for u in unions
+            if u.get_area() >= 0.4 * max_area]
+    u = max(cand, key=lambda r: r.y1)  # bottom-most dominant cluster
+
+    # grow with label-like text to a fixpoint: a label can sit fully outside
+    # the drawing union (the "Interrupt vectors" label sits 1.4pt above its
+    # box; a bus label sits left of the diagram). Label-like = not body width
+    # and label-sized font (section headings are larger, never absorbed)
+    labels = []
+    for blk in page.get_text("dict")["blocks"]:
+        if blk.get("type") != 0:
+            continue
+        r = pymupdf.Rect(blk["bbox"])
+        sizes = [s["size"] for ln in blk.get("lines", []) for s in ln.get("spans", [])]
+        txt = " ".join(sp["text"] for ln in blk.get("lines", []) for sp in ln.get("spans", []))
+        if (txt.strip() and sizes and r.width < BODY_MIN_WIDTH
+                and max(sizes) <= LABEL_MAX_SIZE
+                and prev_cap_bottom < r.y0 and r.y1 < cap_y - 2):
+            labels.append(r)
+    changed = True
+    while changed:
+        changed = False
+        near = pymupdf.Rect(u.x0 - PROXIMITY_PT, u.y0 - PROXIMITY_PT,
+                            u.x1 + PROXIMITY_PT, u.y1 + PROXIMITY_PT)
+        for r in labels:
+            if r.intersects(near):
+                before = (u.x0, u.y0, u.x1, u.y1)
+                u |= r
+                if (u.x0, u.y0, u.x1, u.y1) != before:
+                    changed = True
+
+    m = max(MARGIN_MIN, 0.04 * max(u.width, u.height))
+    clip = pymupdf.Rect(max(40.0, u.x0 - m),
+                        max(CONTENT_TOP, u.y0 - 6, prev_cap_bottom + 2),
+                        min(page.rect.x1 - 40, u.x1 + m),
+                        min(cap_y - 2, u.y1 + m))
+    return clip, f"figure cluster {u}; prev caption bottom {prev_cap_bottom:.0f}"
 
 
 def main(argv=None):
@@ -126,6 +169,50 @@ def main(argv=None):
 
     doc = pymupdf.open(args.pdf)
     page = doc[args.page - 1]
+    # embedded raster? extract it natively instead of rendering the vector
+    # clip (preserves the source resolution, no recomposition)
+    caps = page.search_for(f"Figure {args.figure}.")
+    if caps:
+        cap_y = caps[0].y0
+        imgs = [im for im in page.get_image_info(xrefs=True)
+                if pymupdf.Rect(im["bbox"]).y1 <= cap_y + 2
+                and pymupdf.Rect(im["bbox"]).y0 > CONTENT_TOP]
+        # extract only when a raster DOMINATES the figure; small insets and
+        # icon tiles inside an otherwise vector diagram render fine with the
+        # vector path below
+        union = pymupdf.Rect()
+        for d in page.get_drawings():
+            r = d["rect"]
+            if r.y1 <= cap_y + 2 and r.y0 > CONTENT_TOP and (r.width > 1 or r.height > 1):
+                union |= r
+        dominant = imgs and (
+            not union.is_empty
+            and pymupdf.Rect(max(imgs, key=lambda im: pymupdf.Rect(im["bbox"]).get_area())["bbox"]).get_area()
+            >= 0.6 * union.get_area())
+        if imgs and dominant:
+            best = max(imgs, key=lambda im: pymupdf.Rect(im["bbox"]).get_area())
+            bbox = pymupdf.Rect(best["bbox"])
+            try:
+                raw = doc.extract_image(best["xref"])
+                out = Path(args.out)
+                out.write_bytes(raw["image"])
+                print(f"Figure {args.figure}: p{args.page} extracted embedded "
+                      f"{raw['width']}x{raw['height']} {raw['ext']} -> {out}")
+                return 0
+            except Exception as exc:
+                # broken xref (observed in watermarked-plain rebuilds): fall
+                # back to rendering the image's own bbox — still exactly the
+                # picture, no surrounding decorations
+                m = max(MARGIN_MIN, 0.04 * max(bbox.width, bbox.height))
+                clip = pymupdf.Rect(max(40.0, bbox.x0 - m), max(CONTENT_TOP, bbox.y0 - 2),
+                                    min(page.rect.x1 - 40, bbox.x1 + m),
+                                    min(cap_y - 2, bbox.y1 + 2))
+                pix = page.get_pixmap(matrix=pymupdf.Matrix(args.zoom, args.zoom),
+                                      clip=clip, alpha=False)
+                pix.save(args.out)
+                print(f"Figure {args.figure}: p{args.page} rendered embedded-image "
+                      f"bbox {pix.width}x{pix.height}px (extract failed: {exc})")
+                return 0
     clip, info = figure_clip(page, args.figure)
     if clip is None:
         print(f"FAIL Figure {args.figure}: {info}", file=sys.stderr)
