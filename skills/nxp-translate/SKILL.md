@@ -180,7 +180,11 @@ number (`Figure_256.png`, `Figure_260.png`) so the figure can be traced back.
 Figures are vector drawings — crop with `scripts/recrop_figure.py` (a naive
 union of the page's drawings ships body text when the page top carries
 NOTE/CAUTION decorations; the script's body-text-band recipe prevents that)
-and VERIFY the PNG: no body text, heading, NOTE or caption inside it.
+and VERIFY the PNG: no body text, heading, NOTE or caption inside it. When a
+page defeats the automatic recipe (tables fused onto waveforms, text-heavy
+lead-ins, prose directly above the diagram), use the manual fallback:
+`recrop_figure.py --band` to read the boundaries, then `--manual X0 Y0 X1 Y1`
+— and verify the result the same way.
 Bit-field bars, block diagrams and timing diagrams stay images; anything with
 rows and columns is a table.
 
