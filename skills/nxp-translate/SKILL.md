@@ -185,8 +185,31 @@ page defeats the automatic recipe (tables fused onto waveforms, text-heavy
 lead-ins, prose directly above the diagram), use the manual fallback:
 `recrop_figure.py --band` to read the boundaries, then `--manual X0 Y0 X1 Y1`
 — and verify the result the same way.
+Unnumbered register `Diagram` bars are not numbered figures: they carry a
+`Diagram` label above and a `Fields` label below, with no caption. Crop them
+with `scripts/recrop_diagram.py`, which anchors on the register's numbered
+section heading (a page can carry two bars), clips the first `Diagram` block
+below it, and ends at the `Fields` label — or, when the Fields table starts on
+the next page, at the bar's last `Reset` row. **Never let a clip run to the page
+bottom**: the running footer sits there and would be shipped inside the PNG.
 Bit-field bars, block diagrams and timing diagrams stay images; anything with
 rows and columns is a table.
+
+After the PNGs exist, run the crop gate and act on its output:
+
+```bash
+python3 <path-to>/nxp-translate/scripts/check_figure_crops.py <article-dir>
+```
+
+It **fails** on `BLANK` / `LEAD_WS` / `TRAIL_WS` (reliable) and lists
+`REVIEW_EDGE` candidates — a thin band at the image edge separated from the
+figure by a gap. That band may be the page header/footer, but a bit-field bar's
+own `Bits`/`Reset` rows have the same geometry, so it is a pointer to **open and
+confirm**, not a verdict (`--strict` upgrades it to a failure). Fix direction:
+if the figure content is intact and only footer/whitespace is present, **trim**
+the PNG at the gap; if content is missing (a cut bar), **re-crop** from the PDF
+with `recrop_diagram.py` / `recrop_figure.py`. No OCR-free profile can separate
+a bar's own rows from page chrome, which is why the final check is visual.
 
 Unnumbered register `Diagram` bit-field bars use `Diagram_<slug>.png`
 (`Diagram_sc.png`), with a numeric suffix on collision. Never name a figure
@@ -223,6 +246,7 @@ Phase A (mechanical, all must pass):
 
 ```
 python3 <path-to>/nxp-translate/scripts/check_tables.py <target>
+python3 <path-to>/nxp-translate/scripts/check_figure_crops.py <target>   # trim/re-crop anything it fails
 python3 <path-to>/autosar-translate/scripts/check_indexes.py   # when the target lives in the autosar-managed site
 python3 <path-to>/autosar-translate/scripts/check_heading_lang.py <article>
 # when the target belongs to an MkDocs site, that site's strict build, e.g.:
@@ -249,7 +273,9 @@ pairs renders as a literal asterisk (`**xxx***`); (3) heading level = numeric
 depth + 1; (4) no Markdown markup in front-matter titles (`**` renders
 literally in the h1, browser tab and nav). Checked, never eyeballed. The
 memory-map register links come from `link_registers.py --apply` — verify with
-`--list` (a second `--apply` must change 0 lines).
+`--list` (a second `--apply` must change 0 lines). `check_figure_crops.py`
+fails on blank or untrimmed crops and lists `REVIEW_EDGE` candidates; open every
+candidate and confirm it holds only the figure — never the page header/footer.
 
 Phase B (fidelity): walk the chapter section by section — each outline section
 has a translation, each register/figure/table is present, row sets, bit ranges,
@@ -309,6 +335,14 @@ Merge through a PR when the default branch is protected.
 - Using Arm conventions: `Figure<ch>-<n>.png`, chapter-scoped table numbers,
   chapter-scoped figure numbering, or cropping register `Diagram` bars as
   tables.
+- Letting a crop rectangle run to the page bottom: the running header/footer
+  (title, `© … NXP B.V.`, revision line) gets baked into the PNG. A crop holds
+  the figure only.
+- Cropping a register `Diagram` bar to the page bottom, or cutting it at the
+  wide gap between its two halves, so the lower `Bits`/`Reset` rows are lost —
+  use `recrop_diagram.py`, which ends at `Fields` (or the last `Reset` row).
+- Shipping an untrimmed crop with a large blank band (a re-crop artefact);
+  `check_figure_crops.py` fails it.
 - Translating the cover, contents, release notes or legal notice.
 - Adding the page without the nav entry, or adding it at the end of the group
   instead of its chapter position.

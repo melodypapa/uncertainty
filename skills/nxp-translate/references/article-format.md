@@ -186,6 +186,22 @@ notice or footer banner to the body.
   `Diagram_<slug>.png` where `<slug>` is the register name lower_snake_cased
   (`Diagram_sc.png`, `Diagram_tctrl0_tctrl6.png`). Add a numeric suffix on a
   name collision (`Diagram_sc_2.png`). Never name a figure `Table_<n>.png`.
+- **A crop contains only the figure.** No running header/footer (document title,
+  `© … NXP B.V.`, revision line), no body text, no caption, no large blank band.
+  A crop rectangle that runs to the page bottom ships the footer inside the PNG;
+  it is invisible unless the image is opened, and a whole corpus can carry it.
+- **Trim vs re-crop.** If the figure content is complete and only footer / blank
+  margin is present, trim the PNG at the gap. If the figure itself is cut (a
+  register bar missing its top `Bits` row or lower `Reset` row), re-crop from
+  the source PDF — do not pad or stitch.
+- Register `Diagram` bars: crop with `scripts/recrop_diagram.py` (bounded by the
+  `Diagram` and `Fields` labels; when the Fields table starts on the next page,
+  bounded by the bar's last `Reset` row — never the page bottom). Numbered
+  figures: `scripts/recrop_figure.py`.
+- Run `scripts/check_figure_crops.py <article-dir>` after cropping: it fails on
+  `BLANK` / `LEAD_WS` / `TRAIL_WS`, and lists `REVIEW_EDGE` candidates that must
+  each be opened and confirmed (a bar's own `Bits`/`Reset` rows mimic chrome, so
+  this part is visual).
 - Anything with rows and columns is a table, not a figure.
 
 ## Register subsections
