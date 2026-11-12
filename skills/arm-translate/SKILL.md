@@ -215,6 +215,15 @@ landing pages, not in the nav). The generic pattern:
   entries in source order. Keep the landing page's continuous numbering.
   Grouping changes only the TOC structure — every page keeps its path, nav
   target and label. A source without Parts keeps a flat chapter list.
+- **Part index page (when the source has Part divider pages).** Translate each
+  Part as an index page `<target>/<document>/part-<designator>/index.md` —
+  front-matter title `Part <designator> <translated title>（<English title>）`,
+  body = the Part description the source gives (usually in "Using this
+  manual") plus the chapter list with the translation status of each chapter.
+  Register it as the unlabeled first entry of its Part nav sub-group
+  (`navigation.indexes`). A Part with no translated article gets no index
+  page — never a stub. Read every designator, title and description from the
+  source; the rule names no document.
 - `<target>/<document>/index.md`: add the numbered link to the document landing
   page; the corpus root index only links the document landing pages.
 - **One source chapter = one article.** When a chapter is currently split

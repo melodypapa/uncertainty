@@ -19,7 +19,8 @@ against the source heading before translating.
   the article directory; a Part with no numbered Chapter records the Part only.
   Read them from that document's own "Using this manual" / contents, never from
   another corpus, and state the section range when one chapter is split across
-  articles.
+  articles. Record the printed page of each Part divider page too — it is the
+  source of the Part index page.
 - When the numbering does not prove the mapping, match section headings before
   writing.
 - Record the source document's doc ID and revision per series, and note when a
