@@ -123,6 +123,29 @@ read the cell grid from the PDF layout and rebuild it as text.
 python3 <path-to>/nxp-translate/scripts/recrop_figure.py <pdf> 260 <page> Figure_260.png
 ```
 
+**Unnumbered register `Diagram` bars.** These have no `Figure N.` caption: a
+`Diagram` label sits above the bit-field bar and a `Fields` label below it.
+Crop with `scripts/recrop_diagram.py`:
+
+```bash
+python3 <path-to>/nxp-translate/scripts/recrop_diagram.py <pdf> Diagram_ctrl.png \
+    --pages <A> <B> --heading 'Control \(CTRL\)'
+```
+
+The recipe: find the register's numbered section heading in the chapter's page
+range, take the first `Diagram` block **below that heading** (a page can carry
+two register bars — the heading disambiguates), and clip from `heading+18pt` to
+the following `Fields` label `-15pt`. When the `Fields` table starts on the next
+page, the bottom is the bar's **last `Reset` row `+8pt`**, capped above the page
+content band (≈740pt). **Never clip to the page bottom:** the running footer
+(copyright + revision) sits there and would be baked into the PNG, and a bar
+crop that starts too low loses its top `Bits` row — both are silent defects.
+
+After cropping, run `scripts/check_figure_crops.py <article-dir>`: it fails on
+blank/untrimmed images and lists `REVIEW_EDGE` candidates to open by hand (a
+bar's own `Bits`/`Reset` rows look like chrome to a row profile, so the final
+confirmation is visual, not automatic).
+
 **Manual fallback.** Some pages defeat the automatic recipe: tables fused
 directly onto waveforms, text-heavy lead-ins (terminology table + bullets +
 heading), prose directly above the diagram, two-figure pages. Observed on the
