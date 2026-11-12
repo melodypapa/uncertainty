@@ -24,6 +24,17 @@ title is a descriptive phrase. Do not "realign" the order.
 
 - One or two intro sentences mirroring the source chapter's opening
   ("本章介绍 **MPU**。"), then the translated sections.
+- **Source Part/Chapter line (when the source document has a Part -> Chapter
+  hierarchy).** Before those intro sentences, add one line recording the source
+  Part and Chapter designators with their translated titles, keeping the Latin
+  designators verbatim and the English titles in full-width parentheses on
+  first mention:
+  `本文译自 Part <designator>《<Part 中文标题>》（<English Part title>）Chapter <number>《<章节中文标题>》（<English chapter title>）。`
+  Read every designator and title from the source document; the convention
+  hard-codes no document. A Part with no numbered Chapter records the Part
+  only; a chapter split across articles adds the covered section range. This
+  line is source metadata — not invented content, not a heading, and not part
+  of the droppable chrome.
 - Chapter numbering **restarts at 1** for every article: `## 1. 关于 MPU`,
   `## 2. MPU 区域`, `### 2.1. …`, `#### 4.2.1. …`. The number reflects the
   source's relative structure, not the source's absolute chapter number.
@@ -204,6 +215,13 @@ conventions are marked as such.
   `Armv8-M 架构参考手册`. Add
   `- "<中文标题>": cortex/<document>/<topic>/index.md` under the matching
   document group.
+- **Part-grouped TOC (when the source document has Parts).** Split the nav
+  group into one sub-group per Part, each with a short label
+  (`Part <designator> <translated Part title>`) and its chapter entries in
+  source order; the landing page's numbered list carries a short Part heading
+  before each Part's entries while keeping continuous numbering. Grouping
+  changes only the TOC structure — page paths, nav targets and labels do not
+  change. A source without Parts keeps a flat list.
 - `<target>/<document>/index.md`: numbered link in source chapter order
   (`1. [程序员模型（Programmers Model）](programmers_model/index.md)`).
 - `<target>/index.md`: numbered link to the **document landing page**
@@ -251,3 +269,11 @@ conventions are marked as such.
   cross-reference and table-footnote rules. Front-matter titles stay
   Chinese-first — unlike autosar's English-first module titles, because an
   Arm chapter title is a descriptive phrase, not a product identifier.
+- 2026-11-12, issue #114 — Added a **corpus-agnostic** Part/Chapter identity
+  rule: when a source document is organised into Parts containing Chapters,
+  each article records its source Part/Chapter in an intro line and the site
+  TOC is grouped by Part. The rule is gated on the source structure and names
+  no document, doc ID or Part/Chapter label — identifiers are read from each
+  source at run time, and a Part with no numbered Chapter records the Part
+  only. Lifted so the two-level hierarchy survives flattening a chapter to
+  `## 1.`; applies to any corpus satisfying the condition, not to one series.

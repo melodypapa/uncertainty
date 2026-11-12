@@ -14,6 +14,12 @@ the source chapter number (`Figure8-*` ⇒ chapter 8, `TableB3-*` ⇒ appendix B
 Rows inferred without a numbered figure are marked *(verify)* and confirmed
 against the source heading before translating.
 
+- **Source Part/Chapter (when the source has one).** Record the source Part and
+  Chapter designators as printed in that document on each mapping row alongside
+  the article directory; a Part with no numbered Chapter records the Part only.
+  Read them from that document's own "Using this manual" / contents, never from
+  another corpus, and state the section range when one chapter is split across
+  articles.
 - When the numbering does not prove the mapping, match section headings before
   writing.
 - Record the source document's doc ID and revision per series, and note when a
