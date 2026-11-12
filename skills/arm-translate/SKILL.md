@@ -1,14 +1,13 @@
 ---
 name: arm-translate
 description: >
-  Use when translating, completing, verifying or inventorying the Chinese Arm
-  reference articles of an Arm document series (Cortex TRM, Armv7-M/Armv8-M
-  architecture manuals, SDEN errata notices — any Arm-published document with
-  a paired Markdown mirror + PDF); syncing a source chapter into a topic
-  article; answering coverage questions about MPU, cache, memory system,
-  programmers model, exception model, instruction set or system address map;
-  or merging split chapter pages and registering a glossary. Corpus-agnostic:
-  the source corpus and the target location are run parameters.
+  Use when translating, completing, verifying or inventorying Chinese Arm
+  reference articles (Cortex TRM, Armv7-M/Armv8-M architecture manuals,
+  SDEN errata) from a paired Markdown mirror + PDF; syncing a source chapter
+  into a topic article; answering coverage questions about MPU, cache,
+  memory system, exception model or instruction set; or merging split
+  chapters and registering a glossary. Corpus-agnostic: source corpus and
+  target location are run parameters.
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
@@ -121,6 +120,18 @@ create the directory first.
   fences.
 - Renumber the source chapter to `## 1.` and mirror its relative structure
   (`### 1.1.`, `#### 1.1.1.`). Numbering restarts at 1 in every article.
+- **Source Part/Chapter identity (when the source has one).** When the source
+  document is organised into Parts that contain Chapters — the document's own
+  "Using this manual" / contents states the hierarchy — record that identity
+  in the article: one intro line immediately after the front matter, before the
+  chapter's own intro sentences, giving the source Part and Chapter designators
+  and their translated titles. Keep the Latin designators verbatim, translate
+  the titles, and keep the English titles in full-width parentheses on first
+  mention. A Part with no numbered Chapter (a standalone glossary, for example)
+  records the Part only; one chapter split across several articles records the
+  same Part/Chapter plus the section range each article covers. Read every
+  designator and title from the source at run time: the rule names no document,
+  doc ID or label, and no Part/Chapter is invented for a source without one.
 - Never write `# ` in the body (front-matter `title` is the only h1).
 - Keep code and instruction snippets in fenced blocks tagged `arm`
   (`MCR p15, 0, <Rt>, c6, CRm, op2`), verbatim from the source.
@@ -198,6 +209,12 @@ landing pages, not in the nav). The generic pattern:
   ordered by chapter number (ch1 → ch14 → appendix), not by arrival time.
   Never append a new page at the end of the group; a concept article takes the
   position of the closest chapter it supports.
+- **Part-grouped TOC (when the source has Parts).** Group the nav group and the
+  landing-page list by the source's Parts: one short Part label per sub-group
+  (`Part <designator> <translated title>`), containing that Part's chapter
+  entries in source order. Keep the landing page's continuous numbering.
+  Grouping changes only the TOC structure — every page keeps its path, nav
+  target and label. A source without Parts keeps a flat chapter list.
 - `<target>/<document>/index.md`: add the numbered link to the document landing
   page; the corpus root index only links the document landing pages.
 - **One source chapter = one article.** When a chapter is currently split
@@ -308,6 +325,9 @@ protected.
   English head with the definition in a `>` blockquote.
 - Translating the proprietary notice or document history.
 - Adding the page without the nav entry (strict build passes, page is orphaned).
+- Dropping the source's Part/Chapter identity when flattening a chapter, or
+  hard-coding one document's Part labels into the rule instead of gating the
+  rule on the source structure.
 - Treating an M-profile architecture manual as another series' architecture
   manual — each core series follows its own TRM plus its own architecture
   manual; they are separate document series.

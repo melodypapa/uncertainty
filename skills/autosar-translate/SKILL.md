@@ -1,15 +1,13 @@
 ---
 name: autosar-translate
 description: >
-  Use when translating, completing, updating, verifying or inventorying
-  Chinese AUTOSAR standard articles (Type A SWS module articles and
-  skeleton-exempt Foundation guides); syncing a spec (SWS/EXP/SRS/TPS from any
-  release, from a markdown mirror or bundled PDFs — locations are run
-  parameters) into a Type A article; checking which specs lack articles; or
-  answering coverage questions (TODO.md, STANDARD.md). Also for any AUTOSAR
-  module name (CanSM, SoAd, Dem, NvM, EthSwt, Com, Det…) in the context of an
-  AUTOSAR article corpus. Corpus-agnostic: the source corpus and the target
-  location are run parameters.
+  Use when translating, completing, updating, verifying or inventorying Chinese
+  AUTOSAR articles (Type A SWS modules and skeleton-exempt Foundation guides);
+  syncing a spec (SWS/EXP/SRS/TPS, any release, markdown mirror or bundled
+  PDFs) into a Type A article; checking which specs lack articles; or answering
+  coverage questions (TODO.md, STANDARD.md). Also for any AUTOSAR module name
+  (CanSM, SoAd, Dem, NvM, EthSwt, Com, Det…). Corpus-agnostic: source corpus
+  and target location are run parameters.
 author: melodypapa
 license: MIT
 repository: https://github.com/melodypapa/uncertainty
