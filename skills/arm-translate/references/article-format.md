@@ -222,6 +222,17 @@ conventions are marked as such.
   before each Part's entries while keeping continuous numbering. Grouping
   changes only the TOC structure — page paths, nav targets and labels do not
   change. A source without Parts keeps a flat list.
+- **Part index page (when the source has Part divider pages).** Each Part with
+  at least one translated article gets an index page
+  `<target>/<document>/part-<designator>/index.md`, registered as the unlabeled
+  first entry of its Part nav sub-group. Title: `Part <designator> <translated
+  Part title>（<English Part title>）`. Body: one or two sentences translating
+  the Part description the source gives (normally in "Using this manual" — a
+  divider page that carries only the title contributes the title alone), then
+  the chapter list in source order, linking each translated article and noting
+  chapters translated on a sibling document's page or deferred. A Part with no
+  translated article gets no index page. The page is a landing page, not a
+  chapter article: it takes no Part/Chapter line and restarts no numbering.
 - `<target>/<document>/index.md`: numbered link in source chapter order
   (`1. [程序员模型（Programmers Model）](programmers_model/index.md)`).
 - `<target>/index.md`: numbered link to the **document landing page**
@@ -277,3 +288,9 @@ conventions are marked as such.
   source at run time, and a Part with no numbered Chapter records the Part
   only. Lifted so the two-level hierarchy survives flattening a chapter to
   `## 1.`; applies to any corpus satisfying the condition, not to one series.
+- 2026-11-12, issue #117 — Part divider pages translate as **Part index pages**
+  (`part-<designator>/index.md`), the unlabeled first entry of each Part nav
+  sub-group: Part description from "Using this manual" plus the chapter list
+  with translation status. A Part with no translated article gets no index
+  page. Extends the #114 Part/Chapter rule; still gated on the source
+  structure and hard-codes no document.
