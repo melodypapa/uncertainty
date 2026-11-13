@@ -191,14 +191,20 @@ conventions are marked as such.
 
 - `<target>/<document>/<topic>/index.md` — one directory per topic, under
   the source document folder (`m7-trm/`, `armv7-m/`, `r52plus-trm/`,
-  `armv8-m/`).
+  `armv8-m/`). **When the source document has Parts**, chapters live one level
+  deeper in their Part subfolder:
+  `<target>/<document>/part-<designator>/<topic>/index.md`, with the Part
+  index page at `part-<designator>/index.md` (§Part index page below). A source
+  without Parts keeps the flat layout.
 - One source chapter maps to exactly one article. Do not split a chapter across
   directories (two articles for ch2's PSR and exception model, a separate MPU
   page for ch6); merge the parts into one page, renumber the appended sections,
   and keep old URLs alive through `redirect_maps`.
-- The document glossary goes in `<target>/<document>/glossary/index.md` with
-  the `title: "术语表（Glossary）"`, registered last in the document group
-  (appendix position). It holds the **translated source glossary** in the
+- The document glossary goes in `<target>/<document>/glossary/index.md` — or
+  `<target>/<document>/part-<designator>/glossary/index.md` when the source has
+  Parts, in the Part that owns the glossary — with the
+  `title: "术语表（Glossary）"`, registered last in its nav group (appendix
+  position). It holds the **translated source glossary** in the
   §Wording term-entry form (`**Term**` + `>` definition), alphabetically
   sectioned (`## A` … `## Z`) when the source glossary is alphabetical. It is
   not a link stub: a term the source document defines appears here as an entry,
@@ -214,14 +220,20 @@ conventions are marked as such.
   `Cortex-M7 TRM`, `Armv7-M 架构参考手册`, `Cortex-R52+ TRM` and
   `Armv8-M 架构参考手册`. Add
   `- "<中文标题>": cortex/<document>/<topic>/index.md` under the matching
-  document group.
+  document group — for a Part-structured source use
+  `cortex/<document>/part-<designator>/<topic>/index.md` inside that Part's
+  sub-group.
 - **Part-grouped TOC (when the source document has Parts).** Split the nav
   group into one sub-group per Part, each with a short label
   (`Part <designator> <translated Part title>`) and its chapter entries in
   source order; the landing page's numbered list carries a short Part heading
-  before each Part's entries while keeping continuous numbering. Grouping
-  changes only the TOC structure — page paths, nav targets and labels do not
-  change. A source without Parts keeps a flat list.
+  before each Part's entries while keeping continuous numbering. The directory
+  layout matches the TOC: chapter entries point at
+  `<target>/<document>/part-<designator>/<topic>/index.md` (§Landing pages and
+  navigation above), and labels stay short. Migrating an existing flat series
+  must update nav targets, landing links, cross-references and the sync-todo
+  ledger, and add `redirect_maps` entries for every old article URL so
+  published links survive. A source without Parts keeps a flat list.
 - **Part index page (when the source has Part divider pages).** Each Part with
   at least one translated article gets an index page
   `<target>/<document>/part-<designator>/index.md`, registered as the unlabeled
@@ -294,3 +306,11 @@ conventions are marked as such.
   with translation status. A Part with no translated article gets no index
   page. Extends the #114 Part/Chapter rule; still gated on the source
   structure and hard-codes no document.
+- 2026-11-13, issue #119 — Chapter articles (the glossary included) now live
+  in their source Part subfolder `part-<designator>/<topic>/index.md` when the
+  source has a Part -> Chapter hierarchy; the Part index page stays at
+  `part-<designator>/index.md`. Supersedes the #114 wording that grouping
+  changes only the TOC structure and every page keeps its path. Migrating an
+  existing flat series requires `redirect_maps` for every old URL and updates
+  to nav, landing links, cross-references and the sync-todo ledger. Still gated
+  on the source structure; names no document.
