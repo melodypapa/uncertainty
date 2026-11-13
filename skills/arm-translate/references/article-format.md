@@ -196,10 +196,16 @@ conventions are marked as such.
   `<target>/<document>/part-<designator>/<topic>/index.md`, with the Part
   index page at `part-<designator>/index.md` (§Part index page below). A source
   without Parts keeps the flat layout.
-- One source chapter maps to exactly one article. Do not split a chapter across
-  directories (two articles for ch2's PSR and exception model, a separate MPU
-  page for ch6); merge the parts into one page, renumber the appended sections,
-  and keep old URLs alive through `redirect_maps`.
+- One source chapter maps to exactly one article. A chapter's numbered sections
+  (`C2.1`, `C2.4`) are `##`/`###` headings in that article, never directories:
+  do not create `<topic>_16bit` / `<topic>_32bit`, per-letter, or
+  `<chapter>_part2` pages. Translating a chapter in several runs appends to the
+  same page — new sections in source order, headings renumbered, figures added
+  to the same directory. Do not split a chapter across directories (two
+  articles for ch2's PSR and exception model, a separate MPU page for ch6);
+  when you find such a split, merge the parts into one page, renumber the
+  appended sections, keep old URLs alive through `redirect_maps`, and register
+  the chapter once in the nav and the landing page.
 - The document glossary goes in `<target>/<document>/glossary/index.md` — or
   `<target>/<document>/part-<designator>/glossary/index.md` when the source has
   Parts, in the Part that owns the glossary — with the
