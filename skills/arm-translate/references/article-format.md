@@ -246,7 +246,9 @@ conventions are marked as such.
   translated article gets no index page. The page is a landing page, not a
   chapter article: it takes no Part/Chapter line and restarts no numbering.
 - `<target>/<document>/index.md`: numbered link in source chapter order
-  (`1. [程序员模型（Programmers Model）](programmers_model/index.md)`).
+  (`1. [程序员模型（Programmers Model）](programmers_model/index.md)`); when
+  the source has Parts the link carries the Part subfolder
+  (`1. [内存模型（Memory Model）](part-b/memory_model/index.md)`).
 - `<target>/index.md`: numbered link to the **document landing page**
   (`1. [Cortex-R52+ TRM（102199 r0p3）](r52plus-trm/index.md)`), never to the
   individual chapter. A new document series also gets its own `## N.` section
@@ -314,3 +316,11 @@ conventions are marked as such.
   existing flat series requires `redirect_maps` for every old URL and updates
   to nav, landing links, cross-references and the sync-todo ledger. Still gated
   on the source structure; names no document.
+- 2026-11-13, issue #121 — Aligned the skill's own worked examples and eval
+  with the #119 layout: `references/examples/mapping-cortex.md` now shows
+  Part-qualified article paths and the Part-subfolder naming form,
+  `evals/evals.json` points at `part-b/memory_model/index.md`, the landing-link
+  example gained its Part-qualified variant, and
+  `references/source-resolution.md` now states how to detect a Part ->
+  Chapter hierarchy from "Using this manual" / divider pages so the rule's
+  gating condition is backed by source resolution. No rule text changed.

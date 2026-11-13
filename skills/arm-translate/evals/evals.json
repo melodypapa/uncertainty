@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 10,
-      "prompt": "Text-only gap analysis for docs/cortex/armv8-m/memory_model/index.md against chapter B7 (Memory Model) of reference-docs/arm/cortex-r52/DDI0553B_y_armv8m_arm.md: source section list, article headings at every level, per-section coverage verdict, figure/table counts. Do not modify any repository.",
+      "prompt": "Text-only gap analysis for docs/cortex/armv8-m/part-b/memory_model/index.md against chapter B7 (Memory Model) of reference-docs/arm/cortex-r52/DDI0553B_y_armv8m_arm.md: source section list, article headings at every level, per-section coverage verdict, figure/table counts. Do not modify any repository.",
       "expected_output": "A coverage report listing B7's sections with per-section verdicts; the article covers the translated sections; figure/table counts compared"
     }
   ]
