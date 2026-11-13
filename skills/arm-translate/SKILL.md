@@ -29,7 +29,7 @@ corpus's own ledger — never from this skill:
 | Parameter | Meaning |
 | --- | --- |
 | **Source corpus** | the paired `.md` + `.pdf` mirror holding the Arm document(s) to translate from |
-| **Target root** | the directory the articles are written to (`<target>/<document>/<topic>/index.md`) |
+| **Target root** | the directory the articles are written to: `<target>/<document>/<topic>/index.md`, or `<target>/<document>/part-<designator>/<topic>/index.md` when the source has Parts (Step 2) |
 
 Per-corpus artifacts (article↔source mapping, sync ledger, glossaries) live
 **inside the target root**, so multiple document series never collide. This
@@ -65,12 +65,18 @@ The evidence is the figure/table number in the source (`Figure8-*` ⇒ chapter 8
 section headings before writing.
 
 A source chapter becomes one article at
-`<target>/<document>/<topic>/index.md`, where `<document>` is the source
-document series folder. First level is the source document, second level the
-topic; never file two documents in one folder. Propose the directory name to
-the user when a topic straddles two chapters or could be split, and propose a
-new document folder name (matched to the existing lower_snake_case series)
-when opening a source document that has no series yet.
+`<target>/<document>/<topic>/index.md` — first level the source document
+series, second level the topic; never file two documents in one folder. When
+the source document is organised into Parts containing Chapters (stated in its
+own "Using this manual" / contents), every chapter article instead lives in
+that Part's subfolder:
+`<target>/<document>/part-<designator>/<topic>/index.md`, with the Part index
+page at `part-<designator>/index.md` (Step 7). Read the designator from the
+source at run time, never from another corpus; a source without Parts keeps the
+flat two-level layout. Propose the directory name to the user when a topic
+straddles two chapters or could be split, and propose a new document folder
+name (matched to the existing lower_snake_case series) when opening a source
+document that has no series yet.
 
 ## Step 3 — Gap analysis before any writing
 Compare the article's `## ` headings against the source chapter's section list:
@@ -212,9 +218,14 @@ landing pages, not in the nav). The generic pattern:
 - **Part-grouped TOC (when the source has Parts).** Group the nav group and the
   landing-page list by the source's Parts: one short Part label per sub-group
   (`Part <designator> <translated title>`), containing that Part's chapter
-  entries in source order. Keep the landing page's continuous numbering.
-  Grouping changes only the TOC structure — every page keeps its path, nav
-  target and label. A source without Parts keeps a flat chapter list.
+  entries in source order. Keep the landing page's continuous numbering and
+  every page's label. Chapter articles live inside their Part subfolder
+  (`<target>/<document>/part-<designator>/<topic>/index.md`, Step 2), so nav
+  targets and landing links point there. When migrating an existing flat
+  series, update every nav target, landing link, cross-reference and the
+  sync-todo ledger, and add `redirect_maps` entries for every old article URL
+  so published links keep working. A source without Parts keeps a flat chapter
+  list.
 - **Part index page (when the source has Part divider pages).** Translate each
   Part as an index page `<target>/<document>/part-<designator>/index.md` —
   front-matter title `Part <designator> <translated title>（<English title>）`,
@@ -223,7 +234,8 @@ landing pages, not in the nav). The generic pattern:
   Register it as the unlabeled first entry of its Part nav sub-group
   (`navigation.indexes`). A Part with no translated article gets no index
   page — never a stub. Read every designator, title and description from the
-  source; the rule names no document.
+  source; the rule names no document. The Part subfolder holds both this index
+  and the Part's chapter article directories.
 - `<target>/<document>/index.md`: add the numbered link to the document landing
   page; the corpus root index only links the document landing pages.
 - **One source chapter = one article.** When a chapter is currently split
@@ -233,15 +245,18 @@ landing pages, not in the nav). The generic pattern:
   images, delete the retired directory, and add `redirect_maps` entries for
   every retired `…/index.md`. Internal `#anchor` links inside moved sections
   must be renumbered with the new heading number. Fix any reference to the old
-  paths in the article tree and in the sync-todo ledger.
+  paths in the article tree, the nav config, the landing pages and the
+  sync-todo ledger, and keep old URLs alive with `redirect_maps`.
 - A merged chapter page must still be **chapter-complete**: the source's
   overview, mode/state and monitor sections belong on the chapter page even
   when the chapter also points at sibling pages for other topics. Insert them
   at their source position and renumber every later section, or the page
   silently drops the chapter's own front matter.
 - **The glossary page carries real term entries, not a link**:
-  `<target>/<document>/glossary/index.md`, `title: "术语表 (Glossary)"`,
-  registered last in the document group (appendix position). It translates the
+  `<target>/<document>/glossary/index.md` — or
+  `<target>/<document>/part-<designator>/glossary/index.md` in the Part that
+  owns the glossary when the source has Parts — `title: "术语表 (Glossary)"`,
+  registered last in its nav group (appendix position). It translates the
   source document's own glossary chapter in the Step 5 term-entry form
   (`**Term**` + `>` definition), alphabetically sectioned (`## A` … `## Z`)
   when the source is alphabetical, otherwise in source order.
@@ -337,6 +352,11 @@ protected.
 - Dropping the source's Part/Chapter identity when flattening a chapter, or
   hard-coding one document's Part labels into the rule instead of gating the
   rule on the source structure.
+- Filing a chapter article at the document root when the source has Parts —
+  every chapter article (the glossary included) belongs in its Part subfolder;
+  a Part-grouped TOC over a flat directory tree does not reflect the source
+  hierarchy. Migrating a flat series without `redirect_maps` breaks published
+  URLs.
 - Treating an M-profile architecture manual as another series' architecture
   manual — each core series follows its own TRM plus its own architecture
   manual; they are separate document series.
