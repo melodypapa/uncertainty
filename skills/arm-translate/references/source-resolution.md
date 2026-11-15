@@ -36,6 +36,12 @@ directory, says which article series a document pairs with.
 2. **Text**: the `.md` parse. Its shape:
    - front matter is the cover, proprietary notice, release history and
      contents;
+   - some documents are organised into Parts that contain Chapters: the
+     document's own "Using this manual" / contents states the hierarchy and
+     the PDF carries a divider page per Part. Detect this before mapping —
+     when it is present, chapter articles are filed in
+     `part-<designator>/<topic>/` subfolders (SKILL.md Steps 2 and 7). A
+     source without Parts keeps flat chapters;
    - chapters are flattened (`# Chapter 8`, `## 8.1.2 …`), some parser
      artefacts split a heading into two `##` lines;
    - figures appear as `![...](2/<hash>/tmp_zip_img/<uuid>.png)` — the path
