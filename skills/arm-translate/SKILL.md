@@ -73,10 +73,24 @@ that Part's subfolder:
 `<target>/<document>/part-<designator>/<topic>/index.md`, with the Part index
 page at `part-<designator>/index.md` (Step 7). Read the designator from the
 source at run time, never from another corpus; a source without Parts keeps the
-flat two-level layout. Propose the directory name to the user when a topic
-straddles two chapters or could be split, and propose a new document folder
-name (matched to the existing lower_snake_case series) when opening a source
-document that has no series yet.
+flat two-level layout. Propose the directory name when a topic straddles two
+chapters, and propose a new document folder name (matched to the existing
+lower_snake_case series) when opening a source document that has no series yet.
+
+**One chapter, one article — a chapter's sections are never articles.** Numbered
+sections of a chapter (`C2.1`, `C2.2`, `C2.4`, TRM `2.3`) are headings inside
+that chapter's article (`## 1.`–`## N.`, or `### N.M.` when the section has
+sub-parts), not directories of their own. A run that translates part of a
+chapter — one section range, one letter band, one table group — appends into
+the chapter's existing article: same directory, headings renumbered in source
+order, new figures added to the same folder, and the already published sections
+left untouched. Before creating a directory, state the source unit and the
+target path in one line; when the unit you are about to translate is a section
+rather than a chapter, the target is the parent chapter's article. Never open
+`<chapter>_part2`, `<topic>_16bit` / `<topic>_32bit`, or per-letter pages for
+one chapter. Split a chapter across articles only when the user explicitly asks
+to split the article, and then record each article's section range in the
+mapping, the nav and the landing page.
 
 ## Step 3 — Gap analysis before any writing
 Compare the article's `## ` headings against the source chapter's section list:
@@ -104,7 +118,9 @@ follow the source.
 
 ## Step 4 — Create the work todo list
 
-One run consumes one article. Emit an explicit checklist before writing:
+One run consumes one article. A chapter keeps a single article for its whole
+life: a run that covers only a section range appends to it (Step 2) and does not
+register anything new. Emit an explicit checklist before writing:
 chapter sections in source order, figures to crop, tables to rebuild as text
 (GFM by default; HTML only for qualified complex structures), register entries,
 nav registration if the target belongs to a site, landing-page update,
@@ -215,6 +231,12 @@ landing pages, not in the nav). The generic pattern:
   ordered by chapter number (ch1 → ch14 → appendix), not by arrival time.
   Never append a new page at the end of the group; a concept article takes the
   position of the closest chapter it supports.
+- **One chapter, one entry.** A chapter is registered once in the nav and once
+  in the landing page, however many runs it took to translate. If the group
+  already lists two entries for one chapter (a 16-bit page and a 32-bit page,
+  per-letter instruction pages), treat it as a mapping defect: merge them into
+  the chapter's article (Step 2), delete the split pages, and repoint the old
+  URLs with `redirect_maps` — do not add a third entry.
 - **Part-grouped TOC (when the source has Parts).** Group the nav group and the
   landing-page list by the source's Parts: one short Part label per sub-group
   (`Part <designator> <translated title>`), containing that Part's chapter

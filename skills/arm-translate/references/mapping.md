@@ -34,8 +34,16 @@ against the source heading before translating.
 
 - Article directory = lower_snake_case topic name (`memory_protection_unit`,
   `system_control`), not the chapter number.
-- One source chapter per article; split a chapter only when the user asks, and
-  state the split in the PR.
+- One source chapter per article; a chapter's numbered sections (`C2.1`,
+  `C2.4`) are headings inside that article, never separate pages. A partially
+  translated chapter grows in place: append the new sections in source order,
+  renumber the headings that follow, add the figures to the same directory.
+  Split a chapter only when the user explicitly asks to split the *article*,
+  and then record each article's section range in the mapping, the nav and the
+  landing page.
+- One nav entry and one landing entry per chapter. Two pages for one chapter is
+  a mapping defect: merge them into the chapter's article (keeping old URLs
+  alive with `redirect_maps`) instead of registering a third page.
 - First level under the target root is the source document series (one
   lower_snake_case folder per document, e.g. the TRM series, the ARM series);
   second level is the topic — or, when the source document has a Part ->
