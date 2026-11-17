@@ -179,8 +179,17 @@ notice or footer banner to the body.
   figure number. Keep the source's **global** number — do not renumber per
   chapter.
 - The PNG sits in the article directory next to `index.md`; no shared `images/`
-  tree. Crop from the PDF with PyMuPDF at ≥ 2× zoom (see
-  `references/source-resolution.md`). Never screenshot or redraw by hand.
+  tree. **Reuse what is already there:** when the article already embeds a
+  markdown image (`![Figure_N](Figure_N.png)` or `![Diagram_x](…)`) and its PNG
+  exists in the article directory, keep it and do not extract or re-crop that
+  figure from the PDF. Crop from the PDF with PyMuPDF at ≥ 2× zoom (see
+  `references/source-resolution.md`) only for figures the article does not
+  already embed, or when an existing crop fails `check_figure_crops.py` and
+  must be re-cropped. Passing the crop gate alone does not make a reused image
+  valid — the gate only checks blank/whitespace. Open it and confirm it is the
+  actual figure (complete drawing and labels, no heading, caption, body text or
+  page chrome); a placeholder or wrong-region crop gets re-cropped from the PDF.
+  Never screenshot or redraw by hand.
 - Bit-field bars, block diagrams and timing diagrams stay images. A register's
   unnumbered bit-field `Diagram` is also a figure; name it
   `Diagram_<slug>.png` where `<slug>` is the register name lower_snake_cased

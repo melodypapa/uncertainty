@@ -174,9 +174,25 @@ section from a neighbouring article to fill a gap.
 
 ## Step 6 — Produce the figures
 
-Read `references/article-format.md` for naming. Figures only: crop from the
-source PDF into the article directory, keeping the source's **global** figure
-number (`Figure_256.png`, `Figure_260.png`) so the figure can be traced back.
+Read `references/article-format.md` for naming.
+
+**Reuse an existing image before extracting anything.** Check the article's
+current `![](...)` references first. When a markdown image is already present
+and its PNG exists in the article directory, use that image directly — keep the
+reference and the file, and do not re-crop or re-extract the figure from the
+PDF. This holds for both numbered figures and unnumbered register `Diagram`
+bars. Extract from the PDF only for figures the article does not already embed,
+or when an existing crop fails the gate or visual check below and therefore has
+to be re-cropped. The gate still runs on reused images, but a passing gate is
+not enough: open each reused PNG and confirm it is the real figure — the
+complete drawing with its labels, no body text, heading, caption or page chrome.
+A blank, cut or chrome-bearing crop fails the gate; a placeholder or a crop of
+the wrong region passes the gate but fails the visual check. Either way, re-crop
+rather than ship it.
+
+For figures that do need extraction: crop from the source PDF into the article
+directory, keeping the source's **global** figure number
+(`Figure_256.png`, `Figure_260.png`) so the figure can be traced back.
 Figures are vector drawings — crop with `scripts/recrop_figure.py` (a naive
 union of the page's drawings ships body text when the page top carries
 NOTE/CAUTION decorations; the script's body-text-band recipe prevents that)
