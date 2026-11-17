@@ -21,8 +21,11 @@ Translate or complete Chinese chapter articles from an NXP-published PDF.
 **One numbered chapter = one markdown file.** Follow the steps in order; the
 conventions live in `references/`, not in this file.
 
-The source is a **PDF with no parsed Markdown mirror**. Everything structural
-comes from the PDF outline; everything textual comes from the PDF.
+The source is a **PDF**, optionally accompanied by a parsed Markdown mirror
+when the corpus ledger declares one (Docling extraction + `_artifacts/`
+figures — see `references/source-resolution.md` § Markdown-mirror sources).
+Everything structural comes from the PDF outline or the mirror's headings;
+everything textual comes from the PDF or the mirror.
 
 ## Run parameters
 
@@ -131,6 +134,9 @@ re-derive scope or re-ask decisions already recorded in the row.
 
 - **The main session translates — never a subagent**, sequentially, regardless
   of chapter length. Read-only subagents may do censuses or verification.
+- When the corpus provides a markdown mirror, translate from the mirror `.md`
+  first and consult the PDF only where the mirror is corrupt or incomplete —
+  see `references/source-resolution.md` § Markdown-mirror sources.
 - Faithful translation of NXP's own wording, not a summary. Translate the full
   chapter: chip-specific information, overview, memory map, register
   descriptions, functional description, initialization and application
