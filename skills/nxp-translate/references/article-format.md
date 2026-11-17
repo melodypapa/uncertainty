@@ -190,11 +190,44 @@ notice or footer banner to the body.
   actual figure (complete drawing and labels, no heading, caption, body text or
   page chrome); a placeholder or wrong-region crop gets re-cropped from the PDF.
   Never screenshot or redraw by hand.
+- **When the source is a Docling markdown mirror** (see
+  `references/source-resolution.md`), the `.md` has systematic gaps that the
+  article must repair — count both during gap analysis:
+  - **Register `Diagram` bars classified as tables.** Docling's table
+    recognizer reads a bit-field bar's ruling lines as a table, so some bars
+    appear as a `| Bits | 31 | 30 | …` grid and get **no** exported image at
+    all (observed on 117 `## Diagram` sections across 27 chapters of one RM).
+    **User decision 2026-11-18 (S32K5 RM corpus): such bars are rendered as
+    translated text tables, not cropped images.** Build a
+    `| 位 | R | W | 复位 |` GFM table with one row per contiguous bit group,
+    taking the labels from the grid but repairing its scramble — underscore
+    splits (`EMC_ IF` → `EMC_IF`), merged cells (`0 0`), R/W row splits —
+    against the register's own Fields table, which governs names and ranges;
+    record any reconciliation in the PR text. Bars Docling exported as images
+    stay images; never invent a label the grid does not carry.
+  - **Equations dropped.** `Equation N.` caption lines can survive with **no
+    formula body at all** — Docling drops the formula graphics and exports no
+    artifact. Recover the formula from the chapter PDF's text layer and render
+    it as a fenced code block followed by the caption line `公式 N. 标题`
+    (corpus precedent: ch049 PLL). If the formula is a vector graphic that the
+    text layer does not carry, render the recovered formula from a cropped
+    region read as an image, then delete the crop.
+  - **Figure captions dropped.** The mirror rarely carries `Figure N.` caption
+    text, so an artifact PNG's global figure number cannot be read from the
+    `.md`. Read the captions off the chapter PDF's text layer (`Figure N.`
+    lines, in document order) and map the prose-position artifacts to them by
+    order; verify the mapping against the caption titles (e.g. the artifact
+    under "Block diagram" must match the block-diagram caption). Artifacts can
+    be fused (two figures in one PNG) — split at the divider and drop
+    chrome-only artifacts. Never invent a figure number from position alone
+    without this check.
 - Bit-field bars, block diagrams and timing diagrams stay images. A register's
   unnumbered bit-field `Diagram` is also a figure; name it
   `Diagram_<slug>.png` where `<slug>` is the register name lower_snake_cased
   (`Diagram_sc.png`, `Diagram_tctrl0_tctrl6.png`). Add a numeric suffix on a
   name collision (`Diagram_sc_2.png`). Never name a figure `Table_<n>.png`.
+  (Docling-mirror exception: bars the mirror converted to bit-grid tables are
+  rendered as text — see the mirror bullet above.)
 - **A crop contains only the figure.** No running header/footer (document title,
   `© … NXP B.V.`, revision line), no body text, no caption, no large blank band.
   A crop rectangle that runs to the page bottom ships the footer inside the PNG;

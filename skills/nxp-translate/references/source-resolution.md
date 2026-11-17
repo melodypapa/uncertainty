@@ -5,10 +5,40 @@ manual, datasheet — anything chaptered that NXP distributes). Its path comes
 from the requester or the corpus ledger; this skill hardcodes no location, file
 name or document identity. The source is **read-only**.
 
-**NXP documents have no parsed Markdown mirror.** The PDF is the sole source
-for both text and figures. Never look for a `.md` beside it, and never create
-one from the PDF text layer as a source — the dump produced by
-`scripts/extract_chapter.py` is a per-run working file, not a source.
+**Default: NXP documents have no parsed Markdown mirror.** When the corpus
+ledger declares none, the PDF is the sole source for both text and figures.
+Never look for a `.md` beside it, and never create one from the PDF text layer
+as a source — the dump produced by `scripts/extract_chapter.py` is a per-run
+working file, not a source.
+
+## Markdown-mirror sources (when the corpus provides one)
+
+Some corpora ship a parsed Markdown mirror produced by the Docling CLI
+(`docling --to md --image-export-mode referenced`): one `.md` per document
+part, with every region Docling classified as a picture exported to a sibling
+`<docname>_artifacts/` folder and referenced from the `.md`. When the corpus
+ledger declares such a mirror (e.g. a per-chapter split
+`markdown/Chapter_NN_<title>.md` + `pdf/Chapter_NN_<title>.pdf`), the mirror
+is the **first reference document** for translation:
+
+1. **The ledger decides.** Only a mirror recorded in the corpus's sync ledger
+   counts. Never hunt for one on your own; never create one beside the PDF.
+2. **Translate from the mirror `.md` first.** Its wording and tables are the
+   primary source; chapter boundaries inside it are already correct — never
+   re-derive them. Consult the PDF **only where the mirror is corrupt or
+   incomplete**: fused tables, missing rows, scrambled cells, figures or
+   equations the mirror dropped, identifiers split beyond repair. Record every
+   place the PDF was consulted in the PR text.
+3. **Figures come from the `_artifacts` PNG.** Copy the artifact into the
+   article directory under its final name (`Figure_<n>.png` /
+   `Diagram_<slug>.png`) only after checking it is clean — artifacts can be
+   fused with body text just like hand crops.
+4. **The chapter PDF is the fallback and the caption source.** Crop from it
+   (chapter-local page numbers) whenever an artifact is missing or fused, and
+   read `Figure N.` captions from its text layer — the mirror drops them (see
+   `references/article-format.md` § Figures).
+5. **Structural checks run against the mirror headings** (`## NN.<section>`)
+   instead of `doc.get_toc()`; `extract_chapter.py` remains a full-volume tool.
 
 ## Before relying on the file
 
