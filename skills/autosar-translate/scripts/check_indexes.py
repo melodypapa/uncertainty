@@ -7,8 +7,9 @@ structure. Hand-maintained index pages are derived from it:
   docs/index.md                         site home: one bullet per top-level tab
   docs/autosar/index.md                 AUTOSAR hub: links its direct children
                                         (术语表 + the CP and Foundation landings)
-  docs/autosar/cp/index.md              CP overview: full page tree of the CP group
-  docs/autosar/foundation/index.md      Foundation overview: full page tree
+  docs/autosar/cp/index.md              CP overview: content pages of the CP group
+                                        under one ### heading per nav section
+  docs/autosar/foundation/index.md      Foundation overview: same shape
   docs/autosar/<platform>/<section>/index.md
                                         section landing page: its whole branch
 
@@ -19,9 +20,15 @@ It verifies what the strict build cannot:
   2. the AUTOSAR hub links every direct child of the tab (pages and the
      landing page of every nested group);
   3. every other landing page inside the AUTOSAR tab — at any nesting depth —
-     links every page of its nav subtree;
+     links every content page of its nav subtree; nested section landing
+     pages are exempt, except when the nested section has no other page
+     (e.g. cp/template) — then its landing page must be linked;
   4. the site home links every top-level nav tab;
-  5. every internal link on those index pages resolves.
+  5. every internal link on those index pages resolves;
+  6. the CP and Foundation overviews never re-list a nested section's
+     landing page inside `## 文章` — the `###` heading already names the
+     group and the sidebar already routes to the landing page
+     (`navigation.indexes`); sole-page sections (模板) are the exception.
 
 `--titles` additionally audits the `English（中文）` structure of AUTOSAR
 article titles, including empty Chinese halves and nested parentheses, and
@@ -204,6 +211,20 @@ def main() -> int:
     hub = landing_page(tab_branch)
     landings = landings_in(tab_branch) if isinstance(tab_branch, list) else []
     landing_count = len(landings)
+    landing_set = {lp for lp, _ in landings}
+    # Landing pages whose branch holds no other page (cp/template): their
+    # landing page is the section's only entry and must stay linked.
+    sole_landings = {lp for lp, branch in landings if pages_of(branch) == [lp]}
+    # Platform overviews: the landing pages of the tab's direct groups.
+    overviews: list[str] = []
+    if isinstance(tab_branch, list):
+        for item in tab_branch:
+            if isinstance(item, dict):
+                for value in item.values():
+                    if isinstance(value, list):
+                        lp = landing_page(value)
+                        if lp:
+                            overviews.append(lp)
 
     # 2. AUTOSAR hub links every direct child of the tab --------------------
     if hub is not None:
@@ -221,11 +242,15 @@ def main() -> int:
     elif tab_branch is not None:
         failures.append(f"'{TAB_LABEL}' tab has no unlabeled landing page")
 
-    # 3. Every nested landing page links its whole subtree ------------------
+    # 3. Every nested landing page links its content pages ------------------
     for landing, branch in landings:
         page = docs / landing
         index_pages.append(page)
-        expected = [p for p in pages_of(branch) if p != landing]
+        expected = [
+            p
+            for p in pages_of(branch)
+            if p != landing and (p not in landing_set or p in sole_landings)
+        ]
         linked = {rel(docs, p) for p in links_in(page)}
         missing = [p for p in expected if p not in linked]
         if missing:
@@ -234,6 +259,29 @@ def main() -> int:
                     landing, len(missing), ", ".join(missing[:8])
                 )
             )
+
+    # 6. Overviews never re-list nested landing pages in 文章 ----------------
+    for ov in overviews:
+        page = docs / ov
+        if not page.is_file():
+            continue
+        text = page.read_text(encoding="utf-8")
+        m = re.search(r"^## 文章\s*$(.*?)(?=^## )", text, re.S | re.M)
+        if not m:
+            continue
+        for raw in LINK_RE.findall(m.group(1)):
+            if raw.startswith(("http://", "https://", "mailto:", "#")):
+                continue
+            target = resolve(page, raw)
+            try:
+                rp = target.relative_to(docs).as_posix()
+            except ValueError:
+                continue
+            if rp in landing_set and rp != ov and rp not in sole_landings:
+                failures.append(
+                    f"overview page {ov} re-lists nested landing page {rp} "
+                    "in ## 文章 (the ### heading already names the group)"
+                )
 
     # 4. Homepage links every top-level tab --------------------------------
     home = docs / "index.md"
