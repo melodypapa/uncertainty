@@ -530,17 +530,30 @@ changed); `glossary.md` is
    - **Section landing page** (`<target>/cp/<section>/index.md`, or
      `<target>/foundation/<topic>/index.md`) — fixed
      shape: front-matter `title`, one intro paragraph, `## 文章`,
-     `## 相关内容`. `## 文章` lists **every** page of that nav branch in nav
-     order (nested `*` bullets for sub-groups); link text is the target's
+     `## 相关内容`. `## 文章` lists every **content** page of that nav branch
+     in nav order as flat `*` bullets; link text is the target's
      front-matter `title`, never a directory identifier, and it keeps the
      `English（中文）` structure below.
+   - **No category self-links in any index page** (user rule 2026-11-18):
+     a bullet under a category heading must never link that same category's
+     own landing page — the heading already names the group, and the sidebar
+     (`navigation.indexes`) already routes to the landing page, so the
+     repeated link adds nothing. Index pages link **content** pages; a
+     nested section's landing page may appear only when it is that section's
+     **only** page (e.g. `cp/template/index.md` under `### 模板`), where it
+     stays as the section's sole bullet. `## 相关内容` cross-links
+     (child → parent, sibling → sibling) are not affected by this rule.
    - **CP AUTOSAR overview** (`<target>/cp/index.md`) — mirrors the whole
      `CP（经典平台）` nav group: one `###` group per nav section in nav order,
-     each starting with its landing page, every content page appearing
-     exactly once underneath it. `## 相关内容` keeps API 清单 / AUTOSAR 总览 /
+     every content page of that section listed exactly once as a flat `*`
+     bullet beneath its heading — never as children of a landing-page bullet
+     (the group's landing page is not re-listed; see the no-category-self-links
+     rule above). `## 相关内容` keeps API 清单 / AUTOSAR 总览 /
      Foundation / 术语表 / 首页. The Foundation overview
      (`<target>/foundation/index.md`) mirrors the `Foundation（基础标准）`
-     group the same way.
+     group the same way: one `###` group per Foundation category (heading
+     text = the category's `中文（English）` section title), flat content-page
+     bullets beneath it.
    - **AUTOSAR hub** (`<target>/index.md`) — the tab's landing page:
      links the 术语表 and the two platform overviews only (direct children of
      the tab); the platform overviews own the full page trees.
@@ -583,8 +596,11 @@ changed); `glossary.md` is
    - Mechanical check: `python
      <path-to>/autosar-translate/scripts/check_indexes.py` — exit 0
      means every nav target exists, the overview and every section landing
-     page link their full branch, the home links every tab, and no index link
-     is broken. Add `--titles` to audit the `English（中文）` structure of
+     page link every content page of their branch (nested landing pages
+     exempt unless they are their section's only page), the CP and Foundation
+     overviews never re-list a nested section's landing page inside `## 文章`,
+     the home links every tab, and no index link is broken. Add `--titles` to
+     audit the `English（中文）` structure of
      article titles, including empty halves and reversed order (report-only;
      semantic equivalence must be checked against the source).
 
